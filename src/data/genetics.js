@@ -376,10 +376,18 @@ export function randomGenome() {
   return genome;
 }
 
-export function createFish({ genome = null, stage = 'adult', parentIds = [], tankId = 'tank_0' } = {}) {
-  const resolvedGenome = genome || randomGenome();
-  const phenotype = computePhenotype(resolvedGenome);
-  const species = getSpeciesFromPhenotype(phenotype);
+export function createFish({ genome = null, stage = 'adult', parentIds = [], tankId = 'tank_0', targetRarity = null } = {}) {
+  let resolvedGenome = genome || randomGenome();
+  let phenotype = computePhenotype(resolvedGenome);
+  let species = getSpeciesFromPhenotype(phenotype);
+  // Retry up to 20 times to hit the target rarity tier (used by shop purchases)
+  if (targetRarity && !genome) {
+    for (let i = 0; i < 20 && species.rarity !== targetRarity; i++) {
+      resolvedGenome = randomGenome();
+      phenotype = computePhenotype(resolvedGenome);
+      species = getSpeciesFromPhenotype(phenotype);
+    }
+  }
   const now = Date.now();
   return {
     id: crypto.randomUUID(),

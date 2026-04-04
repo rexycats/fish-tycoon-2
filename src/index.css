@@ -3301,3 +3301,386 @@ body {
   font-style: italic;
 }
 
+
+/* ============================================================
+   PHASE 11 — PSEUDO-3D VISUAL OVERHAUL
+   Steps 2–6: Depth Layers, Water Effects, Glass Shell,
+               UI Polish, Fish Animation
+   ============================================================ */
+
+/* ── Step 4: Glass Tank Shell ─────────────────────────────── */
+
+/* Outer wrapper gets position:relative so the shell can float on top */
+.tank-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 14px;            /* increased to accommodate bevel frame */
+}
+
+/* The glass shell sits *around* the tank div using absolute positioning */
+.tank-glass-shell {
+  position: absolute;
+  inset: 14px;              /* matches tank-wrapper padding */
+  border-radius: calc(var(--radius) + 4px);
+  pointer-events: none;
+  z-index: 50;
+  /* Frame itself has no background — the bevels + bolts do the work */
+}
+
+/* Thick bevel bars — simulate glass frame thickness */
+.tank-bevel-top, .tank-bevel-bottom,
+.tank-bevel-left, .tank-bevel-right {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Top bevel: bright edge + shadowed inner edge = 3D raised bar */
+.tank-bevel-top {
+  top: 0; left: 0; right: 0; height: 13px;
+  background: linear-gradient(to bottom,
+    rgba(255,255,255,0.18) 0%,
+    rgba(200,220,255,0.10) 40%,
+    rgba(60,100,160,0.22) 75%,
+    rgba(20,40,80,0.30) 100%);
+  border-radius: calc(var(--radius) + 4px) calc(var(--radius) + 4px) 0 0;
+  border-top: 1.5px solid rgba(255,255,255,0.24);
+}
+
+/* Bottom bevel */
+.tank-bevel-bottom {
+  bottom: 0; left: 0; right: 0; height: 13px;
+  background: linear-gradient(to top,
+    rgba(10,20,50,0.55) 0%,
+    rgba(40,70,130,0.25) 50%,
+    rgba(100,150,220,0.10) 100%);
+  border-radius: 0 0 calc(var(--radius) + 4px) calc(var(--radius) + 4px);
+  border-bottom: 1.5px solid rgba(20,40,80,0.50);
+}
+
+/* Left bevel */
+.tank-bevel-left {
+  top: 0; left: 0; bottom: 0; width: 13px;
+  background: linear-gradient(to right,
+    rgba(255,255,255,0.16) 0%,
+    rgba(160,200,255,0.08) 40%,
+    rgba(40,80,150,0.18) 80%,
+    rgba(10,20,50,0.28) 100%);
+  border-radius: calc(var(--radius) + 4px) 0 0 calc(var(--radius) + 4px);
+  border-left: 1.5px solid rgba(255,255,255,0.20);
+}
+
+/* Right bevel */
+.tank-bevel-right {
+  top: 0; right: 0; bottom: 0; width: 13px;
+  background: linear-gradient(to left,
+    rgba(10,20,50,0.40) 0%,
+    rgba(30,60,120,0.20) 50%,
+    rgba(80,120,200,0.08) 100%);
+  border-radius: 0 calc(var(--radius) + 4px) calc(var(--radius) + 4px) 0;
+  border-right: 1.5px solid rgba(10,20,60,0.45);
+}
+
+/* Corner bolts — small metallic circles */
+.tank-bolt {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%,
+    #d8e8f8 0%,
+    #8090a8 40%,
+    #3a4860 70%,
+    #1a2438 100%);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,0.55),
+    inset 0 1px 1px rgba(255,255,255,0.35);
+  z-index: 55;
+}
+
+/* Diagonal glass shimmer — semi-transparent band across the face */
+.tank-glass-shimmer {
+  position: absolute;
+  inset: 0;
+  border-radius: calc(var(--radius) + 4px);
+  background: linear-gradient(
+    128deg,
+    rgba(255,255,255,0.00)  0%,
+    rgba(255,255,255,0.00) 32%,
+    rgba(255,255,255,0.05) 38%,
+    rgba(255,255,255,0.09) 42%,
+    rgba(255,255,255,0.04) 46%,
+    rgba(255,255,255,0.00) 52%,
+    rgba(255,255,255,0.00) 100%
+  );
+  pointer-events: none;
+}
+
+/* Tank now has slightly thinner border because the shell bevel acts as frame */
+.tank {
+  border: 1.5px solid rgba(30,60,120,0.45);
+  box-shadow:
+    inset 0 0 80px rgba(0,0,0,0.50),
+    inset 0 -30px 60px rgba(0,0,0,0.28),
+    /* Step 4: tank shadow on the page */
+    0 8px 40px rgba(0,0,0,0.65),
+    0 16px 60px rgba(0,0,0,0.35),
+    0 0 40px rgba(20,80,160,0.20);
+}
+
+/* Right-side glass sheen */
+.tank-glass-right {
+  position: absolute; top: 0; right: 0; width: 16px; height: 100%;
+  background: linear-gradient(to left, rgba(255,255,255,0.04), transparent);
+  pointer-events: none; z-index: 20;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* Bottom fade — glass thickness illusion at floor */
+.tank-glass-bottom-fade {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 14px;
+  background: linear-gradient(to top, rgba(0,0,0,0.28), transparent);
+  pointer-events: none; z-index: 20;
+}
+
+/* ── Step 3: Water depth gradient bottom darkening ─────────── */
+.tank-depth-bottom {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 38%;
+  background: linear-gradient(to top,
+    rgba(0,0,18,0.42) 0%,
+    rgba(0,0,12,0.20) 50%,
+    transparent 100%);
+  pointer-events: none; z-index: 2;
+}
+
+/* ── Step 3: Surface ripple ─────────────────────────────────── */
+.surface-ripple {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(180,220,255,0.22) 20%,
+    rgba(220,240,255,0.32) 35%,
+    rgba(255,255,255,0.18) 50%,
+    rgba(200,230,255,0.28) 65%,
+    rgba(180,220,255,0.14) 80%,
+    transparent 100%);
+  pointer-events: none; z-index: 22;
+  animation: rippleSurface 6s ease-in-out infinite;
+  transform-origin: center;
+}
+.surface-ripple-2 {
+  height: 2.5px;
+  top: 4px;
+  opacity: 0.55;
+  animation: rippleSurface 4.5s ease-in-out infinite 1.8s;
+}
+.surface-ripple-3 {
+  height: 1.5px;
+  top: 7px;
+  opacity: 0.30;
+  animation: rippleSurface 7.5s ease-in-out infinite 3.3s;
+}
+@keyframes rippleSurface {
+  0%  { transform: scaleX(0.92) translateX(-3%); opacity: 0.5; }
+  30% { opacity: 1; }
+  60% { transform: scaleX(1.06) translateX(3%); opacity: 0.7; }
+  100%{ transform: scaleX(0.92) translateX(-3%); opacity: 0.5; }
+}
+
+/* ── Step 3: Enhanced caustics ─────────────────────────────── */
+/* Layer 1: geometric pattern caustics on floor area */
+.caustics-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 32%;
+  background:
+    radial-gradient(ellipse 18px 8px at 20% 80%, rgba(180,220,255,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 22px 10px at 55% 70%, rgba(160,210,255,0.09) 0%, transparent 70%),
+    radial-gradient(ellipse 14px 6px at 78% 85%, rgba(200,230,255,0.11) 0%, transparent 70%),
+    radial-gradient(ellipse 20px 9px at 38% 90%, rgba(170,215,255,0.10) 0%, transparent 70%),
+    radial-gradient(ellipse 16px 7px at 88% 75%, rgba(185,225,255,0.08) 0%, transparent 70%);
+  animation: causticFloor 5s ease-in-out infinite;
+  pointer-events: none; z-index: 4;
+}
+.caustics-2 {
+  height: 28%;
+  animation: causticFloor2 7s ease-in-out infinite 2.5s;
+  opacity: 0.70;
+  background:
+    radial-gradient(ellipse 12px 5px at 32% 82%, rgba(200,235,255,0.13) 0%, transparent 70%),
+    radial-gradient(ellipse 24px 11px at 65% 78%, rgba(175,218,255,0.10) 0%, transparent 70%),
+    radial-gradient(ellipse 18px 8px at 12% 88%, rgba(190,228,255,0.09) 0%, transparent 70%),
+    radial-gradient(ellipse 15px 6px at 92% 80%, rgba(180,222,255,0.11) 0%, transparent 70%);
+}
+@keyframes causticFloor {
+  0%   { background-position: 0% 0%; opacity: 0.6; }
+  33%  { opacity: 0.9; }
+  66%  { background-position: 30px -10px; opacity: 0.7; }
+  100% { background-position: 0% 0%; opacity: 0.6; }
+}
+@keyframes causticFloor2 {
+  0%   { background-position: 0% 0%; opacity: 0.5; transform: scaleX(1); }
+  50%  { background-position: -25px 8px; opacity: 0.85; transform: scaleX(1.03); }
+  100% { background-position: 0% 0%; opacity: 0.5; transform: scaleX(1); }
+}
+
+/* Additional ray — 6th light ray */
+.ray-5 { left: 60%; width: 20px; animation-delay: 4.0s; opacity: 0.6; }
+
+/* ── Step 6: Fish Animation Polish ─────────────────────────── */
+
+/* Swimming: gentle lateral body undulation */
+@keyframes fishUndulate {
+  0%   { transform: skewX(0deg)    scaleY(1.000); }
+  18%  { transform: skewX(1.8deg)  scaleY(0.988); }
+  36%  { transform: skewX(0deg)    scaleY(1.000); }
+  54%  { transform: skewX(-1.8deg) scaleY(0.988); }
+  72%  { transform: skewX(0deg)    scaleY(1.000); }
+  100% { transform: skewX(0deg)    scaleY(1.000); }
+}
+
+/* Idle: gentle hover bob */
+@keyframes fishIdleBob {
+  0%,100% { transform: translateY(0px)    scaleX(1.00) scaleY(1.00); }
+  25%     { transform: translateY(-3.5px) scaleX(1.01) scaleY(0.99); }
+  50%     { transform: translateY(0px)    scaleX(1.00) scaleY(1.00); }
+  75%     { transform: translateY(2.5px)  scaleX(0.99) scaleY(1.01); }
+}
+
+/* Note: animation is applied to the inner .fish-anim-inner wrapper so the outer
+   .fish-container's JS rotate(tilt) transform is never overridden by CSS keyframes. */
+.fish-anim-inner {
+  display: contents; /* pass-through by default; overridden below when animating */
+}
+.fish-anim-inner.fish-swimming {
+  display: block;
+  animation: fishUndulate 1.4s ease-in-out infinite;
+}
+.fish-anim-inner.fish-idle {
+  display: block;
+  animation: fishIdleBob 3.2s ease-in-out infinite;
+}
+
+/* Override: selected fish stops undulate animation so selection ring stays stable */
+.fish-container.selected .fish-anim-inner {
+  animation: none;
+}
+
+/* Fish container: remove the old bare transition so JS tilt works cleanly */
+.fish-container {
+  transition: opacity 0.3s, filter 0.2s;
+}
+
+/* ── Step 2: Depth layer visual cues ─────────────────────────── */
+/* Back layer (0): blur + saturation/brightness applied fully inline from TankView JS */
+.fish-container.depth-layer-0 {
+  /* intentionally empty — all filter values set inline so they compose correctly */
+}
+.fish-container.depth-layer-0.selected {
+  filter: saturate(0.88) brightness(1.0) drop-shadow(0 0 8px rgba(240,192,64,0.6));
+}
+
+/* Front layer (2): slightly enhanced clarity + contrast */
+.fish-container.depth-layer-2 {
+  filter: saturate(1.08) contrast(1.05);
+}
+.fish-container.depth-layer-2.selected {
+  filter: saturate(1.08) contrast(1.05) drop-shadow(0 0 8px rgba(240,192,64,0.6));
+}
+
+/* ── Step 5: UI Panels Polish ─────────────────────────────────── */
+
+/* Cards — subtle 3D lift with perspective */
+.panel-card,
+.fish-card,
+.fdex-stats,
+.fdex-entry,
+.shop-slot,
+.breeding-slot,
+.fish-list-item {
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.30),
+    0 4px 12px rgba(0,0,0,0.20),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+.panel-card:hover,
+.fish-card:hover,
+.fish-list-item:hover {
+  box-shadow:
+    0 4px 8px rgba(0,0,0,0.38),
+    0 8px 20px rgba(0,0,0,0.28),
+    inset 0 1px 0 rgba(255,255,255,0.09);
+  transform: translateY(-1px);
+}
+
+/* Buttons — depth with pressed-in effect on click */
+button, .btn, .action-btn, .tab-btn {
+  position: relative;
+  box-shadow:
+    0 2px 0 rgba(0,0,0,0.35),
+    0 3px 6px rgba(0,0,0,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+  transition: box-shadow 0.10s, transform 0.10s, background 0.15s;
+}
+button:active, .btn:active, .action-btn:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 0 0 rgba(0,0,0,0.35),
+    inset 0 2px 4px rgba(0,0,0,0.30);
+}
+
+/* HUD stats — embossed look */
+.hud-stat {
+  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 100%);
+  border: 1px solid rgba(60,100,160,0.30);
+  border-radius: 8px;
+  padding: 4px 10px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.07),
+    inset 0 -1px 0 rgba(0,0,0,0.20),
+    0 1px 3px rgba(0,0,0,0.30);
+}
+.hud-stat-val {
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.45),
+    0 0 8px rgba(200,220,255,0.18);
+}
+.hud-title {
+  text-shadow:
+    0 0 12px rgba(212,168,48,0.35),
+    0 1px 2px rgba(0,0,0,0.50);
+}
+
+/* Tab bar — beveled active state */
+.tab-btn.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+  background: linear-gradient(to bottom, rgba(212,168,48,0.08) 0%, transparent 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(212,168,48,0.15),
+    inset 0 -3px 0 var(--gold);
+  text-shadow: 0 0 10px rgba(212,168,48,0.45);
+}
+.tab-btn:not(.active) {
+  box-shadow: none;
+}
+.tab-btn:hover:not(.active) {
+  background: rgba(255,255,255,0.04);
+  box-shadow: inset 0 -2px 0 rgba(255,255,255,0.08);
+}
+
+/* Side panel refinement */
+.side-col {
+  background: linear-gradient(to bottom,
+    rgba(10,22,40,0.92) 0%,
+    rgba(8,18,35,0.96) 100%);
+  box-shadow: inset 2px 0 8px rgba(0,0,0,0.30);
+}
+
+/* ── Glow badge for epic fish ─────────────────────────────────── */
+@keyframes fishGlow {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(255,255,160,0.45)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(255,255,160,0.85)); }
+}
+

@@ -1,5 +1,5 @@
 // ============================================================
-// FISH TYCOON 2 — TANK VIEW (Phase 7: Day/Night Cycle)
+// FISH TYCOON 2 — TANK VIEW (Phase 11: Pseudo-3D Visual Overhaul)
 // ============================================================
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -10,6 +10,12 @@ const SWIM_SPEED  = 0.018;
 const BOB_AMP     = 0.025;
 const BOB_FREQ    = 0.018;
 const TURN_CHANCE = 0.0018;
+
+const DEPTH_LAYERS = [
+  { scale: 0.62, opacity: 0.52, z: 7,  blur: 0.7 },
+  { scale: 1.00, opacity: 0.85, z: 10, blur: 0   },
+  { scale: 1.22, opacity: 1.00, z: 13, blur: 0   },
+];
 
 function getDayPhase() {
   const h = new Date().getHours() + new Date().getMinutes() / 60;
@@ -35,6 +41,13 @@ const STARS = Array.from({ length: 12 }, (_, i) => ({
   delay: (i * 0.3) % 2,
 }));
 
+const CORNER_BOLTS = [
+  { corner: 'tl', style: { top: 7, left: 7 } },
+  { corner: 'tr', style: { top: 7, right: 7 } },
+  { corner: 'bl', style: { bottom: 7, left: 7 } },
+  { corner: 'br', style: { bottom: 7, right: 7 } },
+];
+
 export default function TankView({ fish, selectedFishId, onSelectFish, waterQuality, tank }) {
   const [positions, setPositions] = useState(() =>
     Object.fromEntries(fish.map(f => [f.id, {
@@ -44,6 +57,10 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
       vy: 0,
       flipped: Math.random() > 0.5,
       phase: Math.random() * Math.PI * 2,
+      depthLayer: Math.floor(Math.random() * 3),
+      tilt: 0,
+      isIdle: false,
+      idleTimer: Math.floor(Math.random() * 200),
     }]))
   );
 
@@ -65,6 +82,8 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
             y: 20 + Math.random() * 55,
             vx: (Math.random() > 0.5 ? 1 : -1) * (0.15 + Math.random() * 0.2),
             vy: 0, flipped: false, phase: Math.random() * Math.PI * 2,
+            depthLayer: Math.floor(Math.random() * 3),
+            tilt: 0, isIdle: false, idleTimer: 60,
           };
         }
       }
@@ -84,9 +103,24 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
       setPositions(prev => {
         const next = { ...prev };
         for (const [id, pos] of Object.entries(next)) {
-          let { x, y, vx, vy, phase, flipped } = pos;
-          x += vx * SWIM_SPEED * 60;
-          y += Math.sin(phase + t * BOB_FREQ) * BOB_AMP;
+          let { x, y, vx, vy, phase, flipped, depthLayer, tilt, isIdle, idleTimer } = pos;
+
+          idleTimer = (idleTimer || 0) - 1;
+          if (idleTimer <= 0) {
+            isIdle = Math.random() < 0.12;
+            idleTimer = 100 + Math.floor(Math.random() * 280);
+          }
+
+          if (!isIdle) {
+            x += vx * SWIM_SPEED * 60;
+            y += Math.sin(phase + t * BOB_FREQ) * BOB_AMP;
+            const targetTilt = Math.max(-11, Math.min(11, vx * 16));
+            tilt = tilt + (targetTilt - tilt) * 0.05;
+          } else {
+            y += Math.sin(phase + t * BOB_FREQ * 0.35) * BOB_AMP * 0.45;
+            tilt = tilt * 0.94;
+          }
+
           if (x > 90) { vx = -Math.abs(vx) * (0.9 + Math.random() * 0.2); flipped = true;  x = 90; }
           if (x < 5)  { vx =  Math.abs(vx) * (0.9 + Math.random() * 0.2); flipped = false; x = 5;  }
           if (y > 80) { vy = -Math.abs(vy); y = 80; }
@@ -97,7 +131,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
             if (Math.abs(vx) < 0.05) vx = 0.15;
             flipped = vx < 0;
           }
-          next[id] = { x, y, vx, vy, phase, flipped };
+          next[id] = { x, y, vx, vy, phase, flipped, depthLayer, tilt, isIdle, idleTimer };
         }
         return next;
       });
@@ -111,24 +145,52 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   const waterR = Math.round(wq > 60 ? 14  : wq > 30 ? 30  : 60);
   const waterG = Math.round(wq > 60 ? 62  : wq > 30 ? 78  : 72);
   const waterB = Math.round(wq > 60 ? 148 : wq > 30 ? 110 : 60);
-  const waterBg = `radial-gradient(ellipse at 50% 0%, rgba(${waterR+20},${waterG+20},${waterB+20},0.95) 0%, rgba(${waterR},${waterG},${waterB},0.98) 60%, rgba(${Math.max(0,waterR-10)},${Math.max(0,waterG-10)},${Math.max(0,waterB-20)},1) 100%)`;
+  const waterBg = `linear-gradient(to bottom, rgba(${waterR+32},${waterG+32},${waterB+32},0.90) 0%, rgba(${waterR+14},${waterG+14},${waterB+10},0.96) 40%, rgba(${waterR},${waterG},${waterB},0.99) 72%, rgba(${Math.max(0,waterR-20)},${Math.max(0,waterG-18)},${Math.max(0,waterB-30)},1) 100%)`;
   const ps = DAY_PHASE_STYLES[dayPhase.phase];
+
+  const sortedFish = [...fish].sort((a, b) => {
+    const la = positions[a.id]?.depthLayer ?? 1;
+    const lb = positions[b.id]?.depthLayer ?? 1;
+    return la - lb;
+  });
 
   return (
     <div className="tank-wrapper">
       <div className="day-phase-badge">{dayPhase.label}</div>
+
+      {/* ── Step 4: Glass Tank Shell with corner bolts ── */}
+      <div className="tank-glass-shell">
+        {CORNER_BOLTS.map(({ corner, style }) => (
+          <div key={corner} className={`tank-bolt tank-bolt-${corner}`} style={style}/>
+        ))}
+        <div className="tank-bevel-top"/>
+        <div className="tank-bevel-bottom"/>
+        <div className="tank-bevel-left"/>
+        <div className="tank-bevel-right"/>
+        <div className="tank-glass-shimmer"/>
+      </div>
+
       <div className="tank" style={{ background: waterBg }}>
 
-        <div className="tank-depth-far" />
-        <div className="tank-depth-mid" />
+        <div className="tank-depth-far"/>
+        <div className="tank-depth-mid"/>
+        {/* Step 3: Depth darkening at bottom */}
+        <div className="tank-depth-bottom"/>
 
+        {/* Step 3: Light rays */}
         <div className="light-rays" style={{ opacity: ps.rayOpacity }}>
-          {[0,1,2,3,4].map(i => <div key={i} className={`ray ray-${i}`}/>)}
+          {[0,1,2,3,4,5].map(i => <div key={i} className={`ray ray-${i}`}/>)}
         </div>
 
-        <div className="caustics-overlay"/>
+        {/* Step 3: Animated surface ripple */}
+        <div className="surface-ripple"/>
+        <div className="surface-ripple surface-ripple-2"/>
+        <div className="surface-ripple surface-ripple-3"/>
 
-        {/* Night stars */}
+        {/* Step 3: Caustics — animated light dapples on floor */}
+        <div className="caustics-overlay"/>
+        <div className="caustics-overlay caustics-2"/>
+
         {ps.starCount > 0 && (
           <svg className="night-stars" viewBox="0 0 100 30" preserveAspectRatio="none">
             {STARS.slice(0, ps.starCount).map((s, i) => (
@@ -138,15 +200,21 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           </svg>
         )}
 
+        {/* Background SVG (far parallax layer) */}
         <svg className="tank-bg-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax slice">
-          {/* Celestial body */}
           {(dayPhase.phase === 'night' || dayPhase.phase === 'evening')
             ? <circle cx="700" cy="40" r="22" fill="rgba(255,245,200,0.18)" />
             : dayPhase.phase === 'day'
               ? <circle cx="700" cy="35" r="28" fill="rgba(255,240,150,0.12)" />
               : <ellipse cx="700" cy="40" rx="30" ry="18" fill="rgba(255,160,60,0.14)" />
           }
-          {/* Castle ruin */}
+          {/* Step 2: far-back rock silhouettes */}
+          <g opacity="0.13" fill="#0c1c36">
+            <ellipse cx="140" cy="392" rx="115" ry="38"/>
+            <ellipse cx="470" cy="394" rx="135" ry="32"/>
+            <path d="M0,400 Q35,345 75,378 Q115,332 160,368 Q200,342 245,382 L245,400 Z"/>
+            <path d="M555,400 Q595,348 638,378 Q678,338 718,362 Q758,348 800,372 L800,400 Z"/>
+          </g>
           <g opacity="0.28" fill="#1a2840">
             <rect x="560" y="210" width="60" height="120"/>
             <rect x="555" y="200" width="10" height="25"/>
@@ -171,15 +239,34 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           <ellipse cx="100" cy="390" rx="70" ry="30" fill="#1a3050" opacity="0.3"/>
           <ellipse cx="300" cy="395" rx="90" ry="25" fill="#152840" opacity="0.25"/>
           <ellipse cx="650" cy="390" rx="80" ry="28" fill="#1a3050" opacity="0.28"/>
+          {/* Step 2: Mid-ground coral silhouettes */}
+          <g opacity="0.30" fill="#162848">
+            <path d="M28,400 Q43,358 33,318 Q48,288 38,258 Q53,278 48,318 Q58,358 73,400 Z"/>
+            <path d="M348,400 Q368,378 358,348 Q378,323 363,298 Q383,318 373,353 Q388,373 398,400 Z"/>
+          </g>
         </svg>
 
+        {/* Foreground SVG */}
         <svg className="tank-fg-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax slice">
-          <ellipse cx="400" cy="420" rx="450" ry="55" fill="#8a6830"/>
-          <ellipse cx="400" cy="415" rx="440" ry="42" fill="#a07840"/>
-          <ellipse cx="400" cy="410" rx="420" ry="30" fill="#b88a50"/>
-          {[60,130,200,280,360,440,520,600,680,740].map((x,i) => (
-            <ellipse key={i} cx={x} cy={404+((i%3)*3)} rx={8+i%5} ry={5+i%3}
-                     fill={['#906030','#a07040','#c09060','#786028'][i%4]} opacity="0.9"/>
+          {/* Step 2: Sandy bottom with 3D bump shading */}
+          <ellipse cx="400" cy="432" rx="490" ry="62" fill="#6a4820" opacity="0.45"/>
+          <ellipse cx="400" cy="422" rx="465" ry="55" fill="#7a5828"/>
+          <ellipse cx="400" cy="416" rx="452" ry="46" fill="#8a6830"/>
+          <ellipse cx="400" cy="411" rx="440" ry="38" fill="#9a7840"/>
+          <ellipse cx="400" cy="406" rx="428" ry="28" fill="#aa8848"/>
+          <ellipse cx="400" cy="402" rx="415" ry="20" fill="#be9a58"/>
+          {/* Sandy top highlight — 3D bump from above */}
+          <ellipse cx="370" cy="400" rx="290" ry="12" fill="#d0ac68" opacity="0.50"/>
+          <ellipse cx="330" cy="399" rx="170" ry="7"  fill="#deba76" opacity="0.28"/>
+          {/* Sand ripples */}
+          {[55,118,182,248,315,385,455,525,595,658,718].map((x,i) => (
+            <ellipse key={i} cx={x+(i%3)*4} cy={406+(i%4)*2} rx={9+i%7} ry={3+(i%3)*0.7}
+              fill={['#b09050','#c09860','#cfa060','#9e7c38','#a88040'][i%5]} opacity="0.70"/>
+          ))}
+          {Array.from({length:16},(_, i)=>(
+            <circle key={i} cx={48+i*47+(i%3)*6} cy={405+(i%4)*3}
+              r={0.8+(i%3)*0.5}
+              fill={['#ba9052','#cca858','#c29655'][i%3]} opacity="0.48"/>
           ))}
           <g transform="translate(80,320)">
             <ellipse cx="0" cy="60" rx="32" ry="22" fill="#c06840"/>
@@ -226,13 +313,13 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           </g>
           <ellipse cx="250" cy="400" rx="28" ry="16" fill="#506070"/>
           <ellipse cx="255" cy="396" rx="24" ry="12" fill="#607080"/>
+          <ellipse cx="248" cy="393" rx="11"  ry="4"  fill="#788898" opacity="0.38"/>
           <ellipse cx="500" cy="402" rx="20" ry="12" fill="#485868"/>
           <ellipse cx="505" cy="398" rx="16" ry="9"  fill="#586878"/>
+          <ellipse cx="500" cy="395" rx="8"  ry="3.5" fill="#6a7a8a" opacity="0.38"/>
           <circle cx="82"  cy="310" r="3"   fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" className="deco-bubble deco-b1"/>
           <circle cx="390" cy="340" r="2.5" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1" className="deco-bubble deco-b2"/>
           <circle cx="672" cy="370" r="2"   fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1" className="deco-bubble deco-b3"/>
-
-          {/* ── User-placed decorations ── */}
           {(tank?.decorations?.placed || []).map(item => {
             const decor = getDecorById(item.type);
             if (!decor) return null;
@@ -248,20 +335,39 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           {[0,1,2,3,4,5,6,7].map(i => <div key={i} className={`bubble bubble-${i}`}/>)}
         </div>
 
-        {/* Day/Night overlay */}
         <div className="day-night-overlay" style={{ background: ps.overlay }}/>
 
-        {/* Fish */}
-        {fish.map(f => {
-          const pos = positions[f.id] || { x: f.x??50, y: f.y??40, flipped: false };
+        {/* Step 2 & 6: Fish rendered sorted by depth, with tilt + animation */}
+        {sortedFish.map(f => {
+          const pos = positions[f.id] || { x: f.x??50, y: f.y??40, flipped: false, depthLayer: 1, tilt: 0, isIdle: false };
           const isSelected = f.id === selectedFishId;
-          const spriteSize = f.phenotype?.size === 'Giant' ? 76 : f.stage === 'egg' ? 36 : 54;
+          const layer = DEPTH_LAYERS[pos.depthLayer ?? 1];
+          const baseSize = f.phenotype?.size === 'Giant' ? 76 : f.stage === 'egg' ? 36 : 54;
+          const spriteSize = Math.round(baseSize * layer.scale);
+          const tiltAngle = pos.flipped ? -(pos.tilt || 0) : (pos.tilt || 0);
+          const animClass = pos.isIdle ? 'fish-idle' : 'fish-swimming';
+          const depthLayer = pos.depthLayer ?? 1;
+          // Build depth filter inline so it overrides nothing and composes cleanly
+          let depthFilter = '';
+          if (depthLayer === 0) depthFilter = 'saturate(0.72) brightness(0.88) blur(0.7px) ';
+          else if (layer.blur > 0) depthFilter = `blur(${layer.blur}px) `;
+          const glowStr = isSelected ? 'drop-shadow(0 0 8px rgba(240,192,64,0.6))' : '';
+
           return (
             <div key={f.id}
-              className={`fish-container ${isSelected ? 'selected' : ''}`}
-              style={{ left:`${pos.x}%`, top:`${pos.y}%` }}
+              className={`fish-container ${isSelected ? 'selected' : ''} depth-layer-${depthLayer}`}
+              style={{
+                left: `${pos.x}%`,
+                top:  `${pos.y}%`,
+                opacity: layer.opacity,
+                zIndex:  isSelected ? 30 : layer.z,
+                filter: (depthFilter + glowStr).trim() || undefined,
+                transform: `translate(-50%, -50%) rotate(${tiltAngle}deg)`,
+              }}
               onClick={() => onSelectFish(f.id === selectedFishId ? null : f.id)}>
-              <FishSprite fish={f} size={spriteSize} flipped={pos.flipped} selected={isSelected}/>
+              <div className={`fish-anim-inner ${animClass}`}>
+                <FishSprite fish={f} size={spriteSize} flipped={pos.flipped} selected={isSelected}/>
+              </div>
               {f.stage !== 'adult' && <div className="stage-badge">{f.stage}</div>}
               {f.hunger > 75 && <div className="hunger-indicator">🍽️</div>}
               {f.health < 30  && <div className="sick-indicator">💔</div>}
@@ -281,8 +387,11 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           <div className="dirty-water" style={{ opacity: (40 - wq) / 40 * 0.45 }}/>
         )}
 
+        {/* Step 4: Glass reflections */}
         <div className="tank-glass-left"/>
+        <div className="tank-glass-right"/>
         <div className="tank-glass-top"/>
+        <div className="tank-glass-bottom-fade"/>
       </div>
     </div>
   );

@@ -121,6 +121,9 @@ export function createDefaultState() {
       eggReady: false,
       breedingStartedAt: null,
       breedingDurationMs: 30_000,
+      storedGenomeA: null,
+      storedGenomeB: null,
+      storedTankId: null,
     },
 
     log: [
@@ -169,13 +172,30 @@ function migrateSave(parsed) {
   if (!parsed.shop?.fishPrices) {
     parsed.shop = { ...parsed.shop, fishPrices: {} };
   }
+  // Ensure breedingTank has storedGenome fields (added in phase 11 bugfix)
+  if (parsed.breedingTank && parsed.breedingTank.storedGenomeA === undefined) {
+    parsed.breedingTank = {
+      storedGenomeA: null,
+      storedGenomeB: null,
+      storedTankId: null,
+      ...parsed.breedingTank,
+    };
+  }
   parsed.version = SAVE_VERSION;
   return parsed;
 }
 
 export function saveGame(state) {
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify({ ...state, lastSavedAt: Date.now() }));
+    // Strip transient _fishId fields from autopsies before saving
+    const cleanState = {
+      ...state,
+      player: {
+        ...state.player,
+        autopsies: (state.player.autopsies || []).map(({ _fishId, ...rest }) => rest),
+      },
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ ...cleanState, lastSavedAt: Date.now() }));
     return true;
   } catch (e) { console.error('Save failed:', e); return false; }
 }
@@ -247,6 +267,12 @@ export function checkAchievements(state, messages) {
 
   const upgrades = shop.upgrades || {};
   if (Object.values(upgrades).some(u => u.level >= 3)) award('upgrade_max');
+
+  // survived_night: all fish alive and it is currently between 11pm and 6am
+  if (fish.length > 0 && fish.every(f => (f.health || 0) > 0)) {
+    const hour = new Date().getHours();
+    if (hour >= 23 || hour < 6) award('survived_night');
+  }
 
   if (newAchievements.length === 0) return state;
   return { ...state, player: { ...player, achievements: [...player.achievements, ...newAchievements] } };

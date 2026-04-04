@@ -163,7 +163,7 @@ function SupplyCard({ name, emoji, stock, cost, amount, coins, desc, onBuy }) {
 }
 
 // ── Main Shop component ────────────────────────────────────
-export default function Shop({ game, onToggleSell, onSetPrice, onBuyUpgrade, onBuySupply }) {
+export default function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuySupply, onBuyFish }) {
   const [shopTab, setShopTab] = useState('sell');
   const [activeCustomer, setActiveCustomer] = useState(null);
   const prevSalesLen = useRef((game.shop.salesHistory || []).length);
@@ -184,7 +184,8 @@ export default function Shop({ game, onToggleSell, onSetPrice, onBuyUpgrade, onB
     return () => clearTimeout(customerTimer.current);
   }, [game.shop.salesHistory?.length]);
 
-  const { shop, fish, player, tank } = game;
+  const { shop, fish, player } = game;
+  const tank = activeTank || game.tanks?.[0];
   const listedFish    = shop.listedFish.map(id => fish.find(f => f.id === id)).filter(Boolean);
   const availableFish = fish.filter(f => f.stage === 'adult' && !shop.listedFish.includes(f.id));
 
@@ -346,12 +347,23 @@ export default function Shop({ game, onToggleSell, onSetPrice, onBuyUpgrade, onB
       {shopTab === 'supplies' && (
         <div className="supplies-panel">
           <p className="upgrade-hint">Buy supplies to keep your fish healthy and your water clean.</p>
+          {!tank ? (
+            <p className="fish-list-empty">No tank selected.</p>
+          ) : (
+            <div className="supplies-grid">
+              <SupplyCard name="Fish Food"        emoji="🍤" stock={tank.supplies?.food ?? 0}               cost={10} amount={10} coins={player.coins} desc="Reduces hunger for all fish"           onBuy={() => onBuySupply('food',          10, 10)} />
+              <SupplyCard name="Water Treatment"  emoji="🧪" stock={tank.supplies?.waterTreatment ?? 0}     cost={25} amount={3}  coins={player.coins} desc="Restore water quality by 35%"         onBuy={() => onBuySupply('waterTreatment', 25, 3)} />
+              <SupplyCard name="Medicine"         emoji="💊" stock={tank.supplies?.medicine ?? 0}           cost={40} amount={2}  coins={player.coins} desc="Restores sick fish to full health"     onBuy={() => onBuySupply('medicine',       40, 2)} />
+              <SupplyCard name="Breeding Boost"   emoji="💉" stock={tank.supplies?.breedingBoost ?? 0}      cost={60} amount={1}  coins={player.coins} desc="Next breeding takes only 10 seconds"  onBuy={() => onBuySupply('breedingBoost',  60, 1)} />
+              <SupplyCard name="Heater Cartridge" emoji="🌡" stock={tank.supplies?.heater ?? 0}             cost={30} amount={2}  coins={player.coins} desc="Nudges temperature 4°F toward 74°F"  onBuy={() => onBuySupply('heater',         30, 2)} />
+            </div>
+          )}
+
+          <div className="section-title mt">🐟 Buy Fish</div>
+          <p className="upgrade-hint">Ran out of fish? Purchase a random common fish to get back on your feet.</p>
           <div className="supplies-grid">
-            <SupplyCard name="Fish Food"        emoji="🍤" stock={tank.supplies.food}               cost={10} amount={10} coins={player.coins} desc="Reduces hunger for all fish"            onBuy={() => onBuySupply('food',          10, 10)} />
-            <SupplyCard name="Water Treatment"  emoji="🧪" stock={tank.supplies.waterTreatment}     cost={25} amount={3}  coins={player.coins} desc="Restore water quality by 35%"          onBuy={() => onBuySupply('waterTreatment', 25, 3)} />
-            <SupplyCard name="Medicine"         emoji="💊" stock={tank.supplies.medicine}           cost={40} amount={2}  coins={player.coins} desc="Restores sick fish to full health"      onBuy={() => onBuySupply('medicine',       40, 2)} />
-            <SupplyCard name="Breeding Boost"   emoji="💉" stock={tank.supplies.breedingBoost || 0} cost={60} amount={1}  coins={player.coins} desc="Next breeding takes only 10 seconds"   onBuy={() => onBuySupply('breedingBoost',  60, 1)} />
-            <SupplyCard name="Heater Cartridge" emoji="🌡" stock={tank.supplies.heater || 0}        cost={30} amount={2}  coins={player.coins} desc="Nudges temperature 4°F toward 74°F"   onBuy={() => onBuySupply('heater',         30, 2)} />
+            <SupplyCard name="Common Fish"   emoji="🐟" stock="∞" cost={50}  amount={1} coins={player.coins} desc="A random common fish, added to your active tank"    onBuy={() => onBuyFish(50, 'common')}  />
+            <SupplyCard name="Uncommon Fish" emoji="🐠" stock="∞" cost={150} amount={1} coins={player.coins} desc="A random uncommon fish with better genetics"         onBuy={() => onBuyFish(150, 'uncommon')} />
           </div>
         </div>
       )}

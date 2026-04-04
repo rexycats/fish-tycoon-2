@@ -265,6 +265,7 @@ export function processTick(state) {
       }
       return {
         id: crypto.randomUUID(),
+        _fishId: f.id,
         fishName: f.species.name,
         rarity: f.species.rarity,
         phenotype: f.phenotype,
@@ -292,13 +293,19 @@ export function processTick(state) {
         autopsies: [...(next.player.autopsies || []), ...newAutopsies].slice(0, 20),
       },
     };
-    for (const f of deadFish) messages.push(`💀 ${f.species.name} has died. (Cause: ${newAutopsies.find(a => a.fishName === f.species.name)?.cause || 'Unknown'})`);
+    for (const f of deadFish) messages.push(`💀 ${f.species.name} has died. (Cause: ${newAutopsies.find(a => a._fishId === f.id)?.cause || 'Unknown'})`);
   }
 
   // Breeding tank timer
   const bt = next.breedingTank;
   if (bt.breedingStartedAt && !bt.eggReady) {
-    if (now - bt.breedingStartedAt >= bt.breedingDurationMs) {
+    const bothSlotsEmpty = !bt.slots[0] && !bt.slots[1];
+    const hasGenomes = bt.storedGenomeA && bt.storedGenomeB;
+    if (bothSlotsEmpty && !hasGenomes) {
+      // Parents died AND no stored genomes — cancel breeding
+      next = { ...next, breedingTank: { ...bt, breedingStartedAt: null, slots: [null, null] } };
+      messages.push('💔 Breeding cancelled — both parents are gone.');
+    } else if (now - bt.breedingStartedAt >= bt.breedingDurationMs) {
       next = { ...next, breedingTank: { ...bt, eggReady: true } };
       messages.push('🥚 A breeding egg is ready to collect!');
     }
@@ -360,8 +367,9 @@ function processCustomerVisit(state, messages) {
     const autoPrice = Math.round(f.species.basePrice * (f.health / 100) * happBonus * tankBonus);
     const askPrice  = state.shop.fishPrices?.[id] ?? autoPrice;
     const budget    = Math.round(askPrice * customer.budgetMult);
-    // Customer will only browse fish within their budget range (they may haggle on expensive ones)
-    return budget >= Math.round(askPrice * 0.6);
+    // Only show fish where budget meets at least the walkaway threshold (65% of ask price).
+    // This prevents low-budget customers from even approaching fish they would instantly reject.
+    return budget >= Math.round(askPrice * 0.65);
   });
 
   const fish = pickFishToBuy(listedIds.length > 0 ? listedIds : state.shop.listedFish, state.fish, customer);
@@ -496,15 +504,18 @@ export function applyOfflineProgress(state) {
       const timeAlready = lastTick - stageStart;
       const timeToHatch = GROWTH_STAGES.egg.durationMs * growMult - timeAlready;
       if (remaining >= timeToHatch) {
-        f.stage = 'juvenile'; stageStart = lastTick + timeToHatch;
-        remaining -= timeToHatch; eggsHatched++;
+        f.stage = 'juvenile';
+        remaining -= timeToHatch; // remaining now = time left after hatch, relative to now
+        stageStart = now - remaining;  // stageStartedAt for juvenile = how far into juvenile it already is
+        eggsHatched++;
       }
     }
     if (f.stage === 'juvenile') {
-      const timeAlready = f.stage === 'juvenile' ? (lastTick - stageStart) : 0;
-      const timeToGrow  = GROWTH_STAGES.juvenile.durationMs * growMult - timeAlready;
+      // timeAlready: how long it has already been a juvenile (from stageStart forward to now)
+      const timeAlready = now - stageStart;
+      const timeToGrow  = Math.max(0, GROWTH_STAGES.juvenile.durationMs * growMult - timeAlready);
       if (remaining >= timeToGrow) {
-        f.stage = 'adult'; stageStart = lastTick + timeToGrow; fishedGrown++;
+        f.stage = 'adult'; stageStart = now; fishedGrown++;
       }
     }
     f.stageStartedAt = stageStart;
@@ -512,6 +523,39 @@ export function applyOfflineProgress(state) {
   });
 
   next = { ...next, fish: updatedFish };
+
+  // Remove fish that died offline (health <= 0), clean up shop listings + breeding slots
+  const offlineDeadFish = next.fish.filter(f => f.stage !== 'egg' && f.health <= 0);
+  if (offlineDeadFish.length > 0) {
+    const deadIds = new Set(offlineDeadFish.map(f => f.id));
+    const offlineAutopsies = offlineDeadFish.map(f => {
+      const tank = next.tanks.find(t => t.id === f.tankId);
+      return {
+        id: crypto.randomUUID(),
+        fishName: f.species.name, rarity: f.species.rarity,
+        phenotype: f.phenotype, genome: f.genome,
+        diedAt: now, ageMinutes: Math.floor((f.age || 0) / 60),
+        cause: f.hunger >= 90 ? 'Starvation (offline)' : 'Poor conditions (offline)',
+        detail: 'Fish died while you were away.',
+        tankName: tank?.name || 'Unknown Tank',
+        waterQuality: Math.round(tank?.waterQuality ?? 0),
+        hunger: Math.round(f.hunger || 0), disease: f.disease || null,
+      };
+    });
+    next = {
+      ...next,
+      fish: next.fish.filter(f => !deadIds.has(f.id)),
+      shop: { ...next.shop, listedFish: next.shop.listedFish.filter(id => !deadIds.has(id)) },
+      breedingTank: {
+        ...next.breedingTank,
+        slots: next.breedingTank.slots.map(s => deadIds.has(s) ? null : s),
+      },
+      player: {
+        ...next.player,
+        autopsies: [...(next.player.autopsies || []), ...offlineAutopsies].slice(0, 20),
+      },
+    };
+  }
 
   // Offline customer visits
   const customerInterval = getCustomerInterval(next);

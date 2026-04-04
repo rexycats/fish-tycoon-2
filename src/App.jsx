@@ -19,27 +19,28 @@ import DecorationPanel from './components/DecorationPanel.jsx';
 import FishAutopsyPanel from './components/FishAutopsy.jsx';
 
 export default function App() {
+  // Load once at startup — useRef ensures loadGame() is never called on re-renders
+  const _initSaveRef = useRef(undefined);
+  if (_initSaveRef.current === undefined) _initSaveRef.current = loadGame();
+  const _initSave = _initSaveRef.current;
+
   const [game, setGame] = useState(() => {
-    const saved = loadGame();
-    if (saved) return applyOfflineProgress(saved);
+    if (_initSave) return applyOfflineProgress(_initSave);
     return createDefaultState();
   });
 
   const [selectedFishId, setSelectedFishId]   = useState(null);
   const [activeTab, setActiveTab]               = useState('tank');
-  const [activeTankId, setActiveTankId]         = useState(() => {
-    const saved = loadGame();
-    return saved?.tanks?.[0]?.id ?? 'tank_0';
-  });
-  const [showOffline, setShowOffline] = useState(() => {
-    const saved = loadGame();
-    if (!saved) return false;
-    return Date.now() - (saved.lastTickAt || Date.now()) > 30_000;
-  });
+  const [activeTankId, setActiveTankId]         = useState(
+    _initSave?.tanks?.[0]?.id ?? 'tank_0'
+  );
+  const [showOffline, setShowOffline] = useState(
+    _initSave ? Date.now() - (_initSave.lastTickAt || Date.now()) > 30_000 : false
+  );
   const [soundOn, setSoundOn]           = useState(true);
   const [generatingLoreFor, setGeneratingLoreFor] = useState(null);
   const [aiError, setAiError]           = useState(null);
-  const [showWinModal, setShowWinModal] = useState(true);
+  const [showWinModal, setShowWinModal] = useState(false);
 
   const gameRef = useRef(game);
   gameRef.current = game;
@@ -284,6 +285,23 @@ export default function App() {
     });
   }, [activeTank]);
 
+  const buyFish = useCallback((cost, targetRarity = null) => {
+    setGame(prev => {
+      if (prev.player.coins < cost) { playWarning(); return addLog(prev, `⚠️ Not enough coins! Need 🪙${cost}.`); }
+      const tankId = activeTank?.id || prev.tanks[0]?.id || 'tank_0';
+      const tank   = prev.tanks.find(t => t.id === tankId);
+      const count  = prev.fish.filter(f => f.tankId === tankId).length;
+      if (count >= (tank?.capacity || 12)) { playWarning(); return addLog(prev, '⚠️ Tank is full! Can\'t add more fish.'); }
+      const newFish = createFish({ stage: 'adult', tankId, targetRarity });
+      playCoin();
+      return addLog({
+        ...prev,
+        fish: [...prev.fish, newFish],
+        player: { ...prev.player, coins: prev.player.coins - cost },
+      }, `🐟 Bought a ${newFish.species.name} for 🪙${cost}!`);
+    });
+  }, [activeTank]);
+
   const buyUpgrade = useCallback((upgradeId) => {
     setGame(prev => {
       const upgrades = prev.shop.upgrades || {};
@@ -425,6 +443,7 @@ export default function App() {
       if (!bt.slots[1]) {
         // Find which tank fishA is in; prefer that tank for the egg, else default tank_0
         const fishA   = prev.fish.find(f => f.id === bt.slots[0]);
+        const fishB   = prev.fish.find(f => f.id === fishId);
         const eggTank = fishA?.tankId || 'tank_0';
         const hasBoost = (prev.tanks.find(t => t.id === eggTank)?.supplies?.breedingBoost || 0) > 0;
         const duration  = hasBoost ? 10_000 : bt.breedingDurationMs;
@@ -437,7 +456,18 @@ export default function App() {
         return addLog({
           ...prev,
           tanks: supplies,
-          breedingTank: { ...bt, slots: [bt.slots[0], fishId], breedingStartedAt: Date.now(), eggReady: false, breedingDurationMs: duration },
+          player: { ...prev.player, stats: { ...(prev.player.stats || {}), totalFishBred: (prev.player.stats?.totalFishBred || 0) + 1 } },
+          breedingTank: {
+            ...bt,
+            slots: [bt.slots[0], fishId],
+            breedingStartedAt: Date.now(),
+            eggReady: false,
+            breedingDurationMs: duration,
+            // Store genomes so egg can be collected even if parents are sold
+            storedGenomeA: fishA?.genome ?? null,
+            storedGenomeB: fishB?.genome ?? null,
+            storedTankId: eggTank,
+          },
         }, hasBoost ? '💉 Breeding boost active — 10 seconds!' : '💕 Breeding started!');
       }
       return prev;
@@ -451,13 +481,19 @@ export default function App() {
       const [idA, idB] = bt.slots;
       const fishA = prev.fish.find(f => f.id === idA);
       const fishB = prev.fish.find(f => f.id === idB);
-      if (!fishA || !fishB) return prev;
-      // Egg goes to fishA's tank
-      const eggTankId = fishA.tankId || 'tank_0';
+      // Use stored genomes as fallback — parents may have been sold after breeding started
+      const genomeA = fishA?.genome ?? bt.storedGenomeA;
+      const genomeB = fishB?.genome ?? bt.storedGenomeB;
+      if (!genomeA || !genomeB) {
+        playWarning();
+        return addLog(prev, '⚠️ Cannot collect egg — parent genome data missing.');
+      }
+      // Egg goes to fishA's tank, or first tank if parent was sold
+      const eggTankId = fishA?.tankId ?? bt.storedTankId ?? 'tank_0';
       const eggTank   = prev.tanks.find(t => t.id === eggTankId);
       const tankCount = prev.fish.filter(f => f.tankId === eggTankId).length;
       if (tankCount >= (eggTank?.capacity || 12)) { playWarning(); return addLog(prev, '⚠️ That tank is full! Move fish first.'); }
-      const offspringGenome = breedGenomes(fishA.genome, fishB.genome);
+      const offspringGenome = breedGenomes(genomeA, genomeB);
       const newFish = createFish({ genome: offspringGenome, stage: 'egg', parentIds: [idA, idB], tankId: eggTankId });
       const baseDuration = 30_000 * Math.pow(0.75, (prev.shop.upgrades?.breeding?.level || 0));
       playBreed();
@@ -568,7 +604,7 @@ export default function App() {
           </>
         )}
         {activeTab === 'shop' && (
-          <Shop game={game} onToggleSell={toggleSellFish} onSetPrice={setFishPrice} onBuyUpgrade={buyUpgrade} onBuySupply={(k, c, a) => buySupply(k, c, a, activeTank?.id)} />
+          <Shop game={game} activeTank={activeTank} onToggleSell={toggleSellFish} onSetPrice={setFishPrice} onBuyUpgrade={buyUpgrade} onBuySupply={(k, c, a) => buySupply(k, c, a, activeTank?.id)} onBuyFish={buyFish} />
         )}
         {activeTab === 'breed' && (
           <BreedingLab fish={game.fish} breedingTank={game.breedingTank} onSelectForBreeding={selectForBreeding} onCollectEgg={collectEgg} />
