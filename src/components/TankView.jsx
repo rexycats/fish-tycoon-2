@@ -122,6 +122,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   const positions = posRef.current;
 
   const [dayPhase, setDayPhase] = useState(getDayPhase);
+  const [hoveredFishId, setHoveredFishId] = useState(null);
   const tickRef = useRef(0);
 
   useEffect(() => {
@@ -204,13 +205,16 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
     return () => cancelAnimationFrame(frameId);
   }, []);
 
+  // wq must be declared at component scope — it is used both in the waterBg memo
+  // and directly in JSX (dirty-water overlay). Scoping it inside useMemo would make
+  // it invisible to the render return, causing a ReferenceError when wq < 40.
+  const wq = waterQuality;
   const waterBg = useMemo(() => {
-    const wq = waterQuality;
     const r = Math.round(wq > 60 ? 14  : wq > 30 ? 30  : 60);
     const g = Math.round(wq > 60 ? 62  : wq > 30 ? 78  : 72);
     const b = Math.round(wq > 60 ? 148 : wq > 30 ? 110 : 60);
     return `linear-gradient(to bottom, rgba(${r+32},${g+32},${b+32},0.90) 0%, rgba(${r+14},${g+14},${b+10},0.96) 40%, rgba(${r},${g},${b},0.99) 72%, rgba(${Math.max(0,r-20)},${Math.max(0,g-18)},${Math.max(0,b-30)},1) 100%)`;
-  }, [waterQuality]);
+  }, [wq]);
   const ps = DAY_PHASE_STYLES[dayPhase.phase];
 
   const sortedFish = useMemo(() => [...fish].sort((a, b) => {
@@ -222,6 +226,30 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   return (
     <div className="tank-wrapper">
       <div className="day-phase-badge">{dayPhase.label}</div>
+
+      {/* ── Alert indicator strip (item 11) ── */}
+      {(() => {
+        const alerts = [];
+        const sickFish   = fish.filter(f => f.disease || f.health < 30);
+        const hungryFish = fish.filter(f => f.hunger > 80);
+        const foodLow    = (tank?.supplies?.food ?? 10) < 3;
+        const wqLow      = (waterQuality ?? 100) < 40;
+        if (sickFish.length > 0)   alerts.push({ key: 'sick',   icon: '🦠', label: `${sickFish.length} sick`, cls: 'alert-pulse--red'   });
+        if (hungryFish.length > 0) alerts.push({ key: 'hungry', icon: '🍽️', label: `${hungryFish.length} hungry`, cls: 'alert-pulse--orange' });
+        if (foodLow)               alerts.push({ key: 'food',   icon: '🍤', label: 'Low food',  cls: 'alert-pulse--orange' });
+        if (wqLow)                 alerts.push({ key: 'wq',     icon: '💧', label: 'Bad water', cls: 'alert-pulse--red'   });
+        if (alerts.length === 0) return null;
+        return (
+          <div className="tank-alert-strip">
+            {alerts.map(a => (
+              <div key={a.key} className={`tank-alert-badge ${a.cls}`}>
+                <span>{a.icon}</span>
+                <span className="tank-alert-label">{a.label}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* ── Step 4: Glass Tank Shell with corner bolts ── */}
       <div className="tank-glass-shell">
@@ -239,22 +267,33 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
 
         <div className="tank-depth-far"/>
         <div className="tank-depth-mid"/>
-        {/* Step 3: Depth darkening at bottom */}
+        <div className="tank-depth-vignette"/>
         <div className="tank-depth-bottom"/>
+        <div className="tank-depth-column"/>
 
-        {/* Step 3: Light rays */}
+        {/* Light rays — expanded to 8 */}
         <div className="light-rays" style={{ opacity: ps.rayOpacity }}>
-          {[0,1,2,3,4,5].map(i => <div key={i} className={`ray ray-${i}`}/>)}
+          {[0,1,2,3,4,5,6,7].map(i => <div key={i} className={`ray ray-${i}`}/>)}
         </div>
 
-        {/* Step 3: Animated surface ripple */}
+        {/* Surface ripples */}
         <div className="surface-ripple"/>
         <div className="surface-ripple surface-ripple-2"/>
         <div className="surface-ripple surface-ripple-3"/>
+        <div className="surface-shimmer"/>
 
-        {/* Step 3: Caustics — animated light dapples on floor */}
-        <div className="caustics-overlay"/>
-        <div className="caustics-overlay caustics-2"/>
+        {/* Caustics — 4 staggered layers */}
+        <div className="caustic-layer caustic-a"/>
+        <div className="caustic-layer caustic-b"/>
+        <div className="caustic-layer caustic-c"/>
+        <div className="caustic-layer caustic-d"/>
+
+        {/* Ambient mid-water particles */}
+        <div className="particles">
+          {[0,1,2,3,4,5,6,7,8,9,10,11].map(i =>
+            <div key={i} className={`particle particle-${i}`}/>
+          )}
+        </div>
 
         {ps.starCount > 0 && (
           <svg className="night-stars" viewBox="0 0 100 30" preserveAspectRatio="none">
@@ -397,7 +436,14 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
         </svg>
 
         <div className="bubbles">
-          {[0,1,2,3,4,5,6,7].map(i => <div key={i} className={`bubble bubble-${i}`}/>)}
+          {/* Large wobbling bubbles */}
+          {[0,1,2,3].map(i => <div key={`lg-${i}`} className={`bubble bubble-lg bubble-lg-${i}`}/>)}
+          {/* Mid bubbles */}
+          {[0,1,2,3,4].map(i => <div key={`md-${i}`} className={`bubble bubble-md bubble-md-${i}`}/>)}
+          {/* Micro bubbles */}
+          {[0,1,2,3,4,5,6].map(i => <div key={`sm-${i}`} className={`bubble bubble-sm bubble-sm-${i}`}/>)}
+          {/* Cluster bursts */}
+          {[0,1].map(i => <div key={`cl-${i}`} className={`bubble bubble-cluster bubble-cl-${i}`}/>)}
         </div>
 
         <div className="day-night-overlay" style={{ background: ps.overlay }}/>
@@ -417,6 +463,10 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           if (depthLayer === 0) depthFilter = 'saturate(0.72) brightness(0.88) blur(0.7px) ';
           else if (layer.blur > 0) depthFilter = `blur(${layer.blur}px) `;
           const glowStr = isSelected ? 'drop-shadow(0 0 8px rgba(240,192,64,0.6))' : '';
+          const isHovered = f.id === hoveredFishId;
+          const healthPct = Math.round(f.health ?? 100);
+          const satiety   = Math.max(0, 100 - Math.round(f.hunger ?? 0));
+          const tooltipSide = pos.x > 65 ? 'left' : 'right';
 
           return (
             <div key={f.id}
@@ -425,10 +475,12 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
                 left: `${pos.x}%`,
                 top:  `${pos.y}%`,
                 opacity: layer.opacity,
-                zIndex:  isSelected ? 30 : layer.z,
+                zIndex:  isSelected ? 30 : isHovered ? 25 : layer.z,
                 filter: (depthFilter + glowStr).trim() || undefined,
                 transform: `translate(-50%, -50%) rotate(${tiltAngle}deg)`,
               }}
+              onMouseEnter={() => setHoveredFishId(f.id)}
+              onMouseLeave={() => setHoveredFishId(null)}
               onClick={() => onSelectFish(f.id === selectedFishId ? null : f.id)}>
               <div className={`fish-anim-inner ${animClass}`}>
                 <FishSprite fish={f} size={spriteSize} flipped={pos.flipped} selected={isSelected}/>
@@ -437,6 +489,34 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
               {f.hunger > 75 && <div className="hunger-indicator">🍽️</div>}
               {f.health < 30  && <div className="sick-indicator">💔</div>}
               {f.disease && <div className="disease-indicator">🦠</div>}
+
+              {/* Hover tooltip */}
+              {isHovered && (
+                <div className={`fish-tooltip fish-tooltip--${tooltipSide}`}>
+                  <div className="fish-tooltip-name">{f.species?.name || 'Unknown'}</div>
+                  <div className="fish-tooltip-row">
+                    <span>❤</span>
+                    <div className="fish-tooltip-bar">
+                      <div className="fish-tooltip-fill" style={{
+                        width: `${healthPct}%`,
+                        background: healthPct > 60 ? '#3ddba0' : healthPct > 30 ? '#f5c542' : '#ff5566'
+                      }}/>
+                    </div>
+                    <span className="fish-tooltip-val">{healthPct}%</span>
+                  </div>
+                  <div className="fish-tooltip-row">
+                    <span>🍤</span>
+                    <div className="fish-tooltip-bar">
+                      <div className="fish-tooltip-fill" style={{
+                        width: `${satiety}%`,
+                        background: satiety > 60 ? '#5db8e8' : satiety > 30 ? '#f5a742' : '#ff6055'
+                      }}/>
+                    </div>
+                    <span className="fish-tooltip-val">{satiety}%</span>
+                  </div>
+                  {f.disease && <div className="fish-tooltip-disease">🦠 {f.disease}</div>}
+                </div>
+              )}
             </div>
           );
         })}

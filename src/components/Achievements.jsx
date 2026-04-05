@@ -11,6 +11,9 @@ function AchievementCard({ def, unlock }) {
 
   return (
     <div className={`ach-card ${earned ? 'earned' : 'locked'}`}>
+      {/* Progress bar — 100% when earned, thin bottom stripe */}
+      <div className="ach-progress" style={{ width: earned ? '100%' : '0%' }} />
+
       <div className="ach-emoji">{isSecret ? '❓' : def.emoji}</div>
       <div className="ach-info">
         <div className="ach-label">{isSecret ? '???' : def.label}</div>

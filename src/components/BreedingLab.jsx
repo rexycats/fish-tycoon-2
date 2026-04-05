@@ -115,6 +115,12 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
   const fishB = fish.find(f => f.id === breedingTank.slots[1]);
   const bothSelected = fishA && fishB;
 
+  // Real-species fish have a decorative genome that doesn't represent their visible traits,
+  // so cross-breed predictions would be misleading. Suppress them for species fish.
+  const canPredict = bothSelected &&
+    fishA.species?.visualType !== 'species' &&
+    fishB.species?.visualType !== 'species';
+
   const [, setTick] = useState(0);
   useEffect(() => {
     if (!breedingTank.breedingStartedAt || breedingTank.eggReady) return;
@@ -123,9 +129,9 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
   }, [breedingTank.breedingStartedAt, breedingTank.eggReady]);
 
   const predictions = useMemo(() => {
-    if (!bothSelected) return [];
+    if (!canPredict) return [];
     return predictOffspringPhenotypes(fishA.genome, fishB.genome, 40);
-  }, [fishA?.id, fishB?.id]);
+  }, [fishA?.id, fishB?.id, canPredict]);
 
   let progress = 0;
   if (breedingTank.breedingStartedAt && !breedingTank.eggReady) {
@@ -150,7 +156,7 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
     <div className="breeding-lab">
       <div className="breed-top">
         {/* Parent slots */}
-        <div className="breed-parents">
+        <div className={`breed-parents${breedingTank.breedingStartedAt && !breedingTank.eggReady ? ' breed-parents--breeding' : ''}`}>
           <BreedSlot fish={fishA} slot={1} onRemove={() => onSelectForBreeding(fishA?.id)} onDrop={handleSlotDrop} />
           <div className="breed-heart">💕</div>
           <BreedSlot fish={fishB} slot={2} onRemove={() => onSelectForBreeding(fishB?.id)} onDrop={handleSlotDrop} />
@@ -180,6 +186,15 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
         </div>
 
         {/* Offspring predictions */}
+        {bothSelected && !canPredict && (
+          <div className="breed-predictions">
+            <div className="breed-predictions-title">🔮 Offspring Prediction</div>
+            <div className="predict-more" style={{ padding: '8px 0', color: '#6ab0de' }}>
+              Offspring genetics are unpredictable when one or both parents are a real species.
+              Breed them to find out!
+            </div>
+          </div>
+        )}
         {bothSelected && predictions.length > 0 && (
           <div className="breed-predictions">
             <div className="breed-predictions-title">🔮 Possible Offspring</div>

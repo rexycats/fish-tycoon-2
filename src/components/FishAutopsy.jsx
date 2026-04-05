@@ -56,8 +56,11 @@ function AutopsyCard({ record }) {
     return `${Math.floor(min / 60)}h ago`;
   })();
 
-  // Reconstruct a fake fish object for the sprite
+  // Reconstruct a fake fish object for the sprite.
+  // id is required: FishSprite uses it to namespace all SVG gradient/filter IDs.
+  // Without it every card shares uid='x', causing gradient collisions when >1 card is visible.
   const fakeFish = {
+    id: record.id,
     phenotype: record.phenotype,
     genome: record.genome || {},
     species: { name: record.fishName, rarity: record.rarity },

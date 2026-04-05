@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import ToastManager, { fireToast } from './components/ToastManager.jsx';
 import { createDefaultState, saveGame, loadGame, addLog, ACHIEVEMENT_DEFS, createDefaultTank, TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
 import { processTick, applyOfflineProgress, TICK_INTERVAL_MS } from './systems/gameTick.js';
 import { breedGenomes, createFish, MAGIC_FISH, checkMagicFishMatch, getFoundMagicFish } from './data/genetics.js';
@@ -43,8 +44,24 @@ export default function App() {
   const [aiError, setAiError]           = useState(null);
   const [showWinModal, setShowWinModal] = useState(false);
 
+  // ── Floating coin deltas ─────────────────────────────────
+  const [coinDeltas, setCoinDeltas] = useState([]);
+  const coinDeltaCounter = useRef(0);
+  const prevCoinsRef = useRef(game.player.coins);
+
   const gameRef = useRef(game);
   gameRef.current = game;
+
+  // Track coin changes to spawn floating deltas
+  useEffect(() => {
+    const diff = game.player.coins - prevCoinsRef.current;
+    prevCoinsRef.current = game.player.coins;
+    if (diff === 0) return;
+    const id = ++coinDeltaCounter.current;
+    setCoinDeltas(prev => [...prev.slice(-6), { id, diff }]);
+    const t = setTimeout(() => setCoinDeltas(prev => prev.filter(d => d.id !== id)), 1400);
+    return () => clearTimeout(t);
+  }, [game.player.coins]);
   const prevSalesLenRef   = useRef((game.shop.salesHistory || []).length);
   const prevAchCountRef   = useRef((game.player.achievements || []).length);
 
@@ -67,17 +84,46 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Sound: sales
+  // Sound + Toast: sales
   useEffect(() => {
-    const len = (game.shop.salesHistory || []).length;
-    if (len > prevSalesLenRef.current) { playSale(); prevSalesLenRef.current = len; }
+    const history = game.shop.salesHistory || [];
+    const len = history.length;
+    if (len > prevSalesLenRef.current) {
+      playSale();
+      const sale = history[len - 1];
+      if (sale) fireToast(`Sold ${sale.fishName} for 🪙${sale.coins}!`, 'sale', '💰');
+      prevSalesLenRef.current = len;
+    }
   }, [game.shop.salesHistory?.length]);
 
-  // Sound: achievements
+  // Sound + Toast: achievements
+  // prevAchNamesRef removed — achievement deduplication handled by prevAchCountRef
   useEffect(() => {
-    const len = (game.player.achievements || []).length;
-    if (len > prevAchCountRef.current) { playDiscover(); prevAchCountRef.current = len; }
+    const achs = game.player.achievements || [];
+    const len = achs.length;
+    if (len > prevAchCountRef.current) {
+      playDiscover();
+      const newOnes = achs.slice(prevAchCountRef.current);
+      for (const ach of newOnes) {
+        const def = ACHIEVEMENT_DEFS?.find?.(a => a.id === ach.id);
+        fireToast(def ? `Achievement: ${def.label}` : 'Achievement unlocked!', 'achieve', '🏆');
+      }
+      prevAchCountRef.current = len;
+    }
   }, [game.player.achievements?.length]);
+
+  // Toast: disease alerts (fire at most once per fish per disease)
+  const diseasedRef = useRef(new Set());
+  useEffect(() => {
+    for (const f of game.fish) {
+      if (f.disease && !diseasedRef.current.has(f.id)) {
+        diseasedRef.current.add(f.id);
+        fireToast(`${f.species?.name || 'Fish'} is sick! 🦠`, 'alert', '🚨');
+      } else if (!f.disease) {
+        diseasedRef.current.delete(f.id);
+      }
+    }
+  }, [game.fish]);
 
   // ── Fishdex + AI naming ──────────────────────────────────
   const updateFishdexEntry = useCallback((speciesName, updates) => {
@@ -314,12 +360,21 @@ export default function App() {
         // magic fish checks all receive accurate trait data.
         const spec = REAL_SPECIES_MAP[speciesKey];
         const SPECIES_PHENOTYPES = {
-          angelfish: { color: 'White', pattern: 'Striped', finType: 'Flowing', bodyShape: 'Tall', glow: 'None', size: 'Normal' },
-          clownfish:  { color: 'Crimson', pattern: 'Striped', finType: 'Normal', bodyShape: 'Round', glow: 'None', size: 'Normal' },
-          bluetang:   { color: 'Azure', pattern: 'Spotted', finType: 'Normal', bodyShape: 'Normal', glow: 'None', size: 'Normal' },
-          betta:      { color: 'Violet', pattern: 'Solid', finType: 'Flowing', bodyShape: 'Normal', glow: 'Luminous', size: 'Normal' },
+          // Keys and values must match GENES allele names exactly.
+          // bodyShape: Orb|Round|Delta|Slender|Eel
+          // finType:   Veil|Flowing|Broad|Angular|Nub
+          // pattern:   Marble|Spotted|Tiger|Lined|Plain
+          // primaryColor: Crimson|Gold|Violet|Azure|Emerald|White
+          // secondaryColor: Orange|Rose|Teal|Indigo|Silver
+          // glow:      Normal|Luminous|Radiant|Ultraviolet
+          // size:      Leviathan|Giant|Medium|Tiny|Dwarf
+          // mutation:  None|Albino|Melanistic|Xanthic|Twin-tail|Starfish
+          angelfish: { bodyShape: 'Delta',   finType: 'Flowing', pattern: 'Lined',  primaryColor: 'White',   secondaryColor: 'Silver', glow: 'Normal',   size: 'Medium', mutation: 'None' },
+          clownfish:  { bodyShape: 'Round',  finType: 'Broad',   pattern: 'Lined',  primaryColor: 'Crimson', secondaryColor: 'Orange', glow: 'Normal',   size: 'Tiny',   mutation: 'None' },
+          bluetang:   { bodyShape: 'Delta',  finType: 'Angular', pattern: 'Plain',  primaryColor: 'Azure',   secondaryColor: 'Indigo', glow: 'Normal',   size: 'Medium', mutation: 'None' },
+          betta:      { bodyShape: 'Slender',finType: 'Veil',    pattern: 'Marble', primaryColor: 'Violet',  secondaryColor: 'Teal',   glow: 'Luminous', size: 'Tiny',   mutation: 'None' },
         };
-        const canonicalPhenotype = SPECIES_PHENOTYPES[speciesKey] || { color: 'White', pattern: 'Solid', finType: 'Normal', bodyShape: 'Normal', glow: 'None', size: 'Normal' };
+        const canonicalPhenotype = SPECIES_PHENOTYPES[speciesKey] || { bodyShape: 'Round', finType: 'Broad', pattern: 'Plain', primaryColor: 'White', secondaryColor: 'Silver', glow: 'Normal', size: 'Medium', mutation: 'None' };
         newFish = {
           ...createFish({ stage: 'adult', tankId }),
           phenotype: canonicalPhenotype,
@@ -565,9 +620,31 @@ export default function App() {
   const selectedFish = game.fish.find(f => f.id === selectedFishId) || null;
   const isListed     = selectedFish ? game.shop.listedFish.includes(selectedFish.id) : false;
   const newAchCount  = (game.player.achievements || []).length;
+  const TAB_LIST = [
+    ['tank',    '🐠', 'Tank'],
+    ['shop',    '🏪', 'Shop'],
+    ['breed',   '🧬', 'Breed'],
+    ['fishdex', '📖', 'Fishdex'],
+    ['magic',   '🔮', 'Magic'],
+    ['decor',   '🎨', 'Decor'],
+    ['autopsy', '🔬', 'Autopsy'],
+    ['achieve', '🏆', 'Awards'],
+  ];
+  const activeTabIdx = TAB_LIST.findIndex(([t]) => t === activeTab);
 
   return (
     <div className="app">
+      <ToastManager />
+
+      {/* Floating coin delta animations */}
+      <div className="coin-delta-portal">
+        {coinDeltas.map(({ id, diff }) => (
+          <span key={id} className={`coin-delta coin-delta--${diff > 0 ? 'up' : 'down'}`}>
+            {diff > 0 ? '+' : ''}{diff.toLocaleString()}
+          </span>
+        ))}
+      </div>
+
       {showOffline && game.offlineSummary && (
         <OfflineSummary summary={game.offlineSummary} onDismiss={() => setShowOffline(false)} />
       )}
@@ -598,25 +675,33 @@ export default function App() {
         onRename={renameTank}
       />
 
-      <nav className="tab-bar">
-        {[
-          ['tank',    '🐠 Tank'],
-          ['shop',    '🏪 Shop'],
-          ['breed',   '🧬 Breed'],
-          ['fishdex', '📖 Fishdex'],
-          ['magic',   '🔮 Magic'],
-          ['decor',   '🎨 Decor'],
-          ['autopsy', '🔬 Autopsy'],
-          ['achieve', '🏆 Awards'],
-        ].map(([tab, label]) => (
-          <button key={tab} className={`tab-btn ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
-            {label}
-            {tab === 'fishdex' && <span className="tab-badge">{(game.player.fishdex || []).length}</span>}
-            {tab === 'magic'   && <span className="tab-badge magic-tab-badge">{(game.player.magicFishFound || []).length}/7</span>}
-            {tab === 'autopsy' && (game.player.autopsies || []).length > 0 && <span className="tab-badge autopsy-badge">{(game.player.autopsies || []).length}</span>}
-            {tab === 'achieve' && newAchCount > 0 && <span className="tab-badge ach-badge-tab">{newAchCount}</span>}
-          </button>
-        ))}
+      <nav className="tab-bar" style={{ '--tab-count': TAB_LIST.length }}>
+        {/* Sliding pill indicator */}
+        <div
+          className="tab-pill"
+          style={{ '--pill-idx': activeTabIdx, '--pill-total': TAB_LIST.length }}
+        />
+        {TAB_LIST.map(([tab, icon, label], i) => {
+          const fishdexCount = (game.player.fishdex || []).length;
+          const magicCount   = (game.player.magicFishFound || []).length;
+          const autopsyCount = (game.player.autopsies || []).length;
+          let badge = null;
+          if (tab === 'fishdex' && fishdexCount > 0) badge = <span className="tab-dot">{fishdexCount}</span>;
+          if (tab === 'magic')   badge = <span className="tab-dot tab-dot--magic">{magicCount}/7</span>;
+          if (tab === 'autopsy' && autopsyCount > 0) badge = <span className="tab-dot tab-dot--warn">{autopsyCount}</span>;
+          if (tab === 'achieve' && newAchCount > 0)  badge = <span className="tab-dot tab-dot--gold">{newAchCount}</span>;
+          return (
+            <button
+              key={tab}
+              className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              <span className="tab-btn-icon">{icon}</span>
+              <span className="tab-btn-label">{label}</span>
+              {badge}
+            </button>
+          );
+        })}
       </nav>
 
       <main className="main-layout">
@@ -720,6 +805,21 @@ function TankTabs({ tanks, activeTankId, onSelectTank, onUnlockTank, canUnlock, 
             onClick={() => { onSelectTank(tank.id); setEditingId(null); }}
           >
             <span className="tank-tab-emoji">{typeInfo.emoji}</span>
+            {/* Arc capacity donut */}
+            <div className="tank-tab-arc" title={`${count}/${tank.capacity} fish`}>
+              <svg width="28" height="28" viewBox="0 0 28 28">
+                <circle cx="14" cy="14" r="10" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="3"/>
+                <circle cx="14" cy="14" r="10" fill="none"
+                  stroke={isActive ? '#d4a830' : pct > 80 ? '#ff5566' : pct > 50 ? '#f5c542' : '#3ddba0'}
+                  strokeWidth="3"
+                  strokeDasharray={`${(pct/100) * 62.8} 62.8`}
+                  strokeDashoffset="15.7"
+                  strokeLinecap="round"
+                  style={{ transition: 'stroke-dasharray 0.5s ease' }}
+                />
+                <text x="14" y="17.5" textAnchor="middle" fontSize="7" fill="currentColor" opacity="0.85">{count}</text>
+              </svg>
+            </div>
             {editingId === tank.id ? (
               <input
                 className="tank-name-input"
@@ -737,8 +837,7 @@ function TankTabs({ tanks, activeTankId, onSelectTank, onUnlockTank, canUnlock, 
                 title="Double-click to rename"
               >{tank.name}</span>
             )}
-            <span className="tank-tab-count">{count}/{tank.capacity}</span>
-            <div className="tank-tab-bar-fill" style={{ width: `${pct}%` }} />
+            <span className="tank-tab-emoji">{typeInfo.emoji}</span>
           </div>
         );
       })}

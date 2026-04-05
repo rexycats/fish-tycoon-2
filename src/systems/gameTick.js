@@ -106,7 +106,7 @@ function processOneTank(tank, allFish, messages, now) {
   const tankFish = allFish.filter(f => f.tankId === tank.id);
   const bonuses  = getTankBonuses(tank.type);
 
-  const wq        = Math.max(0, tank.waterQuality - WATER_DECAY_RATE);
+  const wq        = Math.max(0, tank.waterQuality - WATER_DECAY_RATE * 1); // per-tick decay (1 tick = 1 second)
   const temp      = tank.temperature ?? 74;
   const tempDrift = temp > 74 ? -0.002 : temp < 74 ? 0.002 : 0;
   const newTemp   = Math.round((temp + tempDrift) * 1000) / 1000;
@@ -116,7 +116,9 @@ function processOneTank(tank, allFish, messages, now) {
   let supplies = { ...tank.supplies };
   const feedTick = (tank.autoFeedTick || 0) + 1;
   let autoFeedUsed = false;
+  let autoFeedTriggered = false; // true when the interval fired, regardless of outcome
   if (tank.autoFeed && feedTick >= 40 && supplies.food > 0) {
+    autoFeedTriggered = true;
     const hungryFish = tankFish.filter(f => f.stage !== 'egg' && (f.hunger || 0) > 30);
     if (hungryFish.length > 0) {
       autoFeedUsed = true;
@@ -205,7 +207,7 @@ function processOneTank(tank, allFish, messages, now) {
     waterQuality: wq,
     temperature: newTemp,
     happiness,
-    autoFeedTick: autoFeedUsed || feedTick >= 40 ? 0 : feedTick,
+    autoFeedTick: (autoFeedUsed || autoFeedTriggered) ? 0 : Math.min(feedTick, 40),  // reset after interval fires; cap at 40 when out of food
     supplies,
   };
 
@@ -373,11 +375,14 @@ function processCustomerVisit(state, messages) {
     const askPrice  = state.shop.fishPrices?.[id] ?? autoPrice;
     const budget    = Math.round(askPrice * customer.budgetMult);
     // Only show fish where budget meets at least the walkaway threshold (65% of ask price).
-    // This prevents low-budget customers from even approaching fish they would instantly reject.
+    // If nothing affordable is found, this customer simply doesn't visit — next one will.
     return budget >= Math.round(askPrice * 0.65);
   });
 
-  const fish = pickFishToBuy(listedIds.length > 0 ? listedIds : state.shop.listedFish, state.fish, customer);
+  // No fish in budget — customer passes without entering the shop at all
+  if (listedIds.length === 0) return state;
+
+  const fish = pickFishToBuy(listedIds, state.fish, customer);
   if (!fish) return state;
 
   // Display tank gives a sale price bonus
@@ -390,25 +395,6 @@ function processCustomerVisit(state, messages) {
 
   // Customer budget is their max willingness to pay
   const maxBudget  = Math.round(askPrice * customer.budgetMult);
-
-  // Customer walks away if price is way too high for them
-  if (maxBudget < Math.round(askPrice * 0.65)) {
-    const repLoss = Math.max(1, Math.ceil(fish.species.rarityScore / 30));
-    messages.push(`${customer.emoji} ${customer.name} looked at your ${fish.species.name} (asking 🪙${askPrice}) and walked away — too expensive!`);
-    return {
-      ...state,
-      shop: {
-        ...state.shop,
-        lastCustomerAt: Date.now(),
-        reputation: Math.max(0, (state.shop.reputation || 0) - repLoss),
-        salesHistory: [
-          { time: Date.now(), type: 'rejected', customerName: customer.name, customerEmoji: customer.emoji,
-            fishName: fish.species.name, fishRarity: fish.species.rarity, coins: 0, askPrice },
-          ...(state.shop.salesHistory || []),
-        ].slice(0, 20),
-      },
-    };
-  }
 
   // Haggle logic: customer tries to negotiate if price is above their comfort zone
   let finalPrice = askPrice;
@@ -592,19 +578,21 @@ export function applyOfflineProgress(state) {
 
     if (f.stage === 'egg') {
       const timeAlready = lastTick - stageStart;
-      const timeToHatch = GROWTH_STAGES.egg.durationMs * growMult - timeAlready;
+      const timeToHatch = Math.max(0, GROWTH_STAGES.egg.durationMs * growMult - timeAlready);
       if (remaining >= timeToHatch) {
         f.stage = 'juvenile';
-        remaining -= timeToHatch; // remaining now = time left after hatch, relative to now
-        stageStart = now - remaining;  // stageStartedAt for juvenile = how far into juvenile it already is
+        remaining -= timeToHatch; // remaining = ms left in offline window after hatch
+        stageStart = now - remaining; // juvenile started `remaining` ms ago
         eggsHatched++;
       }
     }
     if (f.stage === 'juvenile') {
-      // timeAlready: how long it has already been a juvenile (from stageStart forward to now)
+      // For pre-existing juveniles: timeAlready = elapsed time since stageStart.
+      // For eggs that just hatched above: stageStart = now - remaining, so timeAlready = remaining,
+      // correctly reflecting how far into juvenile they already are.
       const timeAlready = now - stageStart;
       const timeToGrow  = Math.max(0, GROWTH_STAGES.juvenile.durationMs * growMult - timeAlready);
-      if (remaining >= timeToGrow) {
+      if (timeToGrow === 0) {
         f.stage = 'adult'; stageStart = now; fishedGrown++;
       }
     }

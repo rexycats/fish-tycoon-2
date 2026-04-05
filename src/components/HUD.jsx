@@ -1,114 +1,188 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-function TempDisplay({ temp }) {
-  const t = temp ?? 74;
-  const stress = t < 65 || t > 85;
-  const warn   = t < 68 || t > 82;
-  const color  = stress ? '#e05050' : warn ? '#e0c040' : '#5dbe8a';
+/* ── Animated coin counter ─────────────────────────────────── */
+function CoinDisplay({ value }) {
+  const [displayed, setDisplayed] = useState(value);
+  const [flash, setFlash]         = useState(null); // 'up' | 'down' | null
+  const prevRef = useRef(value);
+  const rafRef  = useRef(null);
+
+  useEffect(() => {
+    const prev = prevRef.current;
+    prevRef.current = value;
+    const diff = value - prev;
+    if (diff === 0) return;
+
+    setFlash(diff > 0 ? 'up' : 'down');
+    const flashTimer = setTimeout(() => setFlash(null), 900);
+
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    const start     = prev;
+    const end       = value;
+    const duration  = Math.min(700, Math.abs(diff) * 2 + 200);
+    let startTime   = null;
+
+    function step(ts) {
+      if (!startTime) startTime = ts;
+      const progress = Math.min((ts - startTime) / duration, 1);
+      const eased    = 1 - Math.pow(1 - progress, 3);
+      setDisplayed(Math.round(start + (end - start) * eased));
+      if (progress < 1) rafRef.current = requestAnimationFrame(step);
+    }
+    rafRef.current = requestAnimationFrame(step);
+
+    return () => {
+      clearTimeout(flashTimer);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [value]);
+
   return (
-    <div className="hud-temp" title={`Temperature: ${t.toFixed(1)}°F`}>
-      <span className="hud-stat-icon" style={{ fontSize: 14 }}>🌡</span>
-      <span className="hud-stat-val" style={{ color, fontSize: 13 }}>{Math.round(t)}°F</span>
+    <div className={`hud2-coin ${flash ? `hud2-coin--${flash}` : ''}`}>
+      <span className="hud2-coin-icon">🪙</span>
+      <span className="hud2-coin-val">{displayed.toLocaleString()}</span>
     </div>
   );
 }
 
-function HappinessMeter({ value }) {
-  const clamped = Math.max(0, Math.min(100, value ?? 100));
-  const color = clamped > 70 ? '#5dbe8a' : clamped > 40 ? '#e0c040' : '#e05050';
-  const emoji = clamped > 70 ? '😊' : clamped > 40 ? '😐' : '😟';
+/* ── Compact stat pill ─────────────────────────────────────── */
+function StatPill({ icon, value, label, color, alert }) {
   return (
-    <div className="hud-happiness" title={`Happiness: ${clamped}%`}>
-      <span className="hud-stat-icon">{emoji}</span>
-      <div className="happiness-bar-bg">
-        <div className="happiness-bar-fill" style={{ width: `${clamped}%`, background: color, transition: 'width 0.6s ease, background 0.4s ease' }} />
-      </div>
-      <span className="happiness-val" style={{ color }}>{clamped}%</span>
+    <div className={`hud2-pill ${alert ? 'hud2-pill--alert' : ''}`} title={label}>
+      <span className="hud2-pill-icon">{icon}</span>
+      <span className="hud2-pill-val" style={color ? { color } : undefined}>{value}</span>
     </div>
   );
 }
 
-function ReputationBadge({ rep }) {
-  const r = rep || 0;
-  const tier   = r < 100 ? 'Local'   : r < 300 ? 'Known' : r < 600 ? 'Popular' : 'Famous';
-  const color  = r < 100 ? '#8aa4c8' : r < 300 ? '#6ab0de' : r < 600 ? '#b07ee8' : '#f0c040';
-  const next   = r < 100 ? 100 : r < 300 ? 300 : r < 600 ? 600 : 999;
-  const pct    = Math.min(100, Math.round((r / next) * 100));
+/* ── Reputation badge ──────────────────────────────────────── */
+function RepBadge({ rep }) {
+  const r    = rep || 0;
+  const tier = r < 100 ? 'Local' : r < 300 ? 'Known' : r < 600 ? 'Popular' : 'Famous';
+  const col  = r < 100 ? '#8aa4c8' : r < 300 ? '#6ab0de' : r < 600 ? '#b07ee8' : '#f0c040';
+  const next = r < 100 ? 100 : r < 300 ? 300 : r < 600 ? 600 : 999;
+  const pct  = Math.min(100, Math.round((r / next) * 100));
   return (
-    <div className="hud-rep" title={`Reputation: ${r}/999 — ${tier} Shop\nNext tier at ${next}`}>
-      <span className="hud-stat-icon">⭐</span>
-      <div className="hud-rep-inner">
-        <span className="hud-rep-tier" style={{ color }}>{tier}</span>
-        <div className="hud-rep-bar-bg">
-          <div className="hud-rep-bar-fill" style={{ width: `${pct}%`, background: color }} />
-        </div>
+    <div className="hud2-rep" title={`Reputation ${r} — ${tier}\nNext tier at ${next}`}>
+      <span className="hud2-rep-tier" style={{ color: col }}>{tier}</span>
+      <div className="hud2-rep-track">
+        <div className="hud2-rep-fill" style={{ width: `${pct}%`, background: col }} />
       </div>
-      <span className="hud-rep-num" style={{ color }}>{r}</span>
     </div>
   );
 }
 
-export default function HUD({ player, shop, tanks, activeTank, fish, onBuyFood, onTreatWater, onToggleAutoFeed, onUseHeater, soundOn, onToggleSound }) {
-  const tank = activeTank || tanks?.[0] || {};
-  const wq = Math.round(tank.waterQuality ?? 100);
-  const wqColor = wq > 70 ? '#5dbe8a' : wq > 40 ? '#e0c040' : '#e05050';
-  const tankFishCount = fish ? fish.filter(f => f.tankId === tank.id).length : 0;
+/* ── Happiness mini-bar ────────────────────────────────────── */
+function HappinessBar({ value }) {
+  const v   = Math.max(0, Math.min(100, value ?? 100));
+  const col = v > 70 ? '#3ddba0' : v > 40 ? '#f5c542' : '#ff5566';
+  const em  = v > 70 ? '😊' : v > 40 ? '😐' : '😟';
+  return (
+    <div className="hud2-happy" title={`Happiness: ${v}%`}>
+      <span className="hud2-happy-icon">{em}</span>
+      <div className="hud2-happy-track">
+        <div className="hud2-happy-fill" style={{ width: `${v}%`, background: col }} />
+      </div>
+    </div>
+  );
+}
+
+/* ── Main HUD ──────────────────────────────────────────────── */
+export default function HUD({
+  player, shop, tanks, activeTank, fish,
+  onBuyFood, onTreatWater, onToggleAutoFeed, onUseHeater,
+  soundOn, onToggleSound,
+}) {
+  const tank    = activeTank || tanks?.[0] || {};
+  const wq      = Math.round(tank.waterQuality ?? 100);
+  const temp    = tank.temperature ?? 74;
+  const wqCol   = wq  > 70 ? '#3ddba0' : wq  > 40 ? '#f5c542' : '#ff5566';
+  const tempCol = (temp < 68 || temp > 82) ? '#ff5566' : (temp < 71 || temp > 79) ? '#f5c542' : '#3ddba0';
+  const fishCnt = fish ? fish.filter(f => f.tankId === tank.id).length : 0;
+  const food    = tank.supplies?.food ?? 0;
+  const tempBad = temp < 68 || temp > 82;
+  const wqBad   = wq < 60;
 
   return (
-    <header className="hud">
-      <div className="hud-brand">
-        <span className="hud-logo">🐠</span>
-        <span className="hud-title">Fish Tycoon 2</span>
+    <header className="hud2">
+      {/* Brand */}
+      <div className="hud2-brand">
+        <span className="hud2-logo">🐠</span>
+        <span className="hud2-title">Fish Tycoon</span>
       </div>
 
-      <div className="hud-stats">
-        <div className="hud-stat">
-          <span className="hud-stat-icon">🪙</span>
-          <span className="hud-stat-val">{player.coins}</span>
-        </div>
-        <div className="hud-stat" title="Water Quality (active tank)">
-          <span className="hud-stat-icon">💧</span>
-          <span className="hud-stat-val" style={{ color: wqColor }}>{wq}%</span>
-        </div>
-        <div className="hud-stat" title="Fish in active tank">
-          <span className="hud-stat-icon">🐟</span>
-          <span className="hud-stat-val">{tankFishCount} / {tank.capacity ?? 12}</span>
-        </div>
-        <div className="hud-stat" title="Food supply (active tank)">
-          <span className="hud-stat-icon">🍤</span>
-          <span className="hud-stat-val">{tank.supplies?.food ?? 0}</span>
-        </div>
+      {/* Divider */}
+      <div className="hud2-divider" />
+
+      {/* Coins — hero element */}
+      <CoinDisplay value={player.coins} />
+
+      {/* Divider */}
+      <div className="hud2-divider" />
+
+      {/* Tank stats row */}
+      <div className="hud2-pills">
+        <StatPill icon="💧" value={`${wq}%`}  label="Water quality" color={wqCol}  alert={wqBad} />
+        <StatPill icon="🌡" value={`${Math.round(temp)}°`} label="Temperature" color={tempCol} alert={tempBad} />
+        <StatPill icon="🐟" value={`${fishCnt}/${tank.capacity ?? 12}`} label="Fish capacity" />
+        <StatPill icon="🍤" value={food}       label="Food supply"   alert={food < 3} />
       </div>
 
-      <HappinessMeter value={tank.happiness} />
-      <ReputationBadge rep={shop?.reputation} />
-      <TempDisplay temp={tank.temperature} />
+      {/* Divider */}
+      <div className="hud2-divider" />
 
-      <div className="hud-actions">
+      {/* Status bars */}
+      <div className="hud2-bars">
+        <HappinessBar value={tank.happiness} />
+        <RepBadge rep={shop?.reputation} />
+      </div>
+
+      {/* Divider */}
+      <div className="hud2-divider" />
+
+      {/* Quick actions */}
+      <div className="hud2-actions">
         <button
-          className={`btn btn-sm btn-autofeed ${tank.autoFeed ? 'active' : ''}`}
+          className={`hud2-btn ${tank.autoFeed ? 'hud2-btn--active' : ''}`}
           onClick={onToggleAutoFeed}
-          title={tank.autoFeed ? 'Auto-feed is ON — click to disable' : 'Enable auto-feed (uses food supply)'}
+          title={tank.autoFeed ? 'Auto-feed ON' : 'Auto-feed OFF'}
         >
-          {tank.autoFeed ? '🍤 Auto: ON' : '🍤 Auto: OFF'}
+          🍤 <span className="hud2-btn-label">{tank.autoFeed ? 'Auto ✓' : 'Auto'}</span>
         </button>
-        {((tank.temperature ?? 74) < 68 || (tank.temperature ?? 74) > 82) && (
-          <button className="btn btn-sm btn-warn" onClick={onUseHeater}
-                  disabled={(tank.supplies?.heater || 0) <= 0} title={`Heater: ${tank.supplies?.heater || 0} left`}>
-            🌡 Adjust Temp
+
+        {tempBad && (
+          <button
+            className="hud2-btn hud2-btn--warn"
+            onClick={onUseHeater}
+            disabled={(tank.supplies?.heater || 0) <= 0}
+            title={`Adjust temperature (${tank.supplies?.heater || 0} left)`}
+          >
+            🌡 <span className="hud2-btn-label">Temp</span>
           </button>
         )}
-        {wq < 60 && (
-          <button className="btn btn-sm btn-warn" onClick={onTreatWater}
-                  disabled={(tank.supplies?.waterTreatment || 0) <= 0} title={`Water treatment: ${tank.supplies?.waterTreatment || 0} left`}>
-            🧪 Treat Water
+
+        {wqBad && (
+          <button
+            className="hud2-btn hud2-btn--warn"
+            onClick={onTreatWater}
+            disabled={(tank.supplies?.waterTreatment || 0) <= 0}
+            title={`Treat water (${tank.supplies?.waterTreatment || 0} left)`}
+          >
+            🧪 <span className="hud2-btn-label">Treat</span>
           </button>
         )}
-        <button className="btn btn-sm" onClick={onBuyFood} disabled={player.coins < 10} title="Buy food (10 coins)">
-          + Food (10🪙)
+
+        <button
+          className="hud2-btn"
+          onClick={onBuyFood}
+          disabled={player.coins < 10}
+          title="Buy 10 food (10🪙)"
+        >
+          + <span className="hud2-btn-label">Food</span>
         </button>
+
         {onToggleSound && (
-          <button className="btn btn-sm btn-sound" onClick={onToggleSound} title={soundOn ? 'Mute sounds' : 'Enable sounds'}>
+          <button className="hud2-btn hud2-btn--icon" onClick={onToggleSound} title={soundOn ? 'Mute' : 'Unmute'}>
             {soundOn ? '🔊' : '🔇'}
           </button>
         )}

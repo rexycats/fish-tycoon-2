@@ -45,39 +45,45 @@ function FishdexCard({ entry, onClick, isSelected }) {
   const rarityColor = RARITY[entry.rarity]?.color || '#888';
   const displayName = entry.aiName || entry.name;
   const isRealSpecies = entry.visualType === 'species';
-  // Build a minimal fish object for FishSprite when it's a real species
+  const isHighRarity = entry.rarity === 'legendary' || entry.rarity === 'epic';
   const mockFish = isRealSpecies ? {
     id: `fdex-${entry.speciesKey}`,
     stage: 'adult',
     species: { visualType: 'species', key: entry.speciesKey, rarity: entry.rarity },
   } : null;
   return (
-    <div className={`fdex-card ${isSelected ? 'selected' : ''}`}
+    <div className={`fdex-card ${isSelected ? 'selected' : ''} fdex-card--${entry.rarity}`}
          style={{ '--rarity-color': rarityColor }}
          onClick={onClick}>
+
+      {/* Rarity glow ring */}
+      <div className={`fdex-card-ring ${isHighRarity ? 'fdex-card-ring--pulse' : ''}`}
+           style={{ borderColor: rarityColor, boxShadow: `0 0 10px ${rarityColor}44` }} />
+
       <div className="fdex-card-sprite">
         {isRealSpecies ? (
-          <FishSprite fish={mockFish} size={44} selected={false} />
+          <FishSprite fish={mockFish} size={56} selected={false} />
         ) : (
           <FishSilhouette
             bodyShape={entry.phenotype.bodyShape}
             primaryColor={entry.phenotype.primaryColor}
             glow={entry.phenotype.glow}
             rarity={entry.rarity}
-            size={44}
+            size={56}
           />
         )}
         {entry.aiName && <div className="fdex-ai-badge" title="AI-named">✨</div>}
         {isRealSpecies && <div className="fdex-real-badge" title="Real species">🐠</div>}
       </div>
+
       <div className="fdex-card-info">
         <div className="fdex-card-name">{displayName}</div>
-        {entry.aiName && entry.name !== entry.aiName && (
-          <div className="fdex-card-genetic">({entry.name})</div>
-        )}
         <div className="fdex-card-rarity" style={{ color: rarityColor }}>{entry.rarity}</div>
-        <div className="fdex-card-price">🪙{entry.basePrice}</div>
+        <div className="fdex-card-price">🪙 {entry.basePrice}</div>
       </div>
+
+      {/* Bottom accent line */}
+      <div className="fdex-card-accent" style={{ background: rarityColor }} />
     </div>
   );
 }
@@ -233,7 +239,7 @@ export default function Fishdex({ fishdex, onGenerateLore, generatingLoreFor, ai
   const [filterRarity, setFilterRarity] = useState('all');
   const [sortBy, setSortBy]       = useState('date');
 
-  const rarities = ['all', 'common', 'uncommon', 'rare', 'epic'];
+  const rarities = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'];
 
   const filtered = useMemo(() => {
     let list = [...fishdex];
@@ -247,7 +253,7 @@ export default function Fishdex({ fishdex, onGenerateLore, generatingLoreFor, ai
     }
     if (filterRarity !== 'all') list = list.filter(e => e.rarity === filterRarity);
     if (sortBy === 'name')   list.sort((a, b) => (a.aiName || a.name).localeCompare(b.aiName || b.name));
-    if (sortBy === 'rarity') list.sort((a, b) => (['common','uncommon','rare','epic'].indexOf(b.rarity)) - (['common','uncommon','rare','epic'].indexOf(a.rarity)));
+    if (sortBy === 'rarity') list.sort((a, b) => (['common','uncommon','rare','epic','legendary'].indexOf(b.rarity)) - (['common','uncommon','rare','epic','legendary'].indexOf(a.rarity)));
     if (sortBy === 'price')  list.sort((a, b) => b.basePrice - a.basePrice);
     if (sortBy === 'date')   list.sort((a, b) => (b.firstDiscoveredAt || 0) - (a.firstDiscoveredAt || 0));
     return list;
