@@ -2,7 +2,7 @@
 // FISH TYCOON 2 — GAME TICK SYSTEM v7 (multi-tank)
 // ============================================================
 
-import { GROWTH_STAGES, computePhenotype, getSpeciesFromPhenotype, RARITY } from '../data/genetics.js';
+import { GROWTH_STAGES, computePhenotype, getSpeciesFromPhenotype, RARITY, createFish, rarityFromScore, computeRarityScore } from '../data/genetics.js';
 import { addLog, checkAchievements, TANK_TYPES } from '../data/gameState.js';
 
 export const TICK_INTERVAL_MS = 1000;
@@ -463,6 +463,91 @@ function processCustomerVisit(state, messages) {
 // ============================================================
 // OFFLINE PROGRESS
 // ============================================================
+// ============================================================
+// OFFLINE DISCOVERY EVENTS
+// ============================================================
+const OFFLINE_FOUND_ITEMS = [
+  { id: 'pearl_snail',   label: 'Pearl Snail Shell',  emoji: '🐚', desc: 'A lustrous spiral shell left behind by a passing snail.' },
+  { id: 'driftwood',     label: 'Smooth Driftwood',   emoji: '🪵', desc: 'Worn smooth by current. Would look great in any tank.' },
+  { id: 'mystery_stone', label: 'Glowing Pebble',     emoji: '🪨', desc: 'Faintly luminescent. No one knows why.' },
+  { id: 'ancient_coin',  label: 'Ancient Coin',       emoji: '🪙', desc: 'A corroded coin of unknown origin. Worth keeping.' },
+  { id: 'kelp_fragment', label: 'Rare Kelp Sprig',    emoji: '🌿', desc: 'A cutting from a deep-water kelp variety.' },
+  { id: 'glass_float',   label: 'Glass Float',        emoji: '🔵', desc: 'An old fisherman\'s float, perfectly preserved.' },
+];
+
+const OFFLINE_MESSAGES = [
+  { type: 'calm',      text: 'The tanks were peaceful.',                          emoji: '😌' },
+  { type: 'calm',      text: 'Everything stayed in order.',                       emoji: '🌊' },
+  { type: 'calm',      text: 'Your fish hardly noticed you were gone.',           emoji: '🐟' },
+  { type: 'curious',   text: 'The fish seemed restless near the glass.',          emoji: '👀' },
+  { type: 'curious',   text: 'An unusual current stirred the water briefly.',     emoji: '🌀' },
+  { type: 'curious',   text: 'The lights flickered for a moment, then steadied.', emoji: '💡' },
+];
+
+function generateOfflineEvent(state, secondsAway) {
+  // Events only fire after 5+ minutes away; longer absences = more likely
+  const minutes = secondsAway / 60;
+  if (minutes < 5) return null;
+
+  const roll = Math.random();
+  const eventChance = Math.min(0.85, 0.3 + (minutes / 120) * 0.55); // 30%–85%
+  if (roll > eventChance) return null;
+
+  const eventRoll = Math.random();
+  const tankId = state.tanks[0]?.id || 'tank_0';
+
+  // Visitor fish: rare stranger appears in your tank (30% of events)
+  if (eventRoll < 0.30) {
+    const targetRarity = Math.random() < 0.6 ? 'uncommon' : 'rare';
+    const visitor = createFish({ stage: 'adult', tankId, targetRarity });
+    return {
+      type: 'visitor',
+      emoji: '🐠',
+      headline: 'A visitor arrived!',
+      detail: `A wild **${visitor.species.name}** (${visitor.species.rarity}) swam in through a gap in the lid and decided to stay.`,
+      fish: visitor,
+    };
+  }
+
+  // Found item: a collectible appears (40% of events)
+  if (eventRoll < 0.70) {
+    const item = OFFLINE_FOUND_ITEMS[Math.floor(Math.random() * OFFLINE_FOUND_ITEMS.length)];
+    const bonus = Math.floor(15 + Math.random() * 40);
+    return {
+      type: 'found_item',
+      emoji: item.emoji,
+      headline: `Found: ${item.label}`,
+      detail: item.desc,
+      coinBonus: bonus,
+      itemId: item.id,
+    };
+  }
+
+  // Spontaneous mutation: one of your juveniles hatched with unusual colouring (30% of events)
+  const juveniles = state.fish.filter(f => f.stage === 'juvenile' || f.stage === 'egg');
+  if (juveniles.length > 0) {
+    const subject = juveniles[Math.floor(Math.random() * juveniles.length)];
+    return {
+      type: 'mutation',
+      emoji: '✨',
+      headline: 'Spontaneous mutation!',
+      detail: `**${subject.species.name}** developed an unusual shimmer during the night. Its value may be higher than expected.`,
+      fishId: subject.id,
+    };
+  }
+
+  // Fallback to found item
+  const item = OFFLINE_FOUND_ITEMS[Math.floor(Math.random() * OFFLINE_FOUND_ITEMS.length)];
+  return {
+    type: 'found_item',
+    emoji: item.emoji,
+    headline: `Found: ${item.label}`,
+    detail: item.desc,
+    coinBonus: Math.floor(15 + Math.random() * 35),
+    itemId: item.id,
+  };
+}
+
 export function applyOfflineProgress(state) {
   const now     = Date.now();
   const elapsed = now - (state.lastTickAt || now);
@@ -578,15 +663,43 @@ export function applyOfflineProgress(state) {
     next = { ...next, breedingTank: { ...bt, eggReady: true } };
   }
 
+  // Generate a discovery event
+  const offlineEvent = generateOfflineEvent(state, ticks);
+  if (offlineEvent) {
+    if (offlineEvent.type === 'visitor' && offlineEvent.fish) {
+      const tank = next.tanks.find(t => t.id === offlineEvent.fish.tankId);
+      const count = next.fish.filter(f => f.tankId === offlineEvent.fish.tankId).length;
+      if (count < (tank?.capacity || 12)) {
+        next = { ...next, fish: [...next.fish, offlineEvent.fish] };
+      }
+    }
+    if (offlineEvent.type === 'found_item' && offlineEvent.coinBonus) {
+      next = { ...next, player: { ...next.player, coins: next.player.coins + offlineEvent.coinBonus } };
+    }
+    if (offlineEvent.type === 'mutation' && offlineEvent.fishId) {
+      next = {
+        ...next,
+        fish: next.fish.map(f => f.id === offlineEvent.fishId
+          ? { ...f, species: { ...f.species, basePrice: Math.round(f.species.basePrice * 1.5) }, _mutated: true }
+          : f
+        ),
+      };
+    }
+  }
+
   // Summary
   next = { ...next, lastTickAt: now };
   const minutes = Math.round(ticks / 60);
   const timeLabel = minutes < 60 ? `${minutes}m` : `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  const ambientMsg = OFFLINE_MESSAGES[Math.floor(Math.random() * OFFLINE_MESSAGES.length)];
   const offlineSummary = {
     timeAway: timeLabel, secondsAway: ticks,
     eggsHatched, fishedGrown, coinsEarned, fishSold,
     waterQualityLost: Math.round(WATER_DECAY_RATE * ticks),
-    hasEvents: eggsHatched > 0 || fishedGrown > 0 || coinsEarned > 0,
+    fishDied: offlineDeadFish.length,
+    offlineEvent,
+    ambientMessage: ambientMsg,
+    hasEvents: eggsHatched > 0 || fishedGrown > 0 || coinsEarned > 0 || offlineDeadFish.length > 0 || !!offlineEvent,
   };
   next = { ...next, offlineSummary };
 

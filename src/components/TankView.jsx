@@ -5,11 +5,27 @@
 import React, { useEffect, useRef, useState } from 'react';
 import FishSprite from './FishSprite.jsx';
 import { getDecorById } from '../data/decorations.js';
+import { REAL_SPECIES_MAP } from '../data/realSpecies.js';
 
-const SWIM_SPEED  = 0.018;
+const SWIM_SPEED  = 0.007;
 const BOB_AMP     = 0.025;
 const BOB_FREQ    = 0.018;
 const TURN_CHANCE = 0.0018;
+
+// ── Per-species behavior profile defaults ────────────────────
+// behaviorProfile fields (all optional — falls back to constants above):
+//   swimSpeed       : multiplier applied to SWIM_SPEED  (default 1.0)
+//   turnChance      : overrides TURN_CHANCE
+//   bobAmplitude    : overrides BOB_AMP
+//   preferredYRange : [minY, maxY] as % — fish drifts toward this band
+//   idleProbability : chance per idleTimer reset to go idle (0–1)
+//   dartiness       : 0–1; on turn, chance to do a sudden speed burst
+function getBehaviorProfile(fish) {
+  if (fish?.species?.visualType === 'species' && fish.species.key) {
+    return REAL_SPECIES_MAP[fish.species.key]?.behaviorProfile || null;
+  }
+  return null;
+}
 
 const DEPTH_LAYERS = [
   { scale: 0.62, opacity: 0.52, z: 7,  blur: 0.7 },
@@ -49,19 +65,27 @@ const CORNER_BOLTS = [
 ];
 
 export default function TankView({ fish, selectedFishId, onSelectFish, waterQuality, tank }) {
+  // Keep a ref so the animation loop (which has no deps) can read behavior profiles
+  const fishMapRef = useRef({});
+  fishMapRef.current = Object.fromEntries(fish.map(f => [f.id, f]));
+
   const [positions, setPositions] = useState(() =>
-    Object.fromEntries(fish.map(f => [f.id, {
-      x: f.x ?? (10 + Math.random() * 80),
-      y: f.y ?? (20 + Math.random() * 55),
-      vx: (Math.random() > 0.5 ? 1 : -1) * (0.15 + Math.random() * 0.25),
-      vy: 0,
-      flipped: Math.random() > 0.5,
-      phase: Math.random() * Math.PI * 2,
-      depthLayer: Math.floor(Math.random() * 3),
-      tilt: 0,
-      isIdle: false,
-      idleTimer: Math.floor(Math.random() * 200),
-    }]))
+    Object.fromEntries(fish.map(f => {
+      const bp = getBehaviorProfile(f);
+      const [minY, maxY] = bp?.preferredYRange ?? [20, 75];
+      return [f.id, {
+        x: f.x ?? (10 + Math.random() * 80),
+        y: f.y ?? (minY + Math.random() * (maxY - minY)),
+        vx: (Math.random() > 0.5 ? 1 : -1) * (0.05 + Math.random() * 0.1),
+        vy: 0,
+        flipped: Math.random() > 0.5,
+        phase: Math.random() * Math.PI * 2,
+        depthLayer: Math.floor(Math.random() * 3),
+        tilt: 0,
+        isIdle: false,
+        idleTimer: Math.floor(Math.random() * 200),
+      }];
+    }))
   );
 
   const [dayPhase, setDayPhase] = useState(getDayPhase);
@@ -77,10 +101,12 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
       const next = { ...prev };
       for (const f of fish) {
         if (!next[f.id]) {
+          const bp = getBehaviorProfile(f);
+          const [minY, maxY] = bp?.preferredYRange ?? [20, 75];
           next[f.id] = {
             x: 20 + Math.random() * 60,
-            y: 20 + Math.random() * 55,
-            vx: (Math.random() > 0.5 ? 1 : -1) * (0.15 + Math.random() * 0.2),
+            y: minY + Math.random() * (maxY - minY),
+            vx: (Math.random() > 0.5 ? 1 : -1) * (0.05 + Math.random() * 0.08),
             vy: 0, flipped: false, phase: Math.random() * Math.PI * 2,
             depthLayer: Math.floor(Math.random() * 3),
             tilt: 0, isIdle: false, idleTimer: 60,
@@ -105,30 +131,54 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
         for (const [id, pos] of Object.entries(next)) {
           let { x, y, vx, vy, phase, flipped, depthLayer, tilt, isIdle, idleTimer } = pos;
 
+          // ── Resolve per-species behavior profile ──────────────
+          const fishObj = fishMapRef.current[id];
+          const bp = fishObj ? getBehaviorProfile(fishObj) : null;
+          const swimSpeed    = bp ? SWIM_SPEED * bp.swimSpeed       : SWIM_SPEED;
+          const bobAmp       = bp ? bp.bobAmplitude                 : BOB_AMP;
+          const turnChance   = bp ? bp.turnChance                   : TURN_CHANCE;
+          const idleProb     = bp ? bp.idleProbability              : 0.12;
+          const dartiness    = bp ? bp.dartiness                    : 0;
+          const [prefYMin, prefYMax] = bp?.preferredYRange ?? [8, 80];
+
           idleTimer = (idleTimer || 0) - 1;
           if (idleTimer <= 0) {
-            isIdle = Math.random() < 0.12;
-            idleTimer = 100 + Math.floor(Math.random() * 280);
+            isIdle = Math.random() < idleProb;
+            idleTimer = 80 + Math.floor(Math.random() * 260);
           }
 
           if (!isIdle) {
-            x += vx * SWIM_SPEED * 60;
-            y += Math.sin(phase + t * BOB_FREQ) * BOB_AMP;
+            x += vx * swimSpeed * 60;
+            y += Math.sin(phase + t * BOB_FREQ) * bobAmp;
             const targetTilt = Math.max(-11, Math.min(11, vx * 16));
             tilt = tilt + (targetTilt - tilt) * 0.05;
+
+            // Gentle drift toward preferred Y band
+            if (bp?.preferredYRange) {
+              const midY = (prefYMin + prefYMax) / 2;
+              vy += (midY - y) * 0.00008;
+              vy *= 0.97;
+              y += vy;
+            }
           } else {
-            y += Math.sin(phase + t * BOB_FREQ * 0.35) * BOB_AMP * 0.45;
+            y += Math.sin(phase + t * BOB_FREQ * 0.35) * bobAmp * 0.45;
             tilt = tilt * 0.94;
           }
 
           if (x > 90) { vx = -Math.abs(vx) * (0.9 + Math.random() * 0.2); flipped = true;  x = 90; }
           if (x < 5)  { vx =  Math.abs(vx) * (0.9 + Math.random() * 0.2); flipped = false; x = 5;  }
-          if (y > 80) { vy = -Math.abs(vy); y = 80; }
-          if (y < 8)  { vy =  Math.abs(vy); y = 8;  }
-          if (Math.random() < TURN_CHANCE) {
-            vx = (Math.random() - 0.5) * 0.5;
-            vy = (Math.random() - 0.5) * 0.08;
-            if (Math.abs(vx) < 0.05) vx = 0.15;
+          if (y > prefYMax) { vy -= 0.01; y = Math.min(y, prefYMax + 2); }
+          if (y < prefYMin) { vy += 0.01; y = Math.max(y, prefYMin - 2); }
+          if (y > 82) { y = 82; vy = -Math.abs(vy); }
+          if (y < 6)  { y = 6;  vy =  Math.abs(vy); }
+
+          if (Math.random() < turnChance) {
+            // Darting fish (clownfish) do fast short direction changes
+            const dart = dartiness > 0 && Math.random() < dartiness;
+            const speed = dart ? 0.12 + Math.random() * 0.14 : 0.06 + Math.random() * 0.12;
+            vx = (Math.random() - 0.5) * speed;
+            vy = (Math.random() - 0.5) * 0.03;
+            if (Math.abs(vx) < 0.02) vx = 0.05;
             flipped = vx < 0;
           }
           next[id] = { x, y, vx, vy, phase, flipped, depthLayer, tilt, isIdle, idleTimer };

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createDefaultState, saveGame, loadGame, addLog, ACHIEVEMENT_DEFS, createDefaultTank, TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
 import { processTick, applyOfflineProgress, TICK_INTERVAL_MS } from './systems/gameTick.js';
 import { breedGenomes, createFish, MAGIC_FISH, checkMagicFishMatch, getFoundMagicFish } from './data/genetics.js';
+import { REAL_SPECIES_MAP } from './data/realSpecies.js';
 import { DECOR_CATALOG } from './data/decorations.js';
 import { generateFishName, generateFishLore, AI_ERRORS } from './services/aiService.js';
 import { playCoin, playBubble, playFeed, playDiscover, playBreed, playSale, playWarning, setSoundEnabled } from './services/soundService.js';
@@ -94,10 +95,23 @@ export default function App() {
     const newEntries = [];
     for (const f of game.fish) {
       if (!knownNames.has(f.species.name)) {
+        const realSpec = f.species.visualType === 'species' && f.species.key
+          ? REAL_SPECIES_MAP[f.species.key]
+          : null;
         newEntries.push({
           name: f.species.name, rarity: f.species.rarity,
           basePrice: f.species.basePrice, phenotype: f.phenotype,
           firstDiscoveredAt: Date.now(), aiName: null, aiLore: null,
+          // Real species extras
+          ...(realSpec && {
+            visualType:         'species',
+            speciesKey:         realSpec.key,
+            scientificName:     realSpec.scientificName,
+            habitat:            realSpec.habitat,
+            funFact:            realSpec.funFact,
+            conservationStatus: realSpec.conservationStatus,
+            lore:               realSpec.lore,
+          }),
         });
         knownNames.add(f.species.name);
       }
@@ -285,14 +299,33 @@ export default function App() {
     });
   }, [activeTank]);
 
-  const buyFish = useCallback((cost, targetRarity = null) => {
+  const buyFish = useCallback((cost, targetRarity = null, speciesKey = null) => {
     setGame(prev => {
       if (prev.player.coins < cost) { playWarning(); return addLog(prev, `⚠️ Not enough coins! Need 🪙${cost}.`); }
       const tankId = activeTank?.id || prev.tanks[0]?.id || 'tank_0';
       const tank   = prev.tanks.find(t => t.id === tankId);
       const count  = prev.fish.filter(f => f.tankId === tankId).length;
       if (count >= (tank?.capacity || 12)) { playWarning(); return addLog(prev, '⚠️ Tank is full! Can\'t add more fish.'); }
-      const newFish = createFish({ stage: 'adult', tankId, targetRarity });
+
+      let newFish;
+      if (speciesKey && REAL_SPECIES_MAP[speciesKey]) {
+        // Build a real species fish — bypasses procedural genetics
+        const spec = REAL_SPECIES_MAP[speciesKey];
+        newFish = {
+          ...createFish({ stage: 'adult', tankId }),
+          species: {
+            name:       spec.name,
+            rarity:     spec.rarity,
+            basePrice:  spec.basePrice,
+            rarityScore: 12,
+            visualType: 'species',
+            key:        spec.key,
+          },
+        };
+      } else {
+        newFish = createFish({ stage: 'adult', tankId, targetRarity });
+      }
+
       playCoin();
       return addLog({
         ...prev,

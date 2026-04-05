@@ -364,6 +364,7 @@ export default function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuy
           <div className="supplies-grid">
             <SupplyCard name="Common Fish"   emoji="🐟" stock="∞" cost={50}  amount={1} coins={player.coins} desc="A random common fish, added to your active tank"    onBuy={() => onBuyFish(50, 'common')}  />
             <SupplyCard name="Uncommon Fish" emoji="🐠" stock="∞" cost={150} amount={1} coins={player.coins} desc="A random uncommon fish with better genetics"         onBuy={() => onBuyFish(150, 'uncommon')} />
+            <SupplyCard name="Clownfish"     emoji="🤿" stock="∞" cost={200} amount={1} coins={player.coins} desc="A real Amphiprion ocellaris — unmistakable orange and white stripes" onBuy={() => onBuyFish(200, null, 'clownfish')} />
           </div>
         </div>
       )}

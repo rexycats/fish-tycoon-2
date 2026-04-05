@@ -16,6 +16,13 @@
 // ============================================================
 
 import React from 'react';
+import ClownfishSprite from './sprites/ClownfishSprite.jsx';
+
+// ── Species sprite routing (Phase 12) ───────────────────────
+// Add new real-species entries here as they're built.
+const SPECIES_SPRITE_MAP = {
+  clownfish: ClownfishSprite,
+};
 
 // ─── COLOR PALETTES ─────────────────────────────────────────────────────────
 // Each entry:
@@ -292,6 +299,16 @@ export default function FishSprite({ fish, size = 60, flipped = false, selected 
   const rarity  = species?.rarity || 'common';
   const aura    = RARITY_AURA[rarity];
   const uid     = (fish.id || 'x').slice(0, 8);
+
+  // ── Real species bypass (Phase 12) ──────────────────────
+  // If the fish has a visualType:'species' + a known species key,
+  // delegate entirely to the dedicated sprite component.
+  if (fish.species?.visualType === 'species') {
+    const SpeciesSprite = SPECIES_SPRITE_MAP[fish.species.key];
+    if (SpeciesSprite) {
+      return <SpeciesSprite fish={fish} size={size} flipped={flipped} selected={selected} onClick={onClick}/>;
+    }
+  }
 
   if (fish.stage === 'egg')      return <EggSprite      uid={uid} size={size} C={C} aura={aura} isGlow={isGlow} selected={selected} onClick={onClick}/>;
   if (fish.stage === 'juvenile') return <JuvenileSprite uid={uid} size={size} C={C} aura={aura} isGlow={isGlow} isSpot={isSpot} selected={selected} flipped={flipped} onClick={onClick}/>;

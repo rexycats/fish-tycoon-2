@@ -4,6 +4,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { RARITY, GENES } from '../data/genetics.js';
+import FishSprite from './FishSprite.jsx';
 
 // ── Fish silhouette ────────────────────────────────────────
 function FishSilhouette({ bodyShape, primaryColor, glow, rarity, size = 48 }) {
@@ -43,19 +44,31 @@ function FishSilhouette({ bodyShape, primaryColor, glow, rarity, size = 48 }) {
 function FishdexCard({ entry, onClick, isSelected }) {
   const rarityColor = RARITY[entry.rarity]?.color || '#888';
   const displayName = entry.aiName || entry.name;
+  const isRealSpecies = entry.visualType === 'species';
+  // Build a minimal fish object for FishSprite when it's a real species
+  const mockFish = isRealSpecies ? {
+    id: `fdex-${entry.speciesKey}`,
+    stage: 'adult',
+    species: { visualType: 'species', key: entry.speciesKey, rarity: entry.rarity },
+  } : null;
   return (
     <div className={`fdex-card ${isSelected ? 'selected' : ''}`}
          style={{ '--rarity-color': rarityColor }}
          onClick={onClick}>
       <div className="fdex-card-sprite">
-        <FishSilhouette
-          bodyShape={entry.phenotype.bodyShape}
-          primaryColor={entry.phenotype.primaryColor}
-          glow={entry.phenotype.glow}
-          rarity={entry.rarity}
-          size={44}
-        />
+        {isRealSpecies ? (
+          <FishSprite fish={mockFish} size={44} selected={false} />
+        ) : (
+          <FishSilhouette
+            bodyShape={entry.phenotype.bodyShape}
+            primaryColor={entry.phenotype.primaryColor}
+            glow={entry.phenotype.glow}
+            rarity={entry.rarity}
+            size={44}
+          />
+        )}
         {entry.aiName && <div className="fdex-ai-badge" title="AI-named">✨</div>}
+        {isRealSpecies && <div className="fdex-real-badge" title="Real species">🐠</div>}
       </div>
       <div className="fdex-card-info">
         <div className="fdex-card-name">{displayName}</div>
@@ -74,8 +87,15 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
   const rarityColor = RARITY[entry.rarity]?.color || '#888';
   const displayName = entry.aiName || entry.name;
   const ph = entry.phenotype;
+  const isRealSpecies = entry.visualType === 'species';
 
-  const traitRows = [
+  const mockFish = isRealSpecies ? {
+    id: `fdex-detail-${entry.speciesKey}`,
+    stage: 'adult',
+    species: { visualType: 'species', key: entry.speciesKey, rarity: entry.rarity },
+  } : null;
+
+  const traitRows = ph ? [
     ['Body Shape',       ph.bodyShape],
     ['Primary Color',    ph.primaryColor],
     ['Secondary Color',  ph.secondaryColor],
@@ -84,7 +104,7 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
     ['Glow',             ph.glow],
     ['Size',             ph.size],
     ['Mutation',         ph.mutation],
-  ].filter(([, v]) => v && v !== 'None' && v !== 'Normal');
+  ].filter(([, v]) => v && v !== 'None' && v !== 'Normal') : [];
 
   const discoveredAt = entry.firstDiscoveredAt
     ? new Date(entry.firstDiscoveredAt).toLocaleDateString()
@@ -94,16 +114,25 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
     <div className="fdex-detail">
       <div className="fdex-detail-header" style={{ borderColor: rarityColor }}>
         <div className="fdex-detail-sprite">
-          <FishSilhouette
-            bodyShape={ph.bodyShape}
-            primaryColor={ph.primaryColor}
-            glow={ph.glow}
-            rarity={entry.rarity}
-            size={72}
-          />
+          {isRealSpecies ? (
+            <FishSprite fish={mockFish} size={72} selected={false} />
+          ) : (
+            <FishSilhouette
+              bodyShape={ph.bodyShape}
+              primaryColor={ph.primaryColor}
+              glow={ph.glow}
+              rarity={entry.rarity}
+              size={72}
+            />
+          )}
         </div>
         <div className="fdex-detail-title">
           <h3 className="fdex-detail-name">{displayName}</h3>
+          {isRealSpecies && entry.scientificName && (
+            <div className="fdex-detail-scientific">
+              <em>{entry.scientificName}</em>
+            </div>
+          )}
           {entry.aiName && entry.name !== entry.aiName && (
             <div className="fdex-detail-genetic">Classification: {entry.name}</div>
           )}
@@ -114,6 +143,38 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
           <div className="fdex-detail-date">Discovered: {discoveredAt}</div>
         </div>
       </div>
+
+      {/* Real species info block */}
+      {isRealSpecies && (
+        <div className="fdex-real-info">
+          {entry.habitat && (
+            <div className="fdex-real-row">
+              <span className="fdex-real-label">🌊 Habitat</span>
+              <span className="fdex-real-value">{entry.habitat}</span>
+            </div>
+          )}
+          {entry.conservationStatus && (
+            <div className="fdex-real-row">
+              <span className="fdex-real-label">🛡️ Status</span>
+              <span className="fdex-real-value">{entry.conservationStatus}</span>
+            </div>
+          )}
+          {entry.funFact && (
+            <div className="fdex-funfact">
+              <span className="fdex-funfact-icon">💡</span>
+              <span>{entry.funFact}</span>
+            </div>
+          )}
+          {entry.lore && !entry.aiLore && (
+            <div className="fdex-lore-section">
+              <div className="fdex-lore">
+                <div className="fdex-lore-label">📖 About</div>
+                <p className="fdex-lore-text">{entry.lore}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* AI Lore section */}
       <div className="fdex-lore-section">
@@ -147,18 +208,20 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
         )}
       </div>
 
-      {/* Traits grid */}
-      <div className="fdex-traits">
-        <div className="fdex-traits-title">Genetic Profile</div>
-        <div className="fdex-traits-grid">
-          {traitRows.map(([label, value]) => (
-            <div key={label} className="fdex-trait-row">
-              <span className="fdex-trait-label">{label}</span>
-              <span className="fdex-trait-value">{value}</span>
-            </div>
-          ))}
+      {/* Traits grid — only for procedural fish */}
+      {!isRealSpecies && traitRows.length > 0 && (
+        <div className="fdex-traits">
+          <div className="fdex-traits-title">Genetic Profile</div>
+          <div className="fdex-traits-grid">
+            {traitRows.map(([label, value]) => (
+              <div key={label} className="fdex-trait-row">
+                <span className="fdex-trait-label">{label}</span>
+                <span className="fdex-trait-value">{value}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
