@@ -1494,6 +1494,74 @@ body {
 /* Temperature display in HUD */
 .hud-temp { display: flex; align-items: center; gap: 4px; margin-left: 4px; }
 
+/* ---- REPUTATION BADGE (HUD) ---- */
+.hud-rep {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 4px;
+  padding: 3px 7px;
+  background: #0a1e30;
+  border: 1px solid #1a3050;
+  border-radius: 8px;
+}
+.hud-rep-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.hud-rep-tier {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.hud-rep-bar-bg {
+  width: 72px;
+  height: 4px;
+  background: #1a2a3a;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.hud-rep-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s ease, background 0.4s ease;
+}
+.hud-rep-num {
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 26px;
+  text-align: right;
+  line-height: 1;
+}
+
+/* ---- COMING SOON SPECIES CARDS ---- */
+.supply-card--locked {
+  pointer-events: none;
+  border-style: dashed;
+  border-color: #1a3050;
+  opacity: 0.72;
+  position: relative;
+}
+.sc-emoji  { font-size: 2rem; }
+.sc-name   { font-size: 0.88rem; font-weight: 700; }
+.sc-rarity { font-size: 0.70rem; font-weight: 600; text-transform: capitalize; letter-spacing: 0.04em; }
+.sc-desc   { font-size: 0.68rem; color: #5a8ab0; line-height: 1.4; }
+.sc-coming-soon-badge {
+  margin-top: 2px;
+  background: #0d1e30;
+  color: #4a7aaa;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid #1a3a5a;
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
 /* ============================================================
    PHASE 7 & 8 — NEW STYLES
    Day/night, storefront, customer walk, Fishdex AI, sound btn

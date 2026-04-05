@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { memo } from 'react';
 import FishSprite from './FishSprite.jsx';
 import { RARITY, GENES } from '../data/genetics.js';
 import { DISEASES } from '../systems/gameTick.js';
 
-export default function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicineStock, tanks = [], onMoveFish }) {
+function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicineStock, tanks = [], onMoveFish }) {
   if (!fish) {
     return (
       <div className="panel fish-panel empty">
@@ -125,3 +125,15 @@ function StatBar({ label, value, max, color, invert }) {
     </div>
   );
 }
+
+// Only re-render when the selected fish changes or its key stats update
+export default memo(FishPanel, (prev, next) =>
+  prev.fish?.id        === next.fish?.id        &&
+  prev.fish?.health    === next.fish?.health     &&
+  prev.fish?.hunger    === next.fish?.hunger     &&
+  prev.fish?.disease   === next.fish?.disease    &&
+  prev.isListed        === next.isListed         &&
+  prev.coins           === next.coins            &&
+  prev.medicineStock   === next.medicineStock    &&
+  prev.tanks           === next.tanks
+);

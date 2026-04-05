@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { memo } from 'react';
 
-export default function LogPanel({ log }) {
+function LogPanel({ log }) {
   return (
     <div className="panel log-panel">
       <h3>Activity Log</h3>
@@ -20,3 +20,9 @@ function formatTime(ts) {
   const d = new Date(ts);
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
+
+// Only re-render when the newest log entry changes
+export default memo(LogPanel, (prev, next) =>
+  prev.log?.[0]?.time === next.log?.[0]?.time &&
+  prev.log?.length    === next.log?.length
+);

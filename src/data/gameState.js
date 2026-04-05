@@ -221,6 +221,9 @@ export function addLog(state, message) {
 
 // ── Achievements ───────────────────────────────────────────
 export function checkAchievements(state, messages) {
+  // Fast path — all achievements already earned, nothing to check
+  if (state.player.achievements.length >= ACHIEVEMENT_DEFS.length) return state;
+
   const earned = new Set(state.player.achievements.map(a => a.id));
   const newAchievements = [];
 

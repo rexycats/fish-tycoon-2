@@ -220,20 +220,19 @@ export function processTick(state) {
   const messages = [];
   const now = Date.now();
 
-  // Process each tank independently
+  // Process each tank independently.
+  // Build a Map of fishId → fish for O(1) replacement instead of
+  // repeatedly filter+spread the whole array for each tank.
   const updatedTanks = [];
-  let updatedFish = [...next.fish];
+  const fishById = new Map(next.fish.map(f => [f.id, f]));
 
   for (const tank of next.tanks) {
-    const { updatedTank, updatedTankFish } = processOneTank(tank, updatedFish, messages, now);
+    const { updatedTank, updatedTankFish } = processOneTank(tank, [...fishById.values()], messages, now);
     updatedTanks.push(updatedTank);
-    // Replace this tank's fish in the global fish array
-    updatedFish = [
-      ...updatedFish.filter(f => f.tankId !== tank.id),
-      ...updatedTankFish,
-    ];
+    for (const f of updatedTankFish) fishById.set(f.id, f);
   }
 
+  let updatedFish = [...fishById.values()];
   next = { ...next, tanks: updatedTanks, fish: updatedFish };
 
   // Remove dead fish from all tanks — record autopsy data
@@ -318,7 +317,13 @@ export function processTick(state) {
   }
 
   next = checkAchievements(next, messages);
-  for (const msg of messages) next = addLog(next, msg);
+
+  // Batch all messages into one state update — avoids N full state spreads
+  if (messages.length > 0) {
+    const newEntries = messages.map(message => ({ time: Date.now(), message }));
+    next = { ...next, log: [...newEntries, ...next.log].slice(0, 60) };
+  }
+
   return { ...next, lastTickAt: now };
 }
 

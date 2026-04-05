@@ -15,13 +15,19 @@
 //   • Egg + Juvenile also fully shaded with matching treatment
 // ============================================================
 
-import React from 'react';
-import ClownfishSprite from './sprites/ClownfishSprite.jsx';
+import React, { memo } from 'react';
+import ClownfishSprite  from './sprites/ClownfishSprite.jsx';
+import BlueTangSprite   from './sprites/BlueTangSprite.jsx';
+import BettaSprite      from './sprites/BettaSprite.jsx';
+import AngelFishSprite  from './sprites/AngelFishSprite.jsx';
 
 // ── Species sprite routing (Phase 12) ───────────────────────
 // Add new real-species entries here as they're built.
 const SPECIES_SPRITE_MAP = {
-  clownfish: ClownfishSprite,
+  clownfish:  ClownfishSprite,
+  bluetang:   BlueTangSprite,
+  betta:      BettaSprite,
+  angelfish:  AngelFishSprite,
 };
 
 // ─── COLOR PALETTES ─────────────────────────────────────────────────────────
@@ -288,7 +294,7 @@ function JuvenileSprite({ uid, C, size, aura, isGlow, isSpot, selected, flipped,
 // ============================================================
 // ─── ADULT SPRITE ────────────────────────────────────────────
 // ============================================================
-export default function FishSprite({ fish, size = 60, flipped = false, selected = false, onClick }) {
+function FishSprite({ fish, size = 60, flipped = false, selected = false, onClick }) {
   const { phenotype, species } = fish;
   const C       = BODY_COLORS[phenotype.primaryColor] || BODY_COLORS.Crimson;
   const isGlow  = phenotype.glow     === 'Luminous';
@@ -619,3 +625,16 @@ export default function FishSprite({ fish, size = 60, flipped = false, selected 
     </svg>
   );
 }
+
+// Only re-render when props that affect the visual actually change.
+// Position/flipped updates come from TankView which manages its own
+// rendering — FishSprite itself just needs fish data + selection state.
+export default memo(FishSprite, (prev, next) =>
+  prev.fish?.id       === next.fish?.id       &&
+  prev.fish?.health   === next.fish?.health   &&
+  prev.fish?.stage    === next.fish?.stage    &&
+  prev.fish?.disease  === next.fish?.disease  &&
+  prev.selected       === next.selected       &&
+  prev.size           === next.size           &&
+  prev.flipped        === next.flipped
+);

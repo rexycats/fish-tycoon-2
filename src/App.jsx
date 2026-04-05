@@ -309,10 +309,20 @@ export default function App() {
 
       let newFish;
       if (speciesKey && REAL_SPECIES_MAP[speciesKey]) {
-        // Build a real species fish — bypasses procedural genetics
+        // Build a real species fish — bypasses procedural genetics.
+        // Use a canonical phenotype so Fishdex lore, AI naming, and
+        // magic fish checks all receive accurate trait data.
         const spec = REAL_SPECIES_MAP[speciesKey];
+        const SPECIES_PHENOTYPES = {
+          angelfish: { color: 'White', pattern: 'Striped', finType: 'Flowing', bodyShape: 'Tall', glow: 'None', size: 'Normal' },
+          clownfish:  { color: 'Crimson', pattern: 'Striped', finType: 'Normal', bodyShape: 'Round', glow: 'None', size: 'Normal' },
+          bluetang:   { color: 'Azure', pattern: 'Spotted', finType: 'Normal', bodyShape: 'Normal', glow: 'None', size: 'Normal' },
+          betta:      { color: 'Violet', pattern: 'Solid', finType: 'Flowing', bodyShape: 'Normal', glow: 'Luminous', size: 'Normal' },
+        };
+        const canonicalPhenotype = SPECIES_PHENOTYPES[speciesKey] || { color: 'White', pattern: 'Solid', finType: 'Normal', bodyShape: 'Normal', glow: 'None', size: 'Normal' };
         newFish = {
           ...createFish({ stage: 'adult', tankId }),
+          phenotype: canonicalPhenotype,
           species: {
             name:       spec.name,
             rarity:     spec.rarity,
@@ -564,6 +574,7 @@ export default function App() {
 
       <HUD
         player={game.player}
+        shop={game.shop}
         tanks={game.tanks}
         activeTank={activeTank}
         fish={game.fish}
@@ -673,7 +684,10 @@ export default function App() {
 
       {/* Magic Fish Win Modal */}
       {(game.player.magicFishFound || []).length === 7 && showWinModal && (
-        <MagicWinModal onDismiss={() => setShowWinModal(false)} />
+        <MagicWinModal
+          totalReward={MAGIC_FISH.reduce((s, m) => s + m.reward, 0)}
+          onDismiss={() => setShowWinModal(false)}
+        />
       )}
 
       <footer className="app-footer">
@@ -759,7 +773,7 @@ function TankTabs({ tanks, activeTankId, onSelectTank, onUnlockTank, canUnlock, 
 }
 
 // ── Magic Fish Win Modal ─────────────────────────────────────
-function MagicWinModal({ onDismiss }) {
+function MagicWinModal({ totalReward, onDismiss }) {
   return (
     <div className="win-modal-overlay" onClick={onDismiss}>
       <div className="win-modal" onClick={e => e.stopPropagation()}>
@@ -781,7 +795,7 @@ function MagicWinModal({ onDismiss }) {
           The seven wonders of the deep — all in one place. All yours.
         </p>
         <div className="win-modal-reward">
-          Total reward collected: <strong>🪙 70,450</strong>
+          Total reward collected: <strong>🪙 {totalReward.toLocaleString()}</strong>
         </div>
         <div className="win-modal-actions">
           <button className="btn btn-primary win-continue-btn" onClick={onDismiss}>

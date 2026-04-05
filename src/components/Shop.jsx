@@ -2,7 +2,7 @@
 // FISH TYCOON 2 — SHOP (Phase 7: Customer Walking Animation)
 // ============================================================
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { RARITY } from '../data/genetics.js';
 
 const RC = { common: '#7ec8a0', uncommon: '#6ab0de', rare: '#b07ee8', epic: '#f0c040', legendary: '#ff7eb3' };
@@ -101,6 +101,19 @@ function ReputationBar({ rep }) {
   );
 }
 
+function ComingSoonCard({ name, emoji, rarity, teaser }) {
+  const rc = { common: '#7ec8a0', uncommon: '#6ab0de', rare: '#b07ee8', epic: '#f0c040' };
+  return (
+    <div className="supply-card supply-card--locked" title="Coming in a future update">
+      <div className="sc-emoji" style={{ filter: 'grayscale(0.8)', opacity: 0.55 }}>{emoji}</div>
+      <div className="sc-name" style={{ color: rc[rarity] || '#888' }}>{name}</div>
+      <div className="sc-rarity" style={{ color: rc[rarity] || '#888', opacity: 0.7 }}>{rarity}</div>
+      <div className="sc-desc" style={{ fontStyle: 'italic', opacity: 0.55 }}>{teaser}</div>
+      <div className="sc-coming-soon-badge">Coming Soon</div>
+    </div>
+  );
+}
+
 function UpgradeCard({ id, upgrade, coins, onBuy }) {
   const canAfford = coins >= upgrade.cost;
   const maxed = upgrade.level >= 3;
@@ -163,7 +176,7 @@ function SupplyCard({ name, emoji, stock, cost, amount, coins, desc, onBuy }) {
 }
 
 // ── Main Shop component ────────────────────────────────────
-export default function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuySupply, onBuyFish }) {
+function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuySupply, onBuyFish }) {
   const [shopTab, setShopTab] = useState('sell');
   const [activeCustomer, setActiveCustomer] = useState(null);
   const prevSalesLen = useRef((game.shop.salesHistory || []).length);
@@ -355,7 +368,11 @@ export default function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuy
           <div className="section-title mt">🐠 Real Species</div>
           <p className="upgrade-hint">Iconic fish with fixed markings and species-specific behaviour in the tank.</p>
           <div className="supplies-grid">
-            <SupplyCard name="Clownfish" emoji="🤿" stock="∞" cost={200} amount={1} coins={player.coins} desc="Amphiprion ocellaris — vivid orange with 3 white bars. Darts near the bottom." onBuy={() => onBuyFish(200, null, 'clownfish')} />
+            <SupplyCard name="Clownfish"  emoji="🤿" stock="∞" cost={200} amount={1} coins={player.coins} desc="Amphiprion ocellaris — vivid orange with 3 white bars. Darts near the bottom." onBuy={() => onBuyFish(200, null, 'clownfish')} />
+            <SupplyCard name="Blue Tang"  emoji="🐟" stock="∞" cost={350} amount={1} coins={player.coins} desc="Paracanthurus hepatus — royal blue with bold black stripe and yellow tail. Sweeps the full tank." onBuy={() => onBuyFish(350, null, 'bluetang')} />
+            <SupplyCard name="Betta"      emoji="🐠" stock="∞" cost={420} amount={1} coins={player.coins} desc="Betta splendens — flowing crimson veil fins with teal iridescent sheen. A regal, solitary drifter." onBuy={() => onBuyFish(420, null, 'betta')} />
+            <SupplyCard name="Angelfish"  emoji="🪸" stock="∞" cost={240} amount={1} coins={player.coins} desc="Pterophyllum scalare — silver with 3 black bars and trailing dorsal filaments. A stately vertical swimmer." onBuy={() => onBuyFish(240, null, 'angelfish')} />
+            <ComingSoonCard name="Goldfish" emoji="🟡" rarity="common" teaser="Carassius auratus — classic fancy tail, beginner-friendly, long-lived companion." />
           </div>
         </div>
       )}
@@ -394,3 +411,12 @@ export default function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuy
     </div>
   );
 }
+
+// Shop is only open on its own tab — memo ensures it doesn't re-render
+// on every game tick while the player is looking at the tank view.
+export default memo(Shop, (prev, next) =>
+  prev.game?.shop         === next.game?.shop         &&
+  prev.game?.fish         === next.game?.fish         &&
+  prev.game?.player?.coins === next.game?.player?.coins &&
+  prev.activeTank         === next.activeTank
+);

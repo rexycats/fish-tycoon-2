@@ -18,7 +18,7 @@
 //   selection ring → rarity aura
 // ============================================================
 
-import React from 'react';
+import React, { memo } from 'react';
 
 const RARITY_AURA = {
   common:    null,
@@ -28,7 +28,7 @@ const RARITY_AURA = {
   legendary: { color: '#ff8040', opacity: 0.55, blur: 14 },
 };
 
-export default function ClownfishSprite({
+function ClownfishSprite({
   fish,
   size     = 60,
   flipped  = false,
@@ -294,3 +294,13 @@ export default function ClownfishSprite({
     </svg>
   );
 }
+
+export default memo(ClownfishSprite, (prev, next) =>
+  prev.fish?.id      === next.fish?.id      &&
+  prev.fish?.stage   === next.fish?.stage   &&
+  prev.fish?.health  === next.fish?.health  &&
+  prev.fish?.disease === next.fish?.disease &&
+  prev.selected      === next.selected      &&
+  prev.size          === next.size          &&
+  prev.flipped       === next.flipped
+);

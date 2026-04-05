@@ -2,7 +2,7 @@
 // FISH TYCOON 2 — TANK VIEW (Phase 11: Pseudo-3D Visual Overhaul)
 // ============================================================
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import FishSprite from './FishSprite.jsx';
 import { getDecorById } from '../data/decorations.js';
 import { REAL_SPECIES_MAP } from '../data/realSpecies.js';
@@ -67,26 +67,59 @@ const CORNER_BOLTS = [
 export default function TankView({ fish, selectedFishId, onSelectFish, waterQuality, tank }) {
   // Keep a ref so the animation loop (which has no deps) can read behavior profiles
   const fishMapRef = useRef({});
-  fishMapRef.current = Object.fromEntries(fish.map(f => [f.id, f]));
 
-  const [positions, setPositions] = useState(() =>
-    Object.fromEntries(fish.map(f => {
-      const bp = getBehaviorProfile(f);
-      const [minY, maxY] = bp?.preferredYRange ?? [20, 75];
-      return [f.id, {
-        x: f.x ?? (10 + Math.random() * 80),
-        y: f.y ?? (minY + Math.random() * (maxY - minY)),
-        vx: (Math.random() > 0.5 ? 1 : -1) * (0.05 + Math.random() * 0.1),
-        vy: 0,
-        flipped: Math.random() > 0.5,
-        phase: Math.random() * Math.PI * 2,
-        depthLayer: Math.floor(Math.random() * 3),
-        tilt: 0,
-        isIdle: false,
-        idleTimer: Math.floor(Math.random() * 200),
-      }];
-    }))
+  // Memoize fishMap — only rebuild when fish ids change, not every render
+  const fishIds = fish.map(f => f.id).join(',');
+  fishMapRef.current = useMemo(
+    () => Object.fromEntries(fish.map(f => [f.id, f])),
+    [fishIds] // eslint-disable-line react-hooks/exhaustive-deps
   );
+
+  // ── Positions live in a ref — the animation loop mutates it directly.
+  // A lightweight frame counter triggers React re-renders without ever
+  // copying the entire positions object via setState each frame.
+  const posRef  = useRef({});
+  const [, setFrame] = useState(0);
+
+  // Initialise positions for fish that don't have one yet
+  const initPos = (f) => {
+    const bp = getBehaviorProfile(f);
+    const [minY, maxY] = bp?.preferredYRange ?? [20, 75];
+    return {
+      x: f.x ?? (10 + Math.random() * 80),
+      y: f.y ?? (minY + Math.random() * (maxY - minY)),
+      vx: (Math.random() > 0.5 ? 1 : -1) * (0.05 + Math.random() * 0.1),
+      vy: 0,
+      flipped: Math.random() > 0.5,
+      phase: Math.random() * Math.PI * 2,
+      depthLayer: Math.floor(Math.random() * 3),
+      tilt: 0,
+      isIdle: false,
+      idleTimer: Math.floor(Math.random() * 200),
+    };
+  };
+
+  // Seed initial positions once
+  if (Object.keys(posRef.current).length === 0 && fish.length > 0) {
+    for (const f of fish) posRef.current[f.id] = initPos(f);
+  }
+
+  // Sync posRef when fish list changes (add/remove)
+  useEffect(() => {
+    const pos = posRef.current;
+    // Add new fish
+    for (const f of fish) {
+      if (!pos[f.id]) pos[f.id] = initPos(f);
+    }
+    // Remove gone fish
+    const ids = new Set(fish.map(f => f.id));
+    for (const id of Object.keys(pos)) {
+      if (!ids.has(id)) delete pos[id];
+    }
+  }, [fish]);
+
+  // Convenience alias for reading positions in render (ref value, not state)
+  const positions = posRef.current;
 
   const [dayPhase, setDayPhase] = useState(getDayPhase);
   const tickRef = useRef(0);
@@ -97,39 +130,15 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   }, []);
 
   useEffect(() => {
-    setPositions(prev => {
-      const next = { ...prev };
-      for (const f of fish) {
-        if (!next[f.id]) {
-          const bp = getBehaviorProfile(f);
-          const [minY, maxY] = bp?.preferredYRange ?? [20, 75];
-          next[f.id] = {
-            x: 20 + Math.random() * 60,
-            y: minY + Math.random() * (maxY - minY),
-            vx: (Math.random() > 0.5 ? 1 : -1) * (0.05 + Math.random() * 0.08),
-            vy: 0, flipped: false, phase: Math.random() * Math.PI * 2,
-            depthLayer: Math.floor(Math.random() * 3),
-            tilt: 0, isIdle: false, idleTimer: 60,
-          };
-        }
-      }
-      const ids = new Set(fish.map(f => f.id));
-      for (const id of Object.keys(next)) {
-        if (!ids.has(id)) delete next[id];
-      }
-      return next;
-    });
-  }, [fish]);
-
-  useEffect(() => {
     let frameId;
     const animate = () => {
       tickRef.current++;
       const t = tickRef.current;
-      setPositions(prev => {
-        const next = { ...prev };
-        for (const [id, pos] of Object.entries(next)) {
-          let { x, y, vx, vy, phase, flipped, depthLayer, tilt, isIdle, idleTimer } = pos;
+      const pos = posRef.current;
+
+      for (const id of Object.keys(pos)) {
+        const p = pos[id];
+        let { x, y, vx, vy, phase, flipped, depthLayer, tilt, isIdle, idleTimer } = p;
 
           // ── Resolve per-species behavior profile ──────────────
           const fishObj = fishMapRef.current[id];
@@ -173,7 +182,6 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           if (y < 6)  { y = 6;  vy =  Math.abs(vy); }
 
           if (Math.random() < turnChance) {
-            // Darting fish (clownfish) do fast short direction changes
             const dart = dartiness > 0 && Math.random() < dartiness;
             const speed = dart ? 0.12 + Math.random() * 0.14 : 0.06 + Math.random() * 0.12;
             vx = (Math.random() - 0.5) * speed;
@@ -181,28 +189,35 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
             if (Math.abs(vx) < 0.02) vx = 0.05;
             flipped = vx < 0;
           }
-          next[id] = { x, y, vx, vy, phase, flipped, depthLayer, tilt, isIdle, idleTimer };
-        }
-        return next;
-      });
+
+        // Mutate in place — no object spread, no setState
+        p.x = x; p.y = y; p.vx = vx; p.vy = vy;
+        p.flipped = flipped; p.tilt = tilt;
+        p.isIdle = isIdle; p.idleTimer = idleTimer;
+      }
+
+      // Trigger a re-render by incrementing a cheap counter
+      setFrame(f => f + 1);
       frameId = requestAnimationFrame(animate);
     };
     frameId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frameId);
   }, []);
 
-  const wq = waterQuality;
-  const waterR = Math.round(wq > 60 ? 14  : wq > 30 ? 30  : 60);
-  const waterG = Math.round(wq > 60 ? 62  : wq > 30 ? 78  : 72);
-  const waterB = Math.round(wq > 60 ? 148 : wq > 30 ? 110 : 60);
-  const waterBg = `linear-gradient(to bottom, rgba(${waterR+32},${waterG+32},${waterB+32},0.90) 0%, rgba(${waterR+14},${waterG+14},${waterB+10},0.96) 40%, rgba(${waterR},${waterG},${waterB},0.99) 72%, rgba(${Math.max(0,waterR-20)},${Math.max(0,waterG-18)},${Math.max(0,waterB-30)},1) 100%)`;
+  const waterBg = useMemo(() => {
+    const wq = waterQuality;
+    const r = Math.round(wq > 60 ? 14  : wq > 30 ? 30  : 60);
+    const g = Math.round(wq > 60 ? 62  : wq > 30 ? 78  : 72);
+    const b = Math.round(wq > 60 ? 148 : wq > 30 ? 110 : 60);
+    return `linear-gradient(to bottom, rgba(${r+32},${g+32},${b+32},0.90) 0%, rgba(${r+14},${g+14},${b+10},0.96) 40%, rgba(${r},${g},${b},0.99) 72%, rgba(${Math.max(0,r-20)},${Math.max(0,g-18)},${Math.max(0,b-30)},1) 100%)`;
+  }, [waterQuality]);
   const ps = DAY_PHASE_STYLES[dayPhase.phase];
 
-  const sortedFish = [...fish].sort((a, b) => {
-    const la = positions[a.id]?.depthLayer ?? 1;
-    const lb = positions[b.id]?.depthLayer ?? 1;
+  const sortedFish = useMemo(() => [...fish].sort((a, b) => {
+    const la = posRef.current[a.id]?.depthLayer ?? 1;
+    const lb = posRef.current[b.id]?.depthLayer ?? 1;
     return la - lb;
-  });
+  }), [fishIds]); // depth layers are set at spawn and don't change
 
   return (
     <div className="tank-wrapper">

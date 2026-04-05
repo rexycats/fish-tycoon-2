@@ -28,7 +28,27 @@ function HappinessMeter({ value }) {
   );
 }
 
-export default function HUD({ player, tanks, activeTank, fish, onBuyFood, onTreatWater, onToggleAutoFeed, onUseHeater, soundOn, onToggleSound }) {
+function ReputationBadge({ rep }) {
+  const r = rep || 0;
+  const tier   = r < 100 ? 'Local'   : r < 300 ? 'Known' : r < 600 ? 'Popular' : 'Famous';
+  const color  = r < 100 ? '#8aa4c8' : r < 300 ? '#6ab0de' : r < 600 ? '#b07ee8' : '#f0c040';
+  const next   = r < 100 ? 100 : r < 300 ? 300 : r < 600 ? 600 : 999;
+  const pct    = Math.min(100, Math.round((r / next) * 100));
+  return (
+    <div className="hud-rep" title={`Reputation: ${r}/999 — ${tier} Shop\nNext tier at ${next}`}>
+      <span className="hud-stat-icon">⭐</span>
+      <div className="hud-rep-inner">
+        <span className="hud-rep-tier" style={{ color }}>{tier}</span>
+        <div className="hud-rep-bar-bg">
+          <div className="hud-rep-bar-fill" style={{ width: `${pct}%`, background: color }} />
+        </div>
+      </div>
+      <span className="hud-rep-num" style={{ color }}>{r}</span>
+    </div>
+  );
+}
+
+export default function HUD({ player, shop, tanks, activeTank, fish, onBuyFood, onTreatWater, onToggleAutoFeed, onUseHeater, soundOn, onToggleSound }) {
   const tank = activeTank || tanks?.[0] || {};
   const wq = Math.round(tank.waterQuality ?? 100);
   const wqColor = wq > 70 ? '#5dbe8a' : wq > 40 ? '#e0c040' : '#e05050';
@@ -61,6 +81,7 @@ export default function HUD({ player, tanks, activeTank, fish, onBuyFood, onTrea
       </div>
 
       <HappinessMeter value={tank.happiness} />
+      <ReputationBadge rep={shop?.reputation} />
       <TempDisplay temp={tank.temperature} />
 
       <div className="hud-actions">
