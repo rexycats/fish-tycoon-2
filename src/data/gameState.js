@@ -87,7 +87,7 @@ export function createDefaultState() {
     offlineSummary: null,
 
     player: {
-      coins: 200,
+      coins: 500,
       totalCoinsEarned: 0,
       shopLevel: 1,
       fishdex: [],

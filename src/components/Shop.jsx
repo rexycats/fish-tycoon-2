@@ -214,10 +214,10 @@ export default function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuy
 
       {/* Sub-tabs */}
       <div className="shop-tabs">
-        {['sell', 'upgrades', 'supplies', 'history'].map(t => (
+        {['sell', 'fish', 'upgrades', 'supplies', 'history'].map(t => (
           <button key={t} className={`shop-tab-btn ${shopTab === t ? 'active' : ''}`}
                   onClick={() => setShopTab(t)}>
-            {{ sell: '📋 Listings', upgrades: '⬆️ Upgrades', supplies: '🛒 Supplies', history: '📜 Sales Log' }[t]}
+            {{ sell: '📋 Listings', fish: '🐠 Buy Fish', upgrades: '⬆️ Upgrades', supplies: '🛒 Supplies', history: '📜 Sales Log' }[t]}
           </button>
         ))}
       </div>
@@ -344,6 +344,22 @@ export default function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuy
         </div>
       )}
 
+      {shopTab === 'fish' && (
+        <div className="supplies-panel">
+          <p className="upgrade-hint">Purchase fish to stock your tanks. Each fish is added directly to your active tank.</p>
+          <div className="supplies-grid">
+            <SupplyCard name="Common Fish"   emoji="🐟" stock="∞" cost={50}  amount={1} coins={player.coins} desc="A random common fish — good for building up stock"            onBuy={() => onBuyFish(50,  'common')}   />
+            <SupplyCard name="Uncommon Fish" emoji="🐠" stock="∞" cost={150} amount={1} coins={player.coins} desc="A random uncommon fish with better genetics and higher value"   onBuy={() => onBuyFish(150, 'uncommon')} />
+            <SupplyCard name="Rare Fish"     emoji="🌟" stock="∞" cost={400} amount={1} coins={player.coins} desc="A rare fish — unusual traits, higher sale price"                onBuy={() => onBuyFish(400, 'rare')}     />
+          </div>
+          <div className="section-title mt">🐠 Real Species</div>
+          <p className="upgrade-hint">Iconic fish with fixed markings and species-specific behaviour in the tank.</p>
+          <div className="supplies-grid">
+            <SupplyCard name="Clownfish" emoji="🤿" stock="∞" cost={200} amount={1} coins={player.coins} desc="Amphiprion ocellaris — vivid orange with 3 white bars. Darts near the bottom." onBuy={() => onBuyFish(200, null, 'clownfish')} />
+          </div>
+        </div>
+      )}
+
       {shopTab === 'supplies' && (
         <div className="supplies-panel">
           <p className="upgrade-hint">Buy supplies to keep your fish healthy and your water clean.</p>
@@ -358,14 +374,6 @@ export default function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuy
               <SupplyCard name="Heater Cartridge" emoji="🌡" stock={tank.supplies?.heater ?? 0}             cost={30} amount={2}  coins={player.coins} desc="Nudges temperature 4°F toward 74°F"  onBuy={() => onBuySupply('heater',         30, 2)} />
             </div>
           )}
-
-          <div className="section-title mt">🐟 Buy Fish</div>
-          <p className="upgrade-hint">Ran out of fish? Purchase a random common fish to get back on your feet.</p>
-          <div className="supplies-grid">
-            <SupplyCard name="Common Fish"   emoji="🐟" stock="∞" cost={50}  amount={1} coins={player.coins} desc="A random common fish, added to your active tank"    onBuy={() => onBuyFish(50, 'common')}  />
-            <SupplyCard name="Uncommon Fish" emoji="🐠" stock="∞" cost={150} amount={1} coins={player.coins} desc="A random uncommon fish with better genetics"         onBuy={() => onBuyFish(150, 'uncommon')} />
-            <SupplyCard name="Clownfish"     emoji="🤿" stock="∞" cost={200} amount={1} coins={player.coins} desc="A real Amphiprion ocellaris — unmistakable orange and white stripes" onBuy={() => onBuyFish(200, null, 'clownfish')} />
-          </div>
         </div>
       )}
 
