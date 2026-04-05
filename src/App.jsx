@@ -131,7 +131,7 @@ export default function App() {
       ...prev,
       player: {
         ...prev.player,
-        fishdex: prev.player.fishdex.map(e => e.name === speciesName ? { ...e, ...updates } : e),
+        fishdex: (prev.player.fishdex || []).map(e => e.name === speciesName ? { ...e, ...updates } : e),
       },
     }));
   }, []);
@@ -201,7 +201,7 @@ export default function App() {
   }, [game.fish.map(f => f.id).join(',')]);
 
   const handleGenerateLore = useCallback(async (speciesName) => {
-    const entry = gameRef.current.player.fishdex.find(e => e.name === speciesName);
+    const entry = (gameRef.current.player.fishdex || []).find(e => e.name === speciesName);
     if (!entry || entry.aiLore) return;
     setGeneratingLoreFor(speciesName);
     setAiError(null);
@@ -516,7 +516,7 @@ export default function App() {
       if (!tank) return prev;
       const item = (tank.decorations?.placed || []).find(p => p.instanceId === instanceId);
       if (!item) return prev;
-      const newPlaced = tank.decorations.placed.filter(p => p.instanceId !== instanceId);
+      const newPlaced = (tank.decorations?.placed || []).filter(p => p.instanceId !== instanceId);
       const owned = tank.decorations?.owned || {};
       const newOwned = { ...owned, [item.type]: (owned[item.type] || 0) + 1 };
       return addLog({

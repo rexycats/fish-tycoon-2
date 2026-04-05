@@ -199,8 +199,8 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
 
   const { shop, fish, player } = game;
   const tank = activeTank || game.tanks?.[0];
-  const listedFish    = shop.listedFish.map(id => fish.find(f => f.id === id)).filter(Boolean);
-  const availableFish = fish.filter(f => f.stage === 'adult' && !shop.listedFish.includes(f.id));
+  const listedFish    = (shop.listedFish || []).map(id => fish.find(f => f.id === id)).filter(Boolean);
+  const availableFish = (fish || []).filter(f => f.stage === 'adult' && !(shop.listedFish || []).includes(f.id));
 
   return (
     <div className="shop-panel">

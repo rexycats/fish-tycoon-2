@@ -152,7 +152,7 @@ function migrateSave(parsed) {
   if (parsed.fish) {
     parsed.fish = parsed.fish.map(f => ({ tankId: 'tank_0', ...f }));
   }
-  parsed.tanks = parsed.tanks.map(t => ({
+  parsed.tanks = (parsed.tanks || []).map(t => ({
     autoFeedTick: 0,
     ...t,
     supplies: { breedingBoost: 0, ...t.supplies },
@@ -222,9 +222,9 @@ export function addLog(state, message) {
 // ── Achievements ───────────────────────────────────────────
 export function checkAchievements(state, messages) {
   // Fast path — all achievements already earned, nothing to check
-  if (state.player.achievements.length >= ACHIEVEMENT_DEFS.length) return state;
+  if ((state.player.achievements || []).length >= ACHIEVEMENT_DEFS.length) return state;
 
-  const earned = new Set(state.player.achievements.map(a => a.id));
+  const earned = new Set((state.player.achievements || []).map(a => a.id));
   const newAchievements = [];
 
   function award(id) {

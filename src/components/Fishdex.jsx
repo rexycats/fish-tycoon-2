@@ -248,7 +248,7 @@ export default function Fishdex({ fishdex, onGenerateLore, generatingLoreFor, ai
   const rarities = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'];
 
   const filtered = useMemo(() => {
-    let list = [...fishdex];
+    let list = [...(fishdex || [])];
     if (search) {
       const q = search.toLowerCase();
       list = list.filter(e =>
@@ -270,7 +270,7 @@ export default function Fishdex({ fishdex, onGenerateLore, generatingLoreFor, ai
 
   const rarityCounts = useMemo(() => {
     const c = { common: 0, uncommon: 0, rare: 0, epic: 0 };
-    fishdex.forEach(e => { if (c[e.rarity] !== undefined) c[e.rarity]++; });
+    (fishdex || []).forEach(e => { if (c[e.rarity] !== undefined) c[e.rarity]++; });
     return c;
   }, [fishdex]);
 

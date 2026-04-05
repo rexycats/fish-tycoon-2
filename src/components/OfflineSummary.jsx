@@ -16,7 +16,7 @@ function EventCard({ event }) {
         {event.type === 'found_item' && event.coinBonus && (
           <div className="offline-discovery-reward">+🪙{event.coinBonus} added to your wallet</div>
         )}
-        {event.type === 'visitor' && event.fish && (
+        {event.type === 'visitor' && event.fish && event.fish.species && (
           <div className="offline-discovery-reward">
             {event.fish.species.name} added to your tank
           </div>
