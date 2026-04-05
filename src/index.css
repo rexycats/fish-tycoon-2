@@ -552,62 +552,7 @@ body {
 .fdex-filter-btn:hover { border-color: #3a6a9a; color: #a0c8e8; }
 .fdex-filter-btn.active { background: #0a2a45; }
 
-.fdex-main {
-  display: flex;
-  gap: 16px;
-  min-height: 400px;
-}
-
-.fdex-grid {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: 8px;
-  align-content: start;
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.fdex-card {
-  background: #0d1b2e;
-  border: 1px solid #1e3a5a;
-  border-radius: 10px;
-  padding: 8px 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  transition: all 0.15s;
-  border-bottom: 2px solid transparent;
-}
-.fdex-card:hover {
-  border-color: var(--rarity-color, #1e8fc8);
-  background: #112235;
-}
-.fdex-card.selected {
-  border-color: var(--rarity-color, #1e8fc8);
-  background: #0a2840;
-  box-shadow: 0 0 12px color-mix(in srgb, var(--rarity-color, #1e8fc8) 30%, transparent);
-}
-.fdex-card.unknown {
-  opacity: 0.35;
-  cursor: default;
-}
-.fdex-card-sprite { line-height: 0; }
-.fdex-card-name {
-  font-size: 0.65rem;
-  color: #a0c0e0;
-  text-align: center;
-  line-height: 1.2;
-  font-weight: 600;
-}
-.fdex-card-rarity {
-  font-size: 0.58rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.8;
-}
+/* fdex-main, fdex-grid, fdex-card — defined later in ITEM #12 block */
 
 .fdex-empty {
   grid-column: 1 / -1;
@@ -2134,24 +2079,7 @@ body {
   overflow: hidden;
 }
 
-.fdex-grid {
-  flex: 1;
-  overflow-y: auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
-  align-content: flex-start;
-  gap: 8px;
-  padding: 12px;
-}
-
-.fdex-detail-panel {
-  width: 260px;
-  flex-shrink: 0;
-  border-left: 1px solid var(--panel-border);
-  overflow-y: auto;
-  padding: 12px;
-  background: rgba(6,15,28,0.5);
-}
+/* fdex-grid and fdex-detail-panel defined in ITEM #12 block below */
 
 .fdex-detail {
   display: flex;
@@ -2213,117 +2141,6 @@ body {
 }
 .fdex-trait-label { color: #4a7a9a; }
 .fdex-trait-value { color: #c0d8f0; font-weight: 600; }
-
-/* ---- FISHDEX CARD UPDATES ---- */
-/* ======== #12 FISHDEX CARD — rarity-bordered cards with sprite previews ======== */
-.fdex-card {
-  width: 108px;
-  padding: 0;
-  background: linear-gradient(160deg, rgba(10,22,44,0.92) 0%, rgba(6,14,30,0.96) 100%);
-  border: 1.5px solid var(--rarity-color, rgba(42,80,144,0.35));
-  border-radius: 12px;
-  cursor: pointer;
-  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 0 0 0 var(--rarity-color, transparent);
-}
-.fdex-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 0%, var(--rarity-color, transparent) 0%, transparent 65%);
-  opacity: 0.08;
-  pointer-events: none;
-  border-radius: inherit;
-}
-.fdex-card:hover {
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 16px var(--rarity-color, #4a7a9a)44;
-  border-color: var(--rarity-color, #4a7a9a);
-}
-.fdex-card.selected {
-  transform: translateY(-3px) scale(1.04);
-  border-color: var(--rarity-color, var(--gold));
-  box-shadow: 0 8px 28px rgba(0,0,0,0.6), 0 0 22px var(--rarity-color, #d4a830)55;
-  background: linear-gradient(160deg, rgba(15,30,60,0.96) 0%, rgba(8,18,38,0.98) 100%);
-}
-
-/* rarity colored top bar on each card */
-.fdex-card-accent {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  border-radius: 12px 12px 0 0;
-  opacity: 0.85;
-}
-
-/* rarity ring sits behind the sprite */
-.fdex-card-ring {
-  position: absolute;
-  top: 8px; left: 50%;
-  transform: translateX(-50%);
-  width: 70px; height: 70px;
-  border-radius: 50%;
-  border: 1.5px solid;
-  opacity: 0.3;
-  pointer-events: none;
-}
-.fdex-card-ring--pulse {
-  animation: fdex-ring-pulse 2.4s ease-in-out infinite;
-  opacity: 0.5;
-}
-@keyframes fdex-ring-pulse {
-  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.4; }
-  50%       { transform: translateX(-50%) scale(1.12); opacity: 0.7; }
-}
-
-.fdex-card-sprite {
-  position: relative;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 0 6px;
-  line-height: 0;
-}
-
-.fdex-card-info {
-  text-align: center;
-  width: 100%;
-  padding: 0 6px 10px;
-}
-.fdex-card-name {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #d0e4ff;
-  line-height: 1.3;
-  word-break: break-word;
-  font-family: 'Cinzel', serif;
-  margin-bottom: 2px;
-}
-.fdex-card-rarity {
-  font-size: 0.58rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-top: 1px;
-  font-weight: 700;
-  opacity: 0.9;
-}
-.fdex-card-price {
-  font-size: 0.62rem;
-  color: #7aaac8;
-  margin-top: 3px;
-}
-
-/* Rarity-specific tints */
-.fdex-card--legendary { background: linear-gradient(160deg, rgba(15,10,30,0.95) 0%, rgba(8,6,18,0.98) 100%); }
-.fdex-card--epic      { background: linear-gradient(160deg, rgba(18,10,40,0.95) 0%, rgba(10,6,24,0.98) 100%); }
-.fdex-card--rare      { background: linear-gradient(160deg, rgba(10,14,38,0.95) 0%, rgba(6,8,22,0.98) 100%); }
 
 /* ---- FISHDEX HEADER ---- */
 .fdex-header {

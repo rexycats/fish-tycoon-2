@@ -46,6 +46,8 @@ function FishdexCard({ entry, onClick, isSelected }) {
   const displayName = entry.aiName || entry.name;
   const isRealSpecies = entry.visualType === 'species';
   const isHighRarity = entry.rarity === 'legendary' || entry.rarity === 'epic';
+  const ph = entry.phenotype || {};
+  const hasProceduralPhenotype = !isRealSpecies && ph.bodyShape && ph.primaryColor;
   const mockFish = isRealSpecies ? {
     id: `fdex-${entry.speciesKey}`,
     stage: 'adult',
@@ -63,14 +65,16 @@ function FishdexCard({ entry, onClick, isSelected }) {
       <div className="fdex-card-sprite">
         {isRealSpecies ? (
           <FishSprite fish={mockFish} size={56} selected={false} />
-        ) : (
+        ) : hasProceduralPhenotype ? (
           <FishSilhouette
-            bodyShape={entry.phenotype.bodyShape}
-            primaryColor={entry.phenotype.primaryColor}
-            glow={entry.phenotype.glow}
+            bodyShape={ph.bodyShape}
+            primaryColor={ph.primaryColor}
+            glow={ph.glow}
             rarity={entry.rarity}
             size={56}
           />
+        ) : (
+          <span style={{ fontSize: '2rem', opacity: 0.4 }}>🐟</span>
         )}
         {entry.aiName && <div className="fdex-ai-badge" title="AI-named">✨</div>}
         {isRealSpecies && <div className="fdex-real-badge" title="Real species">🐠</div>}
@@ -92,8 +96,10 @@ function FishdexCard({ entry, onClick, isSelected }) {
 function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
   const rarityColor = RARITY[entry.rarity]?.color || '#888';
   const displayName = entry.aiName || entry.name;
-  const ph = entry.phenotype;
+  const ph = entry.phenotype || {};
   const isRealSpecies = entry.visualType === 'species';
+  // Only show sprite for procedural fish that have a real phenotype
+  const hasProceduralPhenotype = !isRealSpecies && ph.bodyShape && ph.primaryColor;
 
   const mockFish = isRealSpecies ? {
     id: `fdex-detail-${entry.speciesKey}`,
@@ -101,7 +107,7 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
     species: { visualType: 'species', key: entry.speciesKey, rarity: entry.rarity },
   } : null;
 
-  const traitRows = ph ? [
+  const traitRows = hasProceduralPhenotype ? [
     ['Body Shape',       ph.bodyShape],
     ['Primary Color',    ph.primaryColor],
     ['Secondary Color',  ph.secondaryColor],
@@ -122,7 +128,7 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
         <div className="fdex-detail-sprite">
           {isRealSpecies ? (
             <FishSprite fish={mockFish} size={72} selected={false} />
-          ) : (
+          ) : hasProceduralPhenotype ? (
             <FishSilhouette
               bodyShape={ph.bodyShape}
               primaryColor={ph.primaryColor}
@@ -130,7 +136,7 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
               rarity={entry.rarity}
               size={72}
             />
-          )}
+          ) : null}
         </div>
         <div className="fdex-detail-title">
           <h3 className="fdex-detail-name">{displayName}</h3>
@@ -214,8 +220,8 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
         )}
       </div>
 
-      {/* Traits grid — only for procedural fish */}
-      {!isRealSpecies && traitRows.length > 0 && (
+      {/* Traits grid — only for procedural fish with real phenotype data */}
+      {hasProceduralPhenotype && traitRows.length > 0 && (
         <div className="fdex-traits">
           <div className="fdex-traits-title">Genetic Profile</div>
           <div className="fdex-traits-grid">
