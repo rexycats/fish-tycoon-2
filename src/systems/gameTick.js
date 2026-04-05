@@ -3,7 +3,7 @@
 // ============================================================
 
 import { GROWTH_STAGES, computePhenotype, getSpeciesFromPhenotype, RARITY, createFish, rarityFromScore, computeRarityScore } from '../data/genetics.js';
-import { addLog, checkAchievements, TANK_TYPES } from '../data/gameState.js';
+import { addLog, TANK_TYPES } from '../data/gameState.js';
 
 export const TICK_INTERVAL_MS = 1000;
 
@@ -139,7 +139,8 @@ function processOneTank(tank, allFish, messages, now) {
       if (wq < 30) pool = ['fin_rot', 'fin_rot', 'ich', 'velvet'];
       if ((fish.hunger || 0) > 70) pool = ['bloat', 'bloat', 'ich'];
       const diseaseId = pool[Math.floor(Math.random() * pool.length)];
-      messages.push(`🚨 ${fish.species.name} in ${tank.name} contracted ${DISEASES[diseaseId].name}! Treat quickly.`);
+      const diseaseDef = DISEASES[diseaseId];
+      messages.push(`🚨 ${fish.species?.name || 'A fish'} in ${tank.name} contracted ${diseaseDef?.name || diseaseId}! Treat quickly.`);
       return { ...fish, disease: diseaseId, diseaseSince: Date.now() };
     }
     return fish;
@@ -160,18 +161,18 @@ function processOneTank(tank, allFish, messages, now) {
 
       const regen = HEALTH_REGEN * (bonuses.healthRegenMult || 1);
 
-      // Disease damage (overrides normal health calculation)
+      // Additive damage — all active stressors compound, capped at 0.25/tick
+      let dmg = 0;
       if (f.disease) {
         const disease = DISEASES[f.disease];
-        if (disease) {
-          f.health = Math.max(0, f.health - disease.healthDmgPerSec);
-        }
-      } else if (f.hunger >= 90) {
-        f.health = Math.max(0, f.health - HEALTH_HUNGER_DMG);
-      } else if (wq < 25) {
-        f.health = Math.max(0, f.health - HEALTH_WATER_DMG);
-      } else if (tempStress) {
-        f.health = Math.max(0, f.health - 0.02);
+        if (disease) dmg += disease.healthDmgPerSec;
+      }
+      if (f.hunger >= 90) dmg += HEALTH_HUNGER_DMG;
+      if (wq < 25)        dmg += HEALTH_WATER_DMG;
+      if (tempStress)     dmg += 0.02;
+
+      if (dmg > 0) {
+        f.health = Math.max(0, f.health - Math.min(dmg, 0.25));
       } else if (f.hunger < 40 && wq > 60) {
         f.health = Math.min(100, f.health + regen);
       }
@@ -184,10 +185,10 @@ function processOneTank(tank, allFish, messages, now) {
 
     if (f.stage === 'egg' && timeInStage >= stageDuration * growMult) {
       f.stage = 'juvenile'; f.stageStartedAt = now;
-      messages.push(`🐣 An egg in ${tank.name} hatched into a ${f.species.name}!`);
+      messages.push(`🐣 An egg in ${tank.name} hatched into a ${f.species?.name || 'fish'}!`);
     } else if (f.stage === 'juvenile' && timeInStage >= stageDuration * growMult) {
       f.stage = 'adult'; f.stageStartedAt = now;
-      messages.push(`🐟 A ${f.species.name} in ${tank.name} grew into an adult!`);
+      messages.push(`🐟 A ${f.species?.name || 'fish'} in ${tank.name} grew into an adult!`);
     }
 
     return f;
@@ -218,6 +219,8 @@ function processOneTank(tank, allFish, messages, now) {
 // SINGLE TICK
 // ============================================================
 export function processTick(state) {
+  // Guard against corrupt state — should never happen but prevents a total crash
+  if (!state || !Array.isArray(state.fish) || !Array.isArray(state.tanks)) return state;
   let next = { ...state };
   const messages = [];
   const now = Date.now();
@@ -267,8 +270,8 @@ export function processTick(state) {
       return {
         id: crypto.randomUUID(),
         _fishId: f.id,
-        fishName: f.species.name,
-        rarity: f.species.rarity,
+        fishName: f.species?.name || 'Unknown',
+        rarity: f.species?.rarity || 'common',
         phenotype: f.phenotype,
         genome: f.genome,
         diedAt: now2,
@@ -294,7 +297,7 @@ export function processTick(state) {
         autopsies: [...(next.player.autopsies || []), ...newAutopsies].slice(0, 20),
       },
     };
-    for (const f of deadFish) messages.push(`💀 ${f.species.name} has died. (Cause: ${newAutopsies.find(a => a._fishId === f.id)?.cause || 'Unknown'})`);
+    for (const f of deadFish) messages.push(`💀 ${f.species?.name || 'A fish'} has died. (Cause: ${newAutopsies.find(a => a._fishId === f.id)?.cause || 'Unknown'})`);
   }
 
   // Breeding tank timer
@@ -317,8 +320,6 @@ export function processTick(state) {
   if (now - next.shop.lastCustomerAt >= customerInterval && next.shop.listedFish.length > 0) {
     next = processCustomerVisit(next, messages);
   }
-
-  next = checkAchievements(next, messages);
 
   // Batch all messages into one state update — avoids N full state spreads
   if (messages.length > 0) {
@@ -355,7 +356,7 @@ function pickFishToBuy(listedIds, fish, customer) {
   if (listed.length === 0) return null;
   const biasLevel = RARITY_ORDER[customer.rarityBias] ?? 0;
   const scored = listed.map(f => {
-    const diff = Math.abs((RARITY_ORDER[f.species.rarity] ?? 0) - biasLevel);
+    const diff = Math.abs((RARITY_ORDER[f.species?.rarity ?? 'common'] ?? 0) - biasLevel);
     return { fish: f, score: Math.random() * 0.4 + (1 / (diff + 1)) };
   }).sort((a, b) => b.score - a.score);
   return scored[0].fish;
@@ -371,7 +372,7 @@ function processCustomerVisit(state, messages) {
     const tankBonus = getTankBonuses(fishTank?.type).salePriceMult || 1;
     const happiness = fishTank?.happiness ?? 100;
     const happBonus = 1 + (happiness / 100) * 0.2;
-    const autoPrice = Math.round(f.species.basePrice * (f.health / 100) * happBonus * tankBonus);
+    const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * happBonus * tankBonus);
     const askPrice  = state.shop.fishPrices?.[id] ?? autoPrice;
     const budget    = Math.round(askPrice * customer.budgetMult);
     // Only show fish where budget meets at least the walkaway threshold (65% of ask price).
@@ -390,7 +391,7 @@ function processCustomerVisit(state, messages) {
   const tankBonus  = getTankBonuses(fishTank?.type).salePriceMult || 1;
   const happiness  = fishTank?.happiness ?? 100;
   const happBonus  = 1 + (happiness / 100) * 0.2;
-  const autoPrice  = Math.round(fish.species.basePrice * (fish.health / 100) * happBonus * tankBonus);
+  const autoPrice  = Math.round((fish.species?.basePrice ?? 10) * (fish.health / 100) * happBonus * tankBonus);
   const askPrice   = state.shop.fishPrices?.[fish.id] ?? autoPrice;
 
   // Customer budget is their max willingness to pay
@@ -416,9 +417,9 @@ function processCustomerVisit(state, messages) {
   }
 
   const earnedCoins = Math.max(1, finalPrice);
-  const repGain     = Math.ceil(fish.species.rarityScore / 10) + (askPrice > autoPrice ? 1 : 0);
+  const repGain     = Math.ceil((fish.species?.rarityScore ?? 5) / 10) + (askPrice > autoPrice ? 1 : 0);
 
-  messages.push(`${customer.emoji} ${customer.name} bought your ${fish.species.name} for 🪙${earnedCoins}${priceNote}!`);
+  messages.push(`${customer.emoji} ${customer.name} bought your ${fish.species?.name || 'fish'} for 🪙${earnedCoins}${priceNote}!`);
 
   // Clean up ask price after sale
   const fishPrices = { ...(state.shop.fishPrices || {}) };
@@ -442,7 +443,7 @@ function processCustomerVisit(state, messages) {
         {
           time: Date.now(), type: 'sale',
           customerName: customer.name, customerEmoji: customer.emoji,
-          fishName: fish.species.name, fishRarity: fish.species.rarity,
+          fishName: fish.species?.name || 'Unknown', fishRarity: fish.species?.rarity || 'common',
           coins: earnedCoins, askPrice,
         },
         ...(state.shop.salesHistory || []),
@@ -495,7 +496,7 @@ function generateOfflineEvent(state, secondsAway) {
       type: 'visitor',
       emoji: '🐠',
       headline: 'A visitor arrived!',
-      detail: `A wild **${visitor.species.name}** (${visitor.species.rarity}) swam in through a gap in the lid and decided to stay.`,
+      detail: `A wild **${visitor.species?.name || 'fish'}** (${visitor.species?.rarity || 'common'}) swam in through a gap in the lid and decided to stay.`,
       fish: visitor,
     };
   }
@@ -522,7 +523,7 @@ function generateOfflineEvent(state, secondsAway) {
       type: 'mutation',
       emoji: '✨',
       headline: 'Spontaneous mutation!',
-      detail: `**${subject.species.name}** developed an unusual shimmer during the night. Its value may be higher than expected.`,
+      detail: `**${subject.species?.name || 'A fish'}** developed an unusual shimmer during the night. Its value may be higher than expected.`,
       fishId: subject.id,
     };
   }
@@ -610,7 +611,7 @@ export function applyOfflineProgress(state) {
       const tank = next.tanks.find(t => t.id === f.tankId);
       return {
         id: crypto.randomUUID(),
-        fishName: f.species.name, rarity: f.species.rarity,
+        fishName: f.species?.name || 'Unknown', rarity: f.species?.rarity || 'common',
         phenotype: f.phenotype, genome: f.genome,
         diedAt: now, ageMinutes: Math.floor((f.age || 0) / 60),
         cause: f.hunger >= 90 ? 'Starvation (offline)' : 'Poor conditions (offline)',
@@ -673,7 +674,7 @@ export function applyOfflineProgress(state) {
       next = {
         ...next,
         fish: next.fish.map(f => f.id === offlineEvent.fishId
-          ? { ...f, species: { ...f.species, basePrice: Math.round(f.species.basePrice * 1.5) }, _mutated: true }
+          ? { ...f, species: { ...f.species, basePrice: Math.round((f.species?.basePrice ?? 10) * 1.5) }, _mutated: true }
           : f
         ),
       };

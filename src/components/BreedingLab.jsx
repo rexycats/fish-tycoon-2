@@ -42,7 +42,7 @@ function BreedSlot({ fish, slot, onRemove, onDrop }) {
     );
   }
 
-  const rarityColor = RARITY[fish.species.rarity]?.color || '#888';
+  const rarityColor = RARITY[fish.species?.rarity]?.color || '#888';
   const ph = fish.phenotype;
   return (
     <div
@@ -53,8 +53,8 @@ function BreedSlot({ fish, slot, onRemove, onDrop }) {
       onDrop={handleDrop}
     >
       <div className="breed-slot-num">Parent {slot}</div>
-      <div className="breed-slot-name">{fish.species.name}</div>
-      <div className="breed-slot-rarity" style={{ color: rarityColor }}>{fish.species.rarity}</div>
+      <div className="breed-slot-name">{fish.species?.name || 'Unknown'}</div>
+      <div className="breed-slot-rarity" style={{ color: rarityColor }}>{fish.species?.rarity || 'common'}</div>
       <div className="breed-slot-traits">
         {ph.bodyShape && <TraitTag label="Body" value={ph.bodyShape} />}
         {ph.primaryColor && <TraitTag label="Color" value={ph.primaryColor} />}
@@ -67,23 +67,23 @@ function BreedSlot({ fish, slot, onRemove, onDrop }) {
 }
 
 function PredictionBar({ outcome }) {
-  const rarityColor = RARITY[outcome.species.rarity]?.color || '#888';
+  const rarityColor = RARITY[outcome.species?.rarity]?.color || '#888';
   return (
     <div className="predict-row">
-      <div className="predict-name" style={{ color: rarityColor }}>{outcome.species.name}</div>
-      <div className="predict-rarity" style={{ color: rarityColor }}>{outcome.species.rarity}</div>
+      <div className="predict-name" style={{ color: rarityColor }}>{outcome.species?.name || 'Unknown'}</div>
+      <div className="predict-rarity" style={{ color: rarityColor }}>{outcome.species?.rarity || 'common'}</div>
       <div className="predict-bar-wrap">
         <div className="predict-bar" style={{ width: `${outcome.chance}%`, background: rarityColor }} />
       </div>
       <div className="predict-chance">{outcome.chance}%</div>
-      <div className="predict-price">🪙{outcome.species.basePrice}</div>
+      <div className="predict-price">🪙{outcome.species?.basePrice ?? '?'}</div>
     </div>
   );
 }
 
 // ── Draggable fish row ─────────────────────────────────────
 function BreedFishRow({ fish, inSlot, onSelect, onDragStart }) {
-  const rarityColor = RARITY[fish.species.rarity]?.color || '#888';
+  const rarityColor = RARITY[fish.species?.rarity]?.color || '#888';
   return (
     <div
       className={`breed-fish-row ${inSlot ? 'in-slot' : ''}`}
@@ -97,8 +97,8 @@ function BreedFishRow({ fish, inSlot, onSelect, onDragStart }) {
     >
       <div className="bfr-drag-handle" title="Drag to a parent slot">⠿</div>
       <div className="bfr-dot" style={{ background: rarityColor }} />
-      <div className="bfr-name">{fish.species.name}</div>
-      <div className="bfr-rarity" style={{ color: rarityColor }}>{fish.species.rarity}</div>
+      <div className="bfr-name">{fish.species?.name || 'Unknown'}</div>
+      <div className="bfr-rarity" style={{ color: rarityColor }}>{fish.species?.rarity || 'common'}</div>
       <div className="bfr-traits">
         {fish.phenotype.bodyShape} · {fish.phenotype.primaryColor}
         {fish.phenotype.glow !== 'Normal' ? ` · ${fish.phenotype.glow}` : ''}
@@ -110,9 +110,10 @@ function BreedFishRow({ fish, inSlot, onSelect, onDragStart }) {
 }
 
 // ── Main component ─────────────────────────────────────────
-export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, onCollectEgg }) {
-  const fishA = fish.find(f => f.id === breedingTank.slots[0]);
-  const fishB = fish.find(f => f.id === breedingTank.slots[1]);
+export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, onCollectEgg, onCancelBreeding }) {
+  const slots = breedingTank?.slots || [null, null];
+  const fishA = (fish || []).find(f => f.id === slots[0]);
+  const fishB = (fish || []).find(f => f.id === slots[1]);
   const bothSelected = fishA && fishB;
 
   // Real-species fish have a decorative genome that doesn't represent their visible traits,
@@ -130,7 +131,7 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
 
   const predictions = useMemo(() => {
     if (!canPredict) return [];
-    return predictOffspringPhenotypes(fishA.genome, fishB.genome, 40);
+    return predictOffspringPhenotypes(fishA.genome, fishB.genome);
   }, [fishA?.id, fishB?.id, canPredict]);
 
   let progress = 0;
@@ -174,6 +175,9 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
               <div className="breed-progress-bar">
                 <div className="breed-progress-fill" style={{ width: `${progress}%` }} />
               </div>
+              <button className="btn btn-sm btn-danger" style={{ marginTop: '8px' }} onClick={onCancelBreeding}>
+                ✕ Cancel Breeding
+              </button>
             </div>
           ) : bothSelected ? (
             <div className="breed-ready">✅ Ready to breed — watching…</div>
@@ -199,7 +203,7 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
           <div className="breed-predictions">
             <div className="breed-predictions-title">🔮 Possible Offspring</div>
             {predictions.slice(0, 6).map(o => (
-              <PredictionBar key={o.species.name} outcome={o} />
+              <PredictionBar key={o.species?.name || o.chance} outcome={o} />
             ))}
             {predictions.length > 6 && (
               <div className="predict-more">+{predictions.length - 6} more possibilities</div>

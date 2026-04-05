@@ -179,6 +179,7 @@ function SupplyCard({ name, emoji, stock, cost, amount, coins, desc, onBuy }) {
 function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuySupply, onBuyFish }) {
   const [shopTab, setShopTab] = useState('sell');
   const [activeCustomer, setActiveCustomer] = useState(null);
+  const [selectedToList, setSelectedToList] = useState(new Set());
   const prevSalesLen = useRef((game.shop.salesHistory || []).length);
   const customerTimer = useRef(null);
 
@@ -249,9 +250,9 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
             </div>
             <div className="listings-grid">
               {listedFish.map(f => {
-                const autoPrice = Math.round(f.species.basePrice * (f.health / 100));
+                const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100));
                 const askPrice  = shop.fishPrices?.[f.id] ?? autoPrice;
-                const rc        = RC[f.species.rarity] || '#888';
+                const rc        = RC[f.species?.rarity] || '#888';
                 const ratio     = askPrice / autoPrice;
                 const priceTag  = ratio > 1.4 ? { label: '🔺 Very Pricey', cls: 'price-tag-high' }
                                 : ratio > 1.15 ? { label: '↑ Above Market', cls: 'price-tag-above' }
@@ -260,8 +261,8 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                                 : { label: '✓ Fair Price', cls: 'price-tag-fair' };
                 return (
                   <div key={f.id} className="listing-card" style={{ '--rc': rc }}>
-                    <div className="listing-name">{f.species.name}</div>
-                    <div className="listing-rarity" style={{ color: rc }}>{f.species.rarity}</div>
+                    <div className="listing-name">{f.species?.name || 'Unknown'}</div>
+                    <div className="listing-rarity" style={{ color: rc }}>{f.species?.rarity || 'common'}</div>
                     <div className="listing-health">
                       <div className="listing-health-bar">
                         <div style={{ width: `${f.health}%`, height: '100%', background: '#5dbe8a', borderRadius: 2 }} />
@@ -275,8 +276,8 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                       <div className="listing-price-row">
                         <button
                           className="price-adj-btn"
-                          onClick={() => onSetPrice(f.id, Math.max(1, askPrice - 5))}
-                          title="Lower price by 5">−</button>
+                          onClick={() => onSetPrice(f.id, Math.max(1, Math.round(askPrice - Math.max(1, Math.round(askPrice * 0.05)))))}
+                          title="Lower price by 5%">−</button>
                         <div className="listing-price-input-wrap">
                           <span className="price-coin">🪙</span>
                           <input
@@ -294,8 +295,8 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                         </div>
                         <button
                           className="price-adj-btn"
-                          onClick={() => onSetPrice(f.id, askPrice + 5)}
-                          title="Raise price by 5">+</button>
+                          onClick={() => onSetPrice(f.id, Math.round(askPrice + Math.max(1, Math.round(askPrice * 0.05))))}
+                          title="Raise price by 5%">+</button>
                       </div>
                       <div className="listing-price-meta">
                         <span className="listing-auto-price">Market: 🪙{autoPrice}</span>
@@ -319,16 +320,63 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
             </div>
           </div>
 
-          <div className="section-title mt">Fish Available to List ({availableFish.length})</div>
+          <div className="section-title mt">
+            Fish Available to List ({availableFish.length})
+            {availableFish.length > 0 && (
+              <div className="bulk-list-actions">
+                <button
+                  className="btn btn-sm"
+                  disabled={selectedToList.size === 0 || listedFish.length >= shop.slots}
+                  onClick={() => {
+                    const slotsLeft = shop.slots - listedFish.length;
+                    let listed = 0;
+                    for (const id of selectedToList) {
+                      if (listed >= slotsLeft) break;
+                      onToggleSell(id);
+                      listed++;
+                    }
+                    setSelectedToList(new Set());
+                  }}
+                  title={selectedToList.size === 0 ? 'Select fish below first' : `List ${Math.min(selectedToList.size, shop.slots - listedFish.length)} selected`}
+                >
+                  📋 List Selected ({selectedToList.size})
+                </button>
+                <button
+                  className="btn btn-sm"
+                  onClick={() => {
+                    const commonUnlisted = availableFish.filter(f => f.species?.rarity === 'common');
+                    setSelectedToList(new Set(commonUnlisted.map(f => f.id)));
+                  }}
+                  title="Select all common fish"
+                >
+                  Select Commons
+                </button>
+                {selectedToList.size > 0 && (
+                  <button className="btn btn-sm" onClick={() => setSelectedToList(new Set())}>
+                    Clear
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
           <div className="fish-list">
             {availableFish.map(f => {
-              const autoPrice = Math.round(f.species.basePrice * (f.health / 100));
-              const rc = RC[f.species.rarity] || '#888';
+              const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100));
+              const rc = RC[f.species?.rarity] || '#888';
+              const isChecked = selectedToList.has(f.id);
               return (
-                <div key={f.id} className="fish-list-item" onClick={e => { e.stopPropagation(); onToggleSell(f.id); }}>
+                <div key={f.id} className={`fish-list-item ${isChecked ? 'fish-list-item--selected' : ''}`}
+                  onClick={e => { e.stopPropagation(); setSelectedToList(prev => { const s = new Set(prev); s.has(f.id) ? s.delete(f.id) : s.add(f.id); return s; }); }}>
+                  <input
+                    type="checkbox"
+                    className="fli-checkbox"
+                    checked={isChecked}
+                    onChange={() => {}}
+                    onClick={e => e.stopPropagation()}
+                  />
                   <span className="fli-dot" style={{ background: rc }} />
-                  <span className="fli-name">{f.species.name}</span>
-                  <span className="fli-rarity" style={{ color: rc }}>{f.species.rarity}</span>
+                  <span className="fli-name">{f.species?.name || 'Unknown'}</span>
+                  <span className="fli-rarity" style={{ color: rc }}>{f.species?.rarity || 'common'}</span>
                   <span className="fli-ph">
                     {f.phenotype.bodyShape} · {f.phenotype.primaryColor}
                     {f.phenotype.glow !== 'Normal' ? ` · ${f.phenotype.glow}` : ''}

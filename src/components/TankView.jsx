@@ -470,7 +470,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
 
           return (
             <div key={f.id}
-              className={`fish-container ${isSelected ? 'selected' : ''} depth-layer-${depthLayer}`}
+              className={`fish-container ${isSelected ? 'selected' : ''} depth-layer-${depthLayer}${f.disease ? ' fish-diseased' : ''}`}
               style={{
                 left: `${pos.x}%`,
                 top:  `${pos.y}%`,

@@ -211,7 +211,8 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
             </button>
             {aiError && (
               <div className="ai-error-banner">
-                {aiError === 'no_api' && '🔑 AI features require an Anthropic API key configured in claude.ai'}
+                {aiError === 'no_key'   && '🔑 Add an Anthropic API key (footer → 🤖 AI Key) to enable AI features'}
+                {aiError === 'no_api'   && '🔑 API key rejected — check it\'s correct in the 🤖 AI Key settings'}
                 {aiError === 'rate_limit' && '⏳ AI is busy — please wait a moment and try again'}
                 {aiError === 'network' && '📡 Could not reach AI — check your connection and retry'}
               </div>

@@ -308,7 +308,7 @@ function generateFishName(ph) {
   const glow = GLOWPFX[ph.glow] || '';
   const adj = (ADJ[ph.primaryColor] || ['Mystery'])[Math.floor(Math.random() * 5) % 5];
   const noun = (NOUN[ph.bodyShape] || ['Fish'])[Math.floor(Math.random() * 4) % 4];
-  const mut = ph.mutation !== 'None' ? ` (${ph.mutation})` : '';
+  const mut = (ph.mutation && ph.mutation !== 'None') ? ` (${ph.mutation})` : '';
   return `${glow}${adj} ${noun}${mut}`;
 }
 
@@ -349,18 +349,41 @@ export function breedGenomes(genomeA, genomeB) {
   return offspring;
 }
 
-export function predictOffspringPhenotypes(genomeA, genomeB, samples = 30) {
-  const outcomes = {};
-  for (let i = 0; i < samples; i++) {
-    const g = breedGenomes(genomeA, genomeB);
-    const ph = computePhenotype(g);
+// Exact Punnett-square offspring prediction.
+// For each gene, the 4 possible diploid outcomes (a1/b1, a1/b2, a2/b1, a2/b2)
+// are equally probable (each 1/4). We iterate all 4^N combinations, compute
+// the expressed phenotype for each, and accumulate exact fractional weights.
+// This is deterministic, fast (~4^8 = 65536 paths), and never noisy.
+export function predictOffspringPhenotypes(genomeA, genomeB) {
+  const geneKeys = Object.keys(GENES).filter(g => genomeA[g] && genomeB[g]);
+  const N = geneKeys.length;
+  const total = Math.pow(4, N);   // total equally-weighted paths
+  const outcomes = {};            // speciesName → { species, weight }
+
+  for (let path = 0; path < total; path++) {
+    // Decode which of the 4 combinations to pick for each gene along this path
+    const genome = {};
+    let tmp = path;
+    for (let gi = 0; gi < N; gi++) {
+      const gene = geneKeys[gi];
+      const [a1, a2] = genomeA[gene];
+      const [b1, b2] = genomeB[gene];
+      const combo = tmp % 4; tmp = (tmp / 4) | 0;
+      // combos: 0→(a1,b1)  1→(a1,b2)  2→(a2,b1)  3→(a2,b2)
+      genome[gene] = combo === 0 ? [a1, b1]
+                   : combo === 1 ? [a1, b2]
+                   : combo === 2 ? [a2, b1]
+                                 : [a2, b2];
+    }
+    const ph = computePhenotype(genome);
     const sp = getSpeciesFromPhenotype(ph);
-    outcomes[sp.name] = outcomes[sp.name] || { species: sp, count: 0 };
-    outcomes[sp.name].count++;
+    if (!outcomes[sp.name]) outcomes[sp.name] = { species: sp, weight: 0 };
+    outcomes[sp.name].weight++;
   }
+
   return Object.values(outcomes)
-    .sort((a, b) => b.count - a.count)
-    .map(o => ({ ...o, chance: Math.round((o.count / samples) * 100) }));
+    .sort((a, b) => b.weight - a.weight)
+    .map(o => ({ ...o, chance: Math.round((o.weight / total) * 100) }));
 }
 
 export function randomGenome() {

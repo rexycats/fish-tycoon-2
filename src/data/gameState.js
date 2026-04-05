@@ -51,10 +51,11 @@ export const ACHIEVEMENT_DEFS = [
 
 // ── Default tank factory ───────────────────────────────────
 export function createDefaultTank(id, type = 'display') {
+  const tankTypeDef = TANK_TYPES[type] || TANK_TYPES.display;
   return {
     id,
     type,
-    name: TANK_TYPES[type].label,
+    name: tankTypeDef.label,
     capacity: 12,
     waterQuality: 100,
     temperature: 74,
@@ -172,6 +173,21 @@ function migrateSave(parsed) {
   if (!parsed.shop?.fishPrices) {
     parsed.shop = { ...parsed.shop, fishPrices: {} };
   }
+  // Guard shop.listedFish missing in very old saves
+  if (!parsed.shop?.listedFish) {
+    parsed.shop = { ...parsed.shop, listedFish: [] };
+  }
+  // Guard breedingTank missing entirely (very old saves)
+  if (!parsed.breedingTank) {
+    parsed.breedingTank = {
+      slots: [null, null], eggReady: false, breedingStartedAt: null,
+      breedingDurationMs: 30000, storedGenomeA: null, storedGenomeB: null, storedTankId: null,
+    };
+  }
+  // Guard breedingTank.slots not an array
+  if (!Array.isArray(parsed.breedingTank.slots)) {
+    parsed.breedingTank.slots = [null, null];
+  }
   // Ensure breedingTank has storedGenome fields (added in phase 11 bugfix)
   if (parsed.breedingTank && parsed.breedingTank.storedGenomeA === undefined) {
     parsed.breedingTank = {
@@ -215,12 +231,54 @@ export function loadGame() {
 
 export function deleteSave() { localStorage.removeItem(SAVE_KEY); }
 
+// ── Export / Import ────────────────────────────────────────
+export function exportSave(state) {
+  const clean = {
+    ...state,
+    player: {
+      ...state.player,
+      autopsies: (state.player.autopsies || []).map(({ _fishId, ...rest }) => rest),
+    },
+    _exportedAt: new Date().toISOString(),
+    _exportVersion: SAVE_VERSION,
+  };
+  const blob = new Blob([JSON.stringify(clean, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `fishtycoon2-save-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function importSave(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (!parsed.player || !parsed.fish || !parsed.tanks) {
+          return reject(new Error('Invalid save file — missing required fields.'));
+        }
+        const migrated = parsed.version !== SAVE_VERSION ? migrateSave(parsed) : parsed;
+        resolve(migrated);
+      } catch {
+        reject(new Error('Could not parse save file — is it a valid JSON export?'));
+      }
+    };
+    reader.onerror = () => reject(new Error('Failed to read file.'));
+    reader.readAsText(file);
+  });
+}
+
 export function addLog(state, message) {
-  return { ...state, log: [{ time: Date.now(), message }, ...state.log].slice(0, 60) };
+  return { ...state, log: [{ time: Date.now(), message }, ...(state.log || [])].slice(0, 60) };
 }
 
 // ── Achievements ───────────────────────────────────────────
 export function checkAchievements(state, messages) {
+  // Guard against corrupt state
+  if (!state?.player || !state?.fish || !state?.tanks) return state;
   // Fast path — all achievements already earned, nothing to check
   if ((state.player.achievements || []).length >= ACHIEVEMENT_DEFS.length) return state;
 

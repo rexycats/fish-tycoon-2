@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import ToastManager, { fireToast } from './components/ToastManager.jsx';
-import { createDefaultState, saveGame, loadGame, addLog, ACHIEVEMENT_DEFS, createDefaultTank, TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
+import { createDefaultState, saveGame, loadGame, addLog, checkAchievements, exportSave, importSave, ACHIEVEMENT_DEFS, createDefaultTank, TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
 import { processTick, applyOfflineProgress, TICK_INTERVAL_MS } from './systems/gameTick.js';
 import { breedGenomes, createFish, MAGIC_FISH, checkMagicFishMatch, getFoundMagicFish } from './data/genetics.js';
 import { REAL_SPECIES_MAP } from './data/realSpecies.js';
 import { DECOR_CATALOG } from './data/decorations.js';
-import { generateFishName, generateFishLore, AI_ERRORS } from './services/aiService.js';
+import { generateFishName, generateFishLore, AI_ERRORS, getApiKey, setApiKey } from './services/aiService.js';
 import { playCoin, playBubble, playFeed, playDiscover, playBreed, playSale, playWarning, setSoundEnabled } from './services/soundService.js';
 import TankView from './components/TankView.jsx';
 import FishPanel from './components/FishPanel.jsx';
@@ -43,6 +43,7 @@ export default function App() {
   const [generatingLoreFor, setGeneratingLoreFor] = useState(null);
   const [aiError, setAiError]           = useState(null);
   const [showWinModal, setShowWinModal] = useState(false);
+  const [showApiSetup, setShowApiSetup] = useState(false);
 
   // ── Floating coin deltas ─────────────────────────────────
   const [coinDeltas, setCoinDeltas] = useState([]);
@@ -51,6 +52,8 @@ export default function App() {
 
   const gameRef = useRef(game);
   gameRef.current = game;
+
+
 
   // Track coin changes to spawn floating deltas
   useEffect(() => {
@@ -64,6 +67,36 @@ export default function App() {
   }, [game.player.coins]);
   const prevSalesLenRef   = useRef((game.shop.salesHistory || []).length);
   const prevAchCountRef   = useRef((game.player.achievements || []).length);
+
+  // ── Event-driven achievement checks ─────────────────────────
+  // Build a cheap scalar key from every value achievements actually test.
+  // This effect only runs when at least one of those values changes —
+  // never on ordinary ticks where nothing achievement-relevant happened.
+  const achTriggerKey = [
+    (game.player.fishdex || []).length,
+    (game.player.fishdex || []).filter(e => e.rarity === 'rare').length,
+    (game.player.fishdex || []).filter(e => e.rarity === 'epic').length,
+    (game.shop.salesHistory || []).length,
+    game.player.totalCoinsEarned || 0,
+    game.tanks.length,
+    (game.player.magicFishFound || []).length,
+    game.player.stats?.eggsCollected || 0,
+    game.player.stats?.medicineUsed  || 0,
+    game.player.stats?.waterTreated  || 0,
+    Math.max(0, ...game.tanks.map(t =>
+      game.fish.filter(f => f.tankId === t.id).length >= t.capacity ? 1 : 0
+    )),
+    Math.max(0, ...game.tanks.map(t => Math.round(t.happiness || 0))),
+    Math.max(0, ...Object.values(game.shop.upgrades || {}).map(u => u.level || 0)),
+  ].join(',');
+
+  useEffect(() => {
+    setGame(prev => {
+      const msgs = [];
+      const next = checkAchievements(prev, msgs);
+      return next === prev ? prev : next;
+    });
+  }, [achTriggerKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Ensure activeTankId stays valid if tanks change
   useEffect(() => {
@@ -82,6 +115,18 @@ export default function App() {
   useEffect(() => {
     const interval = setInterval(() => saveGame(gameRef.current), 30_000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Save on tab close / hide — prevents losing up to 30s of progress
+  useEffect(() => {
+    const handleUnload = () => saveGame(gameRef.current);
+    const handleVisibility = () => { if (document.visibilityState === 'hidden') saveGame(gameRef.current); };
+    window.addEventListener('beforeunload', handleUnload);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('beforeunload', handleUnload);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
   // Sound + Toast: sales
@@ -140,6 +185,7 @@ export default function App() {
     const knownNames = new Set((game.player.fishdex || []).map(e => e.name));
     const newEntries = [];
     for (const f of game.fish) {
+      if (!f.species) continue;
       if (!knownNames.has(f.species.name)) {
         const realSpec = f.species.visualType === 'species' && f.species.key
           ? REAL_SPECIES_MAP[f.species.key]
@@ -198,7 +244,7 @@ export default function App() {
         });
       }
     }
-  }, [game.fish.map(f => f.id).join(',')]);
+  }, [(game.fish || []).map(f => f.id).join(',')]);
 
   const handleGenerateLore = useCallback(async (speciesName) => {
     const entry = (gameRef.current.player.fishdex || []).find(e => e.name === speciesName);
@@ -255,7 +301,7 @@ export default function App() {
       const fish = prev.fish.find(f => f.id === fishId);
       playCoin();
       return addLog({ ...prev, shop: { ...prev.shop, listedFish, fishPrices } },
-        isListed ? `🏪 Removed ${fish?.species.name}.` : `🏪 Listed ${fish?.species.name} for sale!`);
+        isListed ? `🏪 Removed ${fish?.species?.name || 'fish'}.` : `🏪 Listed ${fish?.species?.name || 'fish'} for sale!`);
     });
   }, []);
 
@@ -314,7 +360,7 @@ export default function App() {
           ? { ...t, supplies: { ...t.supplies, medicine: t.supplies.medicine - 1 } } : t),
         fish: prev.fish.map(f => f.id === fishId ? { ...f, health: 100, hunger: Math.max(0, f.hunger - 20), disease: null, diseaseSince: null } : f),
         player: { ...prev.player, stats: { ...(prev.player.stats || {}), medicineUsed: (prev.player.stats?.medicineUsed || 0) + 1 } },
-      }, curedDisease ? `💊 Cured ${fish.species.name} of ${curedDisease}!` : `💊 Treated ${fish.species.name} — fully healed!`);
+      }, curedDisease ? `💊 Cured ${fish.species?.name || 'fish'} of ${curedDisease}!` : `💊 Treated ${fish.species?.name || 'fish'} — fully healed!`);
     });
   }, []);
 
@@ -396,7 +442,7 @@ export default function App() {
         ...prev,
         fish: [...prev.fish, newFish],
         player: { ...prev.player, coins: prev.player.coins - cost },
-      }, `🐟 Bought a ${newFish.species.name} for 🪙${cost}!`);
+      }, `🐟 Bought a ${newFish.species?.name || 'fish'} for 🪙${cost}!`);
     });
   }, [activeTank]);
 
@@ -433,7 +479,7 @@ export default function App() {
       playCoin();
       return addLog(
         { ...prev, fish: prev.fish.map(f => f.id === fishId ? { ...f, tankId: targetTankId } : f) },
-        `🔀 Moved ${fish.species.name} to ${target.name}.`
+        `🔀 Moved ${fish.species?.name || 'fish'} to ${target.name}.`
       );
     });
   }, []);
@@ -572,6 +618,27 @@ export default function App() {
     });
   }, []);
 
+  const cancelBreeding = useCallback(() => {
+    setGame(prev => {
+      const bt = prev.breedingTank;
+      if (!bt.breedingStartedAt || bt.eggReady) return prev;
+      const baseDuration = 30_000 * Math.pow(0.75, (prev.shop.upgrades?.breeding?.level || 0));
+      return addLog({
+        ...prev,
+        breedingTank: {
+          ...bt,
+          slots: [null, null],
+          breedingStartedAt: null,
+          eggReady: false,
+          breedingDurationMs: Math.round(baseDuration),
+          storedGenomeA: null,
+          storedGenomeB: null,
+          storedTankId: null,
+        },
+      }, '❌ Breeding cancelled.');
+    });
+  }, []);
+
   const collectEgg = useCallback(() => {
     setGame(prev => {
       const bt = prev.breedingTank;
@@ -603,7 +670,7 @@ export default function App() {
           ...prev.player,
           stats: { ...(prev.player.stats || {}), eggsCollected: (prev.player.stats?.eggsCollected || 0) + 1 },
         },
-      }, `🥚 Egg collected in ${eggTank?.name || 'Tank'}! It might become a ${newFish.species.name}.`);
+      }, `🥚 Egg collected in ${eggTank?.name || 'Tank'}! It might become a ${newFish.species?.name || 'fish'}.`);
     });
   }, []);
 
@@ -615,6 +682,25 @@ export default function App() {
       setSelectedFishId(null);
       setActiveTankId('tank_0');
     }
+  }, []);
+
+  const handleExportSave = useCallback(() => {
+    exportSave(gameRef.current);
+  }, []);
+
+  const handleImportSave = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    importSave(file)
+      .then(loaded => {
+        setGame(loaded);
+        saveGame(loaded);
+        setSelectedFishId(null);
+        setActiveTankId(loaded.tanks?.[0]?.id ?? 'tank_0');
+        fireToast('✅ Save imported successfully!', 'achieve', '📂');
+      })
+      .catch(err => fireToast(`❌ Import failed: ${err.message}`, 'alert', '⚠️'));
+    e.target.value = '';
   }, []);
 
   const selectedFish = game.fish.find(f => f.id === selectedFishId) || null;
@@ -736,7 +822,7 @@ export default function App() {
           <Shop game={game} activeTank={activeTank} onToggleSell={toggleSellFish} onSetPrice={setFishPrice} onBuyUpgrade={buyUpgrade} onBuySupply={(k, c, a) => buySupply(k, c, a, activeTank?.id)} onBuyFish={buyFish} />
         )}
         {activeTab === 'breed' && (
-          <BreedingLab fish={game.fish} breedingTank={game.breedingTank} onSelectForBreeding={selectForBreeding} onCollectEgg={collectEgg} />
+          <BreedingLab fish={game.fish} breedingTank={game.breedingTank} onSelectForBreeding={selectForBreeding} onCollectEgg={collectEgg} onCancelBreeding={cancelBreeding} />
         )}
         {activeTab === 'fishdex' && (
           <Fishdex
@@ -767,6 +853,10 @@ export default function App() {
         )}
       </main>
 
+      {showApiSetup && (
+        <ApiKeyModal onClose={() => setShowApiSetup(false)} />
+      )}
+
       {/* Magic Fish Win Modal */}
       {(game.player.magicFishFound || []).length === 7 && showWinModal && (
         <MagicWinModal
@@ -777,8 +867,68 @@ export default function App() {
 
       <footer className="app-footer">
         <button className="btn btn-sm btn-danger" onClick={resetGame}>🔄 Reset</button>
+        <button className="btn btn-sm" onClick={handleExportSave} title="Download your save as a JSON file">💾 Export</button>
+        <label className="btn btn-sm" title="Load a previously exported save file" style={{ cursor: 'pointer' }}>
+          📂 Import
+          <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportSave} />
+        </label>
         <span className="footer-tip">Auto-saves every 30s</span>
+        <button className="btn btn-sm" onClick={() => setShowApiSetup(true)} title="Configure Anthropic API key for AI fish names">
+          🤖 AI Key {getApiKey() ? '✅' : '⚠️'}
+        </button>
       </footer>
+    </div>
+  );
+}
+
+// ── API Key Setup Modal ──────────────────────────────────────
+function ApiKeyModal({ onClose }) {
+  const [val, setVal] = useState(getApiKey());
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    setApiKey(val.trim());
+    setSaved(true);
+    setTimeout(() => { setSaved(false); onClose(); }, 900);
+  };
+
+  return (
+    <div className="win-modal-overlay" onClick={onClose}>
+      <div className="win-modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+        <div className="win-modal-title" style={{ fontSize: '1.3rem' }}>🤖 AI Fish Naming</div>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: '8px 0 16px' }}>
+          Paste your Anthropic API key to unlock AI-generated fish names and lore.
+          Your key is stored only in this browser (localStorage) and never sent anywhere except Anthropic's API.
+        </p>
+        <input
+          type="password"
+          placeholder="sk-ant-..."
+          value={val}
+          onChange={e => setVal(e.target.value)}
+          style={{
+            width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border)',
+            background: 'var(--surface)', color: 'var(--text)', fontSize: '0.9rem', boxSizing: 'border-box',
+          }}
+          onKeyDown={e => e.key === 'Enter' && handleSave()}
+          autoFocus
+        />
+        {val && !val.startsWith('sk-ant-') && (
+          <p style={{ color: '#f5a623', fontSize: '0.8rem', margin: '6px 0 0' }}>
+            ⚠️ Anthropic keys usually start with <code>sk-ant-</code>
+          </p>
+        )}
+        <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
+          {getApiKey() && (
+            <button className="btn btn-sm btn-danger" onClick={() => { setApiKey(''); setVal(''); }}>
+              Clear Key
+            </button>
+          )}
+          <button className="btn btn-sm" onClick={onClose}>Cancel</button>
+          <button className="btn btn-sm btn-primary" onClick={handleSave} disabled={!val.trim()}>
+            {saved ? '✅ Saved!' : 'Save Key'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
