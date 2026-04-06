@@ -15,7 +15,7 @@ function TraitTag({ label, value }) {
 }
 
 // ── Drop zone for a parent slot ────────────────────────────
-function BreedSlot({ fish, slot, isDonor, onRemove, onDrop }) {
+function BreedSlot({ fish, slot, onRemove, onDrop }) {
   const [dragOver, setDragOver] = useState(false);
 
   const handleDragOver = (e) => { e.preventDefault(); setDragOver(true); };
@@ -27,21 +27,17 @@ function BreedSlot({ fish, slot, isDonor, onRemove, onDrop }) {
     if (fishId) onDrop(fishId, slot);
   };
 
-  const slotLabel = isDonor ? '🧬 Genetic Donor' : `Parent ${slot}`;
-  const emptyIcon = isDonor ? '🧬' : '🎯';
-  const emptyHint = isDonor ? 'Optional — influences offspring traits' : 'Drag a fish here';
-
   if (!fish) {
     return (
       <div
-        className={`breed-slot empty ${isDonor ? 'breed-slot--donor' : ''} ${dragOver ? 'drag-over' : ''}`}
+        className={`breed-slot empty ${dragOver ? 'drag-over' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div className="breed-slot-num">{slotLabel}</div>
-        <div className="breed-slot-icon">{emptyIcon}</div>
-        <div className="breed-slot-hint">{emptyHint}</div>
+        <div className="breed-slot-num">Parent {slot}</div>
+        <div className="breed-slot-icon">🎯</div>
+        <div className="breed-slot-hint">Drag a fish here</div>
       </div>
     );
   }
@@ -50,13 +46,13 @@ function BreedSlot({ fish, slot, isDonor, onRemove, onDrop }) {
   const ph = fish.phenotype;
   return (
     <div
-      className={`breed-slot filled ${isDonor ? 'breed-slot--donor' : ''} ${dragOver ? 'drag-over' : ''}`}
+      className={`breed-slot filled ${dragOver ? 'drag-over' : ''}`}
       style={{ '--rarity-color': rarityColor }}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="breed-slot-num">{slotLabel}</div>
+      <div className="breed-slot-num">Parent {slot}</div>
       <div className="breed-slot-name">{fish.species?.name || 'Unknown'}</div>
       <div className="breed-slot-rarity" style={{ color: rarityColor }}>{fish.species?.rarity || 'common'}</div>
       <div className="breed-slot-traits">
@@ -116,10 +112,8 @@ function BreedFishRow({ fish, inSlot, onSelect, onDragStart }) {
 // ── Main component ─────────────────────────────────────────
 export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, onCollectEgg, onCancelBreeding }) {
   const slots = breedingTank?.slots || [null, null];
-  const hasThirdSlot = slots.length >= 3;
   const fishA = (fish || []).find(f => f.id === slots[0]);
   const fishB = (fish || []).find(f => f.id === slots[1]);
-  const fishC = hasThirdSlot ? (fish || []).find(f => f.id === slots[2]) : null;
   const bothSelected = fishA && fishB;
 
   // Real-species fish have a decorative genome that doesn't represent their visible traits,
@@ -152,34 +146,21 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
 
   // Handle drop onto a slot: slot=1 → index 0, slot=2 → index 1
   const handleSlotDrop = useCallback((fishId, slot) => {
-    // If already in the exact target slot, no-op
+    // Remove from current slot if already in one, then add to target slot
     const inSlot0 = breedingTank.slots[0] === fishId;
     const inSlot1 = breedingTank.slots[1] === fishId;
-    const inSlot2 = breedingTank.slots[2] === fishId;
-    if ((slot === 1 && inSlot0) || (slot === 2 && inSlot1) || (slot === 3 && inSlot2)) return;
-    onSelectForBreeding(fishId); // toggle/place into next available or donor slot
+    if ((slot === 1 && inSlot0) || (slot === 2 && inSlot1)) return; // already there
+    onSelectForBreeding(fishId); // toggle/place
   }, [breedingTank.slots, onSelectForBreeding]);
 
   return (
     <div className="breeding-lab">
       <div className="breed-top">
         {/* Parent slots */}
-        <div className={`breed-parents${breedingTank.breedingStartedAt && !breedingTank.eggReady ? ' breed-parents--breeding' : ''} ${hasThirdSlot ? 'breed-parents--trio' : ''}`}>
+        <div className={`breed-parents${breedingTank.breedingStartedAt && !breedingTank.eggReady ? ' breed-parents--breeding' : ''}`}>
           <BreedSlot fish={fishA} slot={1} onRemove={() => onSelectForBreeding(fishA?.id)} onDrop={handleSlotDrop} />
           <div className="breed-heart">💕</div>
           <BreedSlot fish={fishB} slot={2} onRemove={() => onSelectForBreeding(fishB?.id)} onDrop={handleSlotDrop} />
-          {hasThirdSlot && (
-            <>
-              <div className="breed-heart breed-heart--donor" title="Genetic Donor influence">🧬</div>
-              <BreedSlot
-                fish={fishC}
-                slot={3}
-                isDonor={true}
-                onRemove={() => onSelectForBreeding(fishC?.id)}
-                onDrop={handleSlotDrop}
-              />
-            </>
-          )}
         </div>
 
         {/* Progress / collect */}

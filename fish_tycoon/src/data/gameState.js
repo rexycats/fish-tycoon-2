@@ -64,9 +64,9 @@ export function createDefaultTank(id, type = 'display') {
     autoFeedTick: 0,
     decorations: getDefaultDecorations(),
     supplies: {
-      food: 40,
-      medicine: 5,
-      waterTreatment: 8,
+      food: 25,
+      medicine: 3,
+      waterTreatment: 5,
       heater: 0,
       breedingBoost: 0,
     },
@@ -88,7 +88,7 @@ export function createDefaultState() {
     offlineSummary: null,
 
     player: {
-      coins: 325,
+      coins: 175,
       totalCoinsEarned: 0,
       shopLevel: 1,
       fishdex: [],
@@ -96,12 +96,6 @@ export function createDefaultState() {
       magicFishFound: [],   // array of magic fish IDs found
       stats: { eggsCollected: 0, totalFishBred: 0, medicineUsed: 0, waterTreated: 0 },
       autopsies: [],        // post-mortem records
-      boosts: {},           // active booster flags, e.g. { rarityBoost: 1, luckyCharm: 1 }
-    },
-
-    rareMarket: {
-      lastRefreshDay: 0,    // UTC day number of last seen rotation
-      purchased: [],        // [{ day, itemId }]
     },
 
     tanks: [tank0],
@@ -116,13 +110,10 @@ export function createDefaultState() {
       lastCustomerAt: 0,
       salesHistory: [],
       upgrades: {
-        slot:       { level: 0, maxLevel: 5, cost: 80,   label: 'Extra Slot',              description: '+1 sale slot per level' },
-        reputation: { level: 0, maxLevel: 5, cost: 120,  label: 'Advertising',             description: 'Customers arrive faster' },
-        capacity:   { level: 0, maxLevel: 5, cost: 150,  label: 'Tank Expansion',          description: '+4 fish capacity (active tank)' },
-        breeding:   { level: 0, maxLevel: 5, cost: 200,  label: 'Speed Breeding',          description: '-25% breed time per level' },
-        lighting:   { level: 0, maxLevel: 3, cost: 350,  label: 'Premium Display Lighting',description: '+10% sale price per level' },
-        vip:        { level: 0, maxLevel: 3, cost: 500,  label: 'VIP Membership',          description: 'Wealthy Patrons visit sooner & more often' },
-        hatchery:   { level: 0, maxLevel: 3, cost: 450,  label: 'Hatchery',                description: '-15% egg & juvenile grow time per level' },
+        slot:       { level: 0, cost: 80,  label: 'Extra Slot',     description: '+1 sale slot' },
+        reputation: { level: 0, cost: 120, label: 'Advertising',    description: 'Customers arrive faster' },
+        capacity:   { level: 0, cost: 150, label: 'Tank Expansion', description: '+4 fish capacity (active tank)' },
+        breeding:   { level: 0, cost: 200, label: 'Speed Breeding', description: '-25% breed time' },
       },
     },
 
@@ -133,13 +124,11 @@ export function createDefaultState() {
       breedingDurationMs: 30_000,
       storedGenomeA: null,
       storedGenomeB: null,
-      storedGenomeC: null,
       storedTankId: null,
     },
 
     log: [
       { time: Date.now(), message: '🐠 Welcome to Fish Tycoon 2! Your aquarium awaits.' },
-      { time: Date.now() - 1, message: '🎁 Starter bundle: 325 coins, extra food, medicine & water treatment included.' },
     ],
   };
 }
@@ -180,17 +169,6 @@ function migrateSave(parsed) {
   if (parsed.shop?.upgrades && !parsed.shop.upgrades.reputation) {
     parsed.shop.upgrades.reputation = { level: 0, cost: 120, label: 'Advertising', description: 'Customers arrive faster' };
   }
-  // Migrate maxLevel and new upgrade categories into old saves
-  if (parsed.shop?.upgrades) {
-    const u = parsed.shop.upgrades;
-    if (!u.slot.maxLevel)       u.slot       = { ...u.slot,       maxLevel: 5, description: '+1 sale slot per level' };
-    if (!u.reputation?.maxLevel) u.reputation = { ...(u.reputation||{}), maxLevel: 5 };
-    if (!u.capacity?.maxLevel)  u.capacity   = { ...(u.capacity||{}),   maxLevel: 5 };
-    if (!u.breeding?.maxLevel)  u.breeding   = { ...(u.breeding||{}),   maxLevel: 5, description: '-25% breed time per level' };
-    if (!u.lighting)  u.lighting  = { level: 0, maxLevel: 3, cost: 350,  label: 'Premium Display Lighting', description: '+10% sale price per level' };
-    if (!u.vip)       u.vip       = { level: 0, maxLevel: 3, cost: 500,  label: 'VIP Membership',           description: 'Wealthy Patrons visit sooner & more often' };
-    if (!u.hatchery)  u.hatchery  = { level: 0, maxLevel: 3, cost: 450,  label: 'Hatchery',                 description: '-15% egg & juvenile grow time per level' };
-  }
   if (!parsed.player.magicFishFound) parsed.player.magicFishFound = [];
   if (!parsed.player.autopsies) parsed.player.autopsies = [];
   if (!parsed.shop?.fishPrices) {
@@ -220,19 +198,6 @@ function migrateSave(parsed) {
       ...parsed.breedingTank,
     };
   }
-  // Add storedGenomeC for hatchery donor slot
-  if (parsed.breedingTank && parsed.breedingTank.storedGenomeC === undefined) {
-    parsed.breedingTank = { storedGenomeC: null, ...parsed.breedingTank };
-  }
-  // If hatchery is already unlocked, ensure slots array has 3 elements
-  if ((parsed.shop?.upgrades?.hatchery?.level || 0) >= 1) {
-    const bt = parsed.breedingTank;
-    if (bt && Array.isArray(bt.slots) && bt.slots.length < 3) {
-      parsed.breedingTank = { ...bt, slots: [...bt.slots, null] };
-    }
-  }
-  if (!parsed.player.boosts)    parsed.player.boosts = {};
-  if (!parsed.rareMarket) parsed.rareMarket = { lastRefreshDay: 0, purchased: [] };
   parsed.version = SAVE_VERSION;
   return parsed;
 }
@@ -363,7 +328,7 @@ export function checkAchievements(state, messages) {
   if ((stats.waterTreated  || 0) >= 1) award('water_pristine');
 
   const upgrades = shop.upgrades || {};
-  if (Object.values(upgrades).some(u => u.level >= (u.maxLevel || 3))) award('upgrade_max');
+  if (Object.values(upgrades).some(u => u.level >= 3)) award('upgrade_max');
 
   // survived_night: all fish alive and it is currently between 11pm and 6am
   if (fish.length > 0 && fish.every(f => (f.health || 0) > 0)) {

@@ -901,34 +901,6 @@ body {
   box-shadow: 0 0 16px rgba(30,80,140,0.3) !important;
 }
 
-/* Genetic Donor slot — teal accent */
-.breed-slot--donor {
-  border-color: rgba(40,180,150,0.4);
-  background: linear-gradient(160deg, #091f1b 0%, #061512 100%);
-}
-.breed-slot--donor.filled {
-  border-color: rgba(40,180,150,0.85);
-  box-shadow: inset 0 0 20px rgba(40,180,150,0.10);
-}
-.breed-slot--donor .breed-slot-num { color: #32c8a0; }
-.breed-slot--donor.empty { color: #2a8a70; border-color: rgba(40,180,150,0.3); }
-
-/* Trio layout — parents + donor in a single flex row */
-.breed-parents--trio {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  gap: 10px;
-}
-.breed-parents--trio .breed-slot { min-width: 140px; }
-
-/* Donor heart separator */
-.breed-heart--donor {
-  font-size: 1.3rem;
-  opacity: 0.7;
-  animation: none;
-}
-
 .breed-slot-num {
   font-size: 0.65rem;
   text-transform: uppercase;
@@ -1697,9 +1669,9 @@ body {
 .upgrade-desc { font-size: 0.7rem; color: #5a8ab0; line-height: 1.45; flex: 1; }
 
 /* Upgrade level pips — bigger, more distinct */
-.upgrade-level { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.upgrade-level { display: flex; gap: 5px; align-items: center; }
 .upgrade-pip {
-  width: 22px; height: 8px;
+  width: 28px; height: 8px;
   border-radius: 4px;
   background: rgba(26,46,69,0.9);
   border: 1px solid rgba(42,80,120,0.5);
@@ -1710,18 +1682,11 @@ body {
   border-color: #60c0ff;
   box-shadow: 0 0 6px #1e8fc855;
 }
-/* All filled = gold */
+/* Level 3 = all filled = gold */
 .upgrade-card.maxed .upgrade-pip.filled {
   background: linear-gradient(90deg, #b08020, #f0c040);
   border-color: #ffe080;
   box-shadow: 0 0 8px #f0c04066;
-}
-
-.upgrade-tier-label {
-  font-size: 0.62rem;
-  color: #3d6080;
-  letter-spacing: 0.05em;
-  margin-top: -2px;
 }
 
 .upgrade-maxed {
@@ -6164,162 +6129,4 @@ button:active, .btn:active, .action-btn:active {
 }
 .fdex-grid::-webkit-scrollbar-thumb:hover {
   background: rgba(80,130,210,0.45);
-}
-
-/* ── Rare Specimens Market ────────────────────────────────────── */
-.rare-market {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 14px 0;
-}
-
-.rare-market-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.rare-market-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #d4a830;
-  letter-spacing: 0.02em;
-}
-
-.rare-market-subtitle {
-  font-size: 12px;
-  color: rgba(160,200,255,0.6);
-  margin-top: 3px;
-}
-
-.rare-market-coins {
-  font-size: 15px;
-  font-weight: 600;
-  color: #d4a830;
-  white-space: nowrap;
-}
-
-.rare-market-boosts {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 8px 10px;
-  background: rgba(100,180,80,0.08);
-  border: 1px solid rgba(100,180,80,0.2);
-  border-radius: 6px;
-}
-
-.boosts-label {
-  font-size: 12px;
-  color: rgba(160,200,255,0.6);
-}
-
-.boost-badge {
-  font-size: 11px;
-  padding: 2px 8px;
-  background: rgba(100,200,80,0.15);
-  border: 1px solid rgba(100,200,80,0.3);
-  border-radius: 10px;
-  color: #80e060;
-}
-
-.rare-market-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-}
-
-.market-card {
-  background: rgba(20,35,65,0.7);
-  border: 1px solid rgba(80,130,210,0.25);
-  border-radius: 8px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  transition: border-color 0.15s;
-}
-
-.market-card:hover:not(.market-card--soldout) {
-  border-color: rgba(212,168,48,0.5);
-}
-
-.market-card--soldout {
-  opacity: 0.5;
-}
-
-.market-card-emoji {
-  font-size: 28px;
-  line-height: 1;
-}
-
-.market-card-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #c8d8f0;
-}
-
-.market-card-type {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(160,200,255,0.45);
-}
-
-.market-card-desc {
-  font-size: 12px;
-  color: rgba(160,200,255,0.65);
-  line-height: 1.5;
-  flex: 1;
-}
-
-.market-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(80,130,210,0.15);
-}
-
-.market-card-limit {
-  font-size: 11px;
-  color: rgba(160,200,255,0.4);
-}
-
-.market-buy-btn {
-  padding: 5px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 5px;
-  border: 1px solid rgba(212,168,48,0.5);
-  background: rgba(212,168,48,0.12);
-  color: #d4a830;
-  cursor: pointer;
-  transition: background 0.15s, opacity 0.15s;
-  white-space: nowrap;
-}
-
-.market-buy-btn:hover:not(.market-buy-btn--disabled) {
-  background: rgba(212,168,48,0.25);
-}
-
-.market-buy-btn--disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  border-color: rgba(160,200,255,0.2);
-  color: rgba(160,200,255,0.4);
-  background: transparent;
-}
-
-.rare-market-note {
-  font-size: 11px;
-  color: rgba(160,200,255,0.35);
-  line-height: 1.5;
-  padding-top: 4px;
-  border-top: 1px solid rgba(80,130,210,0.1);
 }

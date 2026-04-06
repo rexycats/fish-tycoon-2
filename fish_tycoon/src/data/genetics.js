@@ -326,9 +326,8 @@ export const GROWTH_STAGES = {
   adult:    { label: 'Adult',    durationMs: Infinity },
 };
 
-export function breedGenomes(genomeA, genomeB, donorGenome = null) {
+export function breedGenomes(genomeA, genomeB) {
   const offspring = {};
-  const DONOR_CHANCE = 0.18; // each allele slot has 18% chance to inherit from donor
   for (const gene of Object.keys(GENES)) {
     if (!genomeA[gene] || !genomeB[gene]) continue;
     const [a1, a2] = genomeA[gene];
@@ -341,13 +340,10 @@ export function breedGenomes(genomeA, genomeB, donorGenome = null) {
         alleleKeys[Math.floor(Math.random() * alleleKeys.length)],
       ];
     } else {
-      // Pick each allele — donor can contribute if present
-      const pickA = Math.random() < 0.5 ? a1 : a2;
-      const pickB = Math.random() < 0.5 ? b1 : b2;
-      const donor = donorGenome?.[gene];
-      const allele0 = donor && Math.random() < DONOR_CHANCE ? donor[Math.random() < 0.5 ? 0 : 1] : pickA;
-      const allele1 = donor && Math.random() < DONOR_CHANCE ? donor[Math.random() < 0.5 ? 0 : 1] : pickB;
-      offspring[gene] = [allele0, allele1];
+      offspring[gene] = [
+        Math.random() < 0.5 ? a1 : a2,
+        Math.random() < 0.5 ? b1 : b2,
+      ];
     }
   }
   return offspring;

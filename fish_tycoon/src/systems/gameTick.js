@@ -187,11 +187,9 @@ function processOneTank(tank, allFish, messages, now) {
     }
 
     // Growth stage progression
-    const stageDuration  = GROWTH_STAGES[f.stage]?.durationMs ?? Infinity;
-    const timeInStage    = now - f.stageStartedAt;
-    const hatcheryLevel  = next.shop?.upgrades?.hatchery?.level || 0;
-    const hatcheryMult   = 1 - hatcheryLevel * 0.15;           // -15 / -30 / -45% grow time
-    const growMult       = (bonuses.growSpeedMult || 1) * hatcheryMult;
+    const stageDuration = GROWTH_STAGES[f.stage]?.durationMs ?? Infinity;
+    const timeInStage   = now - f.stageStartedAt;
+    const growMult = bonuses.growSpeedMult || 1;
 
     if (f.stage === 'egg' && timeInStage >= stageDuration * growMult) {
       f.stage = 'juvenile'; f.stageStartedAt = now;
@@ -371,29 +369,14 @@ function getCustomerInterval(state) {
 }
 
 function pickCustomerType(state) {
-  const level    = state.shop.level || 1;
-  const rep      = state.shop.reputation || 0;
-  const vipLevel = state.shop.upgrades?.vip?.level || 0;
-
-  // VIP Membership lowers the rep threshold for Wealthy Patron and eventually removes the shop-level gate
-  const richRepThreshold   = vipLevel >= 2 ? 10 : vipLevel >= 1 ? 25 : 50;
-  const richLevelThreshold = vipLevel >= 3 ? 1  : 3;
-
-  const pool = CUSTOMER_TYPES.filter(c => {
-    if (c.id === 'rich'      && (level < richLevelThreshold || rep < richRepThreshold)) return false;
+  const level = state.shop.level || 1;
+  const rep   = state.shop.reputation || 0;
+  const pool  = CUSTOMER_TYPES.filter(c => {
+    if (c.id === 'rich'      && (level < 3 || rep < 50)) return false;
     if (c.id === 'collector' && level < 2) return false;
     return true;
   });
-
-  // VIP Membership also doubles the chance of a Wealthy Patron appearing (add an extra entry)
-  const weighted = [...pool];
-  if (vipLevel >= 1 && pool.some(c => c.id === 'rich')) {
-    const rich = pool.find(c => c.id === 'rich');
-    weighted.push(rich); // second slot = twice as likely
-    if (vipLevel >= 3) weighted.push(rich); // triple at max
-  }
-
-  return weighted[Math.floor(Math.random() * weighted.length)];
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function pickFishToBuy(listedIds, fish, customer) {
@@ -410,7 +393,6 @@ function pickFishToBuy(listedIds, fish, customer) {
 function processCustomerVisit(state, messages) {
   const customer = pickCustomerType(state);
   // Only consider fish the customer can afford (their budget vs ask price)
-  const lightingBonus = 1 + (state.shop.upgrades?.lighting?.level || 0) * 0.10;
   const listedIds = state.shop.listedFish.filter(id => {
     const f = state.fish.find(fi => fi.id === id);
     if (!f) return false;
@@ -418,7 +400,7 @@ function processCustomerVisit(state, messages) {
     const tankBonus = getTankBonuses(fishTank?.type).salePriceMult || 1;
     const happiness = fishTank?.happiness ?? 100;
     const happBonus = 1 + (happiness / 100) * 0.2;
-    const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * happBonus * tankBonus * lightingBonus);
+    const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * happBonus * tankBonus);
     const askPrice  = state.shop.fishPrices?.[id] ?? autoPrice;
     const budget    = Math.round(askPrice * customer.budgetMult);
     // Only show fish where budget meets at least the walkaway threshold (65% of ask price).
@@ -432,12 +414,12 @@ function processCustomerVisit(state, messages) {
   const fish = pickFishToBuy(listedIds, state.fish, customer);
   if (!fish) return state;
 
-  // Display tank gives a sale price bonus; Premium Lighting adds on top
+  // Display tank gives a sale price bonus
   const fishTank   = state.tanks.find(t => t.id === fish.tankId);
   const tankBonus  = getTankBonuses(fishTank?.type).salePriceMult || 1;
   const happiness  = fishTank?.happiness ?? 100;
   const happBonus  = 1 + (happiness / 100) * 0.2;
-  const autoPrice  = Math.round((fish.species?.basePrice ?? 10) * (fish.health / 100) * happBonus * tankBonus * lightingBonus);
+  const autoPrice  = Math.round((fish.species?.basePrice ?? 10) * (fish.health / 100) * happBonus * tankBonus);
   const askPrice   = state.shop.fishPrices?.[fish.id] ?? autoPrice;
 
   // Customer budget is their max willingness to pay
@@ -621,9 +603,7 @@ export function applyOfflineProgress(state) {
     let remaining = ticks * 1000;
     let stageStart = f.stageStartedAt;
     const lastTick = state.lastTickAt || now;
-    const hatcheryLevel = next.shop?.upgrades?.hatchery?.level || 0;
-    const hatcheryMult  = 1 - hatcheryLevel * 0.15;
-    const growMult = (bonuses.growSpeedMult || 1) * hatcheryMult;
+    const growMult = bonuses.growSpeedMult || 1;
 
     if (f.stage === 'egg') {
       const timeAlready = lastTick - stageStart;

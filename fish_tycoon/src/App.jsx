@@ -485,8 +485,7 @@ export default function App() {
     setGame(prev => {
       const upgrades = prev.shop.upgrades || {};
       const upg = upgrades[upgradeId];
-      const maxLevel = upg?.maxLevel || 3;
-      if (!upg || upg.level >= maxLevel) return prev;
+      if (!upg || upg.level >= 3) return prev;
       if (prev.player.coins < upg.cost) { playWarning(); return addLog(prev, `⚠️ Need 🪙${upg.cost} for ${upg.label}.`); }
       let next = {
         ...prev,
@@ -499,86 +498,10 @@ export default function App() {
         next = { ...next, tanks: next.tanks.map(t => t.id === tid ? { ...t, capacity: t.capacity + 4 } : t) };
       }
       if (upgradeId === 'breeding') next = { ...next, breedingTank: { ...next.breedingTank, breedingDurationMs: Math.round(next.breedingTank.breedingDurationMs * 0.75) } };
-      // Hatchery level 1 unlocks the third (Genetic Donor) breeding slot
-      if (upgradeId === 'hatchery' && upg.level === 0) {
-        const bt = next.breedingTank;
-        next = { ...next, breedingTank: { ...bt, slots: [...bt.slots, null], storedGenomeC: null } };
-      }
-
-      const newLevel = upg.level + 1;
-      const logMessages = {
-        lighting: `💡 Premium Lighting Lv${newLevel}: sale prices +${newLevel * 10}%!`,
-        vip:      `💎 VIP Membership Lv${newLevel}: Wealthy Patrons will visit ${newLevel === 1 ? 'sooner' : newLevel === 2 ? 'more often' : 'much more often'}!`,
-        hatchery: `🥚 Hatchery Lv${newLevel}: eggs & juveniles grow ${newLevel * 15}% faster!`,
-      };
       playCoin();
-      return addLog(next, logMessages[upgradeId] || `⬆️ Upgraded: ${upg.label} to level ${newLevel}!`);
+      return addLog(next, `⬆️ Upgraded: ${upg.label}!`);
     });
   }, [activeTank]);
-
-  // ── Rare Market purchase ─────────────────────────────────
-  const buyRareMarketItem = useCallback((item, tankId) => {
-    const tid = tankId || activeTank?.id || game.tanks[0]?.id;
-    setGame(prev => {
-      if (prev.player.coins < item.cost) {
-        playWarning();
-        return addLog(prev, `⚠️ Not enough coins! Need 🪙${item.cost}.`);
-      }
-      const today = Math.floor(Date.now() / 86_400_000);
-      const purchased = prev.rareMarket?.purchased || [];
-      const boughtToday = purchased.filter(p => p.day === today && p.itemId === item.id).length;
-      if (boughtToday >= item.limit) return prev;
-
-      let next = {
-        ...prev,
-        player: { ...prev.player, coins: prev.player.coins - item.cost },
-        rareMarket: {
-          lastRefreshDay: today,
-          purchased: [...purchased, { day: today, itemId: item.id }],
-        },
-      };
-
-      if (item.type === 'supplies') {
-        const tank = next.tanks.find(t => t.id === tid);
-        if (tank) {
-          const newSupplies = { ...tank.supplies };
-          for (const [k, v] of Object.entries(item.supplies || {})) {
-            newSupplies[k] = (newSupplies[k] || 0) + v;
-          }
-          next = {
-            ...next,
-            tanks: next.tanks.map(t => t.id === tid ? {
-              ...t,
-              supplies: newSupplies,
-              waterQuality: item.restoreWater ? 100 : t.waterQuality,
-            } : t),
-          };
-        }
-      }
-
-      if (item.type === 'decor') {
-        const tank = next.tanks.find(t => t.id === tid);
-        if (tank) {
-          const owned = { ...(tank.decorations?.owned || {}) };
-          owned[item.decorId] = (owned[item.decorId] || 0) + 1;
-          next = {
-            ...next,
-            tanks: next.tanks.map(t => t.id === tid
-              ? { ...t, decorations: { ...t.decorations, owned } } : t),
-          };
-        }
-      }
-
-      if (item.type === 'booster') {
-        const boosts = { ...(next.player.boosts || {}) };
-        boosts[item.boost] = (boosts[item.boost] || 0) + 1;
-        next = { ...next, player: { ...next.player, boosts } };
-      }
-
-      playCoin();
-      return addLog(next, `🌟 Bought ${item.label} from the market for 🪙${item.cost}!`);
-    });
-  }, [activeTank]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Move fish between tanks ──────────────────────────────
   const moveFishToTank = useCallback((fishId, targetTankId) => {
@@ -691,33 +614,23 @@ export default function App() {
   const selectForBreeding = useCallback((fishId) => {
     setGame(prev => {
       const bt = prev.breedingTank;
-      const hasThirdSlot = bt.slots.length >= 3;
-
-      // Toggle off if already in any slot
-      if (bt.slots.includes(fishId)) {
-        const newSlots = bt.slots.map(s => s === fishId ? null : s);
-        const fishC = hasThirdSlot ? prev.fish.find(f => f.id === newSlots[2]) : null;
-        return { ...prev, breedingTank: { ...bt, slots: newSlots, storedGenomeC: fishC?.genome ?? null } };
+      if (bt.slots[0] === fishId || bt.slots[1] === fishId) {
+        return { ...prev, breedingTank: { ...bt, slots: bt.slots.map(s => s === fishId ? null : s) } };
       }
-
-      // Slot 0 first
-      if (!bt.slots[0]) {
-        return { ...prev, breedingTank: { ...bt, slots: [fishId, bt.slots[1], ...(hasThirdSlot ? [bt.slots[2] ?? null] : [])] } };
-      }
-
-      // Slot 1 — triggers breeding start
+      if (!bt.slots[0] && bt.slots[1] !== fishId) return { ...prev, breedingTank: { ...bt, slots: [fishId, bt.slots[1]] } };
+      if (bt.slots[0] === fishId) return prev;
       if (!bt.slots[1]) {
-        const fishA    = prev.fish.find(f => f.id === bt.slots[0]);
-        const fishB    = prev.fish.find(f => f.id === fishId);
-        const eggTank  = fishA?.tankId || 'tank_0';
+        // Find which tank fishA is in; prefer that tank for the egg, else default tank_0
+        const fishA   = prev.fish.find(f => f.id === bt.slots[0]);
+        const fishB   = prev.fish.find(f => f.id === fishId);
+        const eggTank = fishA?.tankId || 'tank_0';
         const hasBoost = (prev.tanks.find(t => t.id === eggTank)?.supplies?.breedingBoost || 0) > 0;
-        const duration = hasBoost ? 10_000 : bt.breedingDurationMs;
-        const supplies = hasBoost
+        const duration  = hasBoost ? 10_000 : bt.breedingDurationMs;
+        const supplies  = hasBoost
           ? prev.tanks.map(t => t.id === eggTank
               ? { ...t, supplies: { ...t.supplies, breedingBoost: t.supplies.breedingBoost - 1 } }
               : t)
           : prev.tanks;
-        const fishC    = hasThirdSlot ? prev.fish.find(f => f.id === bt.slots[2]) : null;
         playBreed();
         return addLog({
           ...prev,
@@ -725,27 +638,17 @@ export default function App() {
           player: { ...prev.player, stats: { ...(prev.player.stats || {}), totalFishBred: (prev.player.stats?.totalFishBred || 0) + 1 } },
           breedingTank: {
             ...bt,
-            slots: [bt.slots[0], fishId, ...(hasThirdSlot ? [bt.slots[2] ?? null] : [])],
+            slots: [bt.slots[0], fishId],
             breedingStartedAt: Date.now(),
             eggReady: false,
             breedingDurationMs: duration,
+            // Store genomes so egg can be collected even if parents are sold
             storedGenomeA: fishA?.genome ?? null,
             storedGenomeB: fishB?.genome ?? null,
-            storedGenomeC: fishC?.genome ?? null,
             storedTankId: eggTank,
           },
         }, hasBoost ? '💉 Breeding boost active — 10 seconds!' : '💕 Breeding started!');
       }
-
-      // Slot 2 (Genetic Donor) — only if hatchery unlocked and breeding not yet started
-      if (hasThirdSlot && !bt.breedingStartedAt) {
-        const fishC = prev.fish.find(f => f.id === fishId);
-        return addLog({
-          ...prev,
-          breedingTank: { ...bt, slots: [bt.slots[0], bt.slots[1], fishId], storedGenomeC: fishC?.genome ?? null },
-        }, `🧬 ${fishC?.species?.name || 'Fish'} added as Genetic Donor — traits will influence offspring!`);
-      }
-
       return prev;
     });
   }, []);
@@ -755,18 +658,16 @@ export default function App() {
       const bt = prev.breedingTank;
       if (!bt.breedingStartedAt || bt.eggReady) return prev;
       const baseDuration = 30_000 * Math.pow(0.75, (prev.shop.upgrades?.breeding?.level || 0));
-      const hasThirdSlot = bt.slots.length >= 3;
       return addLog({
         ...prev,
         breedingTank: {
           ...bt,
-          slots: hasThirdSlot ? [null, null, null] : [null, null],
+          slots: [null, null],
           breedingStartedAt: null,
           eggReady: false,
           breedingDurationMs: Math.round(baseDuration),
           storedGenomeA: null,
           storedGenomeB: null,
-          storedGenomeC: null,
           storedTankId: null,
         },
       }, '❌ Breeding cancelled.');
@@ -792,23 +693,19 @@ export default function App() {
       const eggTank   = prev.tanks.find(t => t.id === eggTankId);
       const tankCount = prev.fish.filter(f => f.tankId === eggTankId).length;
       if (tankCount >= (eggTank?.capacity || 12)) { playWarning(); return addLog(prev, '⚠️ That tank is full! Move fish first.'); }
-      // Genetic Donor (hatchery slot 2) influences offspring traits
-      const donorGenome = bt.storedGenomeC ?? null;
-      const offspringGenome = breedGenomes(genomeA, genomeB, donorGenome);
-      const donorNote = donorGenome ? ' 🧬 Genetic donor influence applied!' : '';
+      const offspringGenome = breedGenomes(genomeA, genomeB);
       const newFish = createFish({ genome: offspringGenome, stage: 'egg', parentIds: [idA, idB], tankId: eggTankId });
       const baseDuration = 30_000 * Math.pow(0.75, (prev.shop.upgrades?.breeding?.level || 0));
-      const hasThirdSlot = bt.slots.length >= 3;
       playBreed();
       return addLog({
         ...prev,
         fish: [...prev.fish, newFish],
-        breedingTank: { ...bt, slots: hasThirdSlot ? [null, null, null] : [null, null], eggReady: false, breedingStartedAt: null, breedingDurationMs: Math.round(baseDuration), storedGenomeC: null },
+        breedingTank: { ...bt, slots: [null, null], eggReady: false, breedingStartedAt: null, breedingDurationMs: Math.round(baseDuration) },
         player: {
           ...prev.player,
           stats: { ...(prev.player.stats || {}), eggsCollected: (prev.player.stats?.eggsCollected || 0) + 1 },
         },
-      }, `🥚 Egg collected in ${eggTank?.name || 'Tank'}! It might become a ${newFish.species?.name || 'fish'}.${donorNote}`);
+      }, `🥚 Egg collected in ${eggTank?.name || 'Tank'}! It might become a ${newFish.species?.name || 'fish'}.`);
     });
   }, []);
 
@@ -957,7 +854,7 @@ export default function App() {
           </>
         )}
         {activeTab === 'shop' && (
-          <Shop game={game} activeTank={activeTank} onToggleSell={toggleSellFish} onSetPrice={setFishPrice} onBuyUpgrade={buyUpgrade} onBuySupply={(k, c, a) => buySupply(k, c, a, activeTank?.id)} onBuyFish={buyFish} onBuyRareItem={buyRareMarketItem} />
+          <Shop game={game} activeTank={activeTank} onToggleSell={toggleSellFish} onSetPrice={setFishPrice} onBuyUpgrade={buyUpgrade} onBuySupply={(k, c, a) => buySupply(k, c, a, activeTank?.id)} onBuyFish={buyFish} />
         )}
         {activeTab === 'breed' && (
           <BreedingLab fish={game.fish} breedingTank={game.breedingTank} onSelectForBreeding={selectForBreeding} onCollectEgg={collectEgg} onCancelBreeding={cancelBreeding} />

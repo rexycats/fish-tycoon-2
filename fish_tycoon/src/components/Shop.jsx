@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect, useRef, memo } from 'react';
 import { RARITY } from '../data/genetics.js';
-import RareMarket from './RareMarket.jsx';
 
 const RC = { common: '#7ec8a0', uncommon: '#6ab0de', rare: '#b07ee8', epic: '#f0c040', legendary: '#ff7eb3' };
 
@@ -115,31 +114,18 @@ function ComingSoonCard({ name, emoji, rarity, teaser }) {
   );
 }
 
-const UPGRADE_ICONS = {
-  slot:       '🪟',
-  reputation: '📢',
-  capacity:   '🐠',
-  breeding:   '⚡',
-  lighting:   '💡',
-  vip:        '💎',
-  hatchery:   '🥚',
-};
-
 function UpgradeCard({ id, upgrade, coins, onBuy }) {
-  const maxLevel  = upgrade.maxLevel || 3;
   const canAfford = coins >= upgrade.cost;
-  const maxed     = upgrade.level >= maxLevel;
-  const icon      = UPGRADE_ICONS[id] || '⬆️';
+  const maxed = upgrade.level >= 3;
   return (
     <div className={`upgrade-card ${maxed ? 'maxed' : ''}`}>
-      <div className="upgrade-title">{icon} {upgrade.label}</div>
+      <div className="upgrade-title">{upgrade.label}</div>
       <div className="upgrade-desc">{upgrade.description}</div>
       <div className="upgrade-level">
-        {Array.from({ length: maxLevel }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <span key={i} className={`upgrade-pip ${i < upgrade.level ? 'filled' : ''}`} />
         ))}
       </div>
-      <div className="upgrade-tier-label">Level {upgrade.level} / {maxLevel}</div>
       {maxed ? (
         <div className="upgrade-maxed">MAXED</div>
       ) : (
@@ -190,7 +176,7 @@ function SupplyCard({ name, emoji, stock, cost, amount, coins, desc, onBuy }) {
 }
 
 // ── Main Shop component ────────────────────────────────────
-function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuySupply, onBuyFish, onBuyRareItem }) {
+function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuySupply, onBuyFish }) {
   const [shopTab, setShopTab] = useState('sell');
   const [activeCustomer, setActiveCustomer] = useState(null);
   const [selectedToList, setSelectedToList] = useState(new Set());
@@ -242,10 +228,10 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
 
       {/* Sub-tabs */}
       <div className="shop-tabs">
-        {['sell', 'fish', 'upgrades', 'supplies', 'market', 'history'].map(t => (
+        {['sell', 'fish', 'upgrades', 'supplies', 'history'].map(t => (
           <button key={t} className={`shop-tab-btn ${shopTab === t ? 'active' : ''}`}
                   onClick={() => setShopTab(t)}>
-            {{ sell: '📋 Listings', fish: '🐠 Buy Fish', upgrades: '⬆️ Upgrades', supplies: '🛒 Supplies', market: '🌟 Market', history: '📜 Sales Log' }[t]}
+            {{ sell: '📋 Listings', fish: '🐠 Buy Fish', upgrades: '⬆️ Upgrades', supplies: '🛒 Supplies', history: '📜 Sales Log' }[t]}
           </button>
         ))}
       </div>
@@ -264,8 +250,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
             </div>
             <div className="listings-grid">
               {listedFish.map(f => {
-                const lightingBonus = 1 + (shop.upgrades?.lighting?.level || 0) * 0.10;
-                const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * lightingBonus);
+                const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100));
                 const askPrice  = shop.fishPrices?.[f.id] ?? autoPrice;
                 const rc        = RC[f.species?.rarity] || '#888';
                 const ratio     = askPrice / autoPrice;
@@ -376,8 +361,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
           </div>
           <div className="fish-list">
             {availableFish.map(f => {
-              const lightingBonus = 1 + (shop.upgrades?.lighting?.level || 0) * 0.10;
-              const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * lightingBonus);
+              const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100));
               const rc = RC[f.species?.rarity] || '#888';
               const isChecked = selectedToList.has(f.id);
               return (
@@ -412,22 +396,11 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
 
       {shopTab === 'upgrades' && (
         <div className="upgrades-panel">
-          <p className="upgrade-hint">Invest your coins to grow your shop and breed better fish faster. All four original upgrades now go to level 5 — and three new advanced tiers await.</p>
-
-          <div className="section-title" style={{ marginBottom: '0.5rem' }}>Core Upgrades</div>
+          <p className="upgrade-hint">Invest your coins to grow your shop and breed better fish faster.</p>
           <div className="upgrades-grid">
-            {['slot', 'reputation', 'capacity', 'breeding'].map(id => {
-              const upg = shop.upgrades?.[id];
-              return upg ? <UpgradeCard key={id} id={id} upgrade={upg} coins={player.coins} onBuy={onBuyUpgrade} /> : null;
-            })}
-          </div>
-
-          <div className="section-title" style={{ margin: '1rem 0 0.5rem' }}>Advanced Upgrades</div>
-          <div className="upgrades-grid">
-            {['lighting', 'vip', 'hatchery'].map(id => {
-              const upg = shop.upgrades?.[id];
-              return upg ? <UpgradeCard key={id} id={id} upgrade={upg} coins={player.coins} onBuy={onBuyUpgrade} /> : null;
-            })}
+            {Object.entries(shop.upgrades || {}).map(([id, upg]) => (
+              <UpgradeCard key={id} id={id} upgrade={upg} coins={player.coins} onBuy={onBuyUpgrade} />
+            ))}
           </div>
         </div>
       )}
@@ -470,10 +443,6 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
         </div>
       )}
 
-      {shopTab === 'market' && (
-        <RareMarket game={game} activeTank={activeTank} onBuyRareItem={onBuyRareItem} />
-      )}
-
       {shopTab === 'history' && (
         <div className="history-panel">
           <div className="section-title">Recent Sales</div>
@@ -495,10 +464,8 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
 // Shop is only open on its own tab — memo ensures it doesn't re-render
 // on every game tick while the player is looking at the tank view.
 export default memo(Shop, (prev, next) =>
-  prev.game?.shop          === next.game?.shop          &&
-  prev.game?.fish          === next.game?.fish          &&
-  prev.game?.player?.coins  === next.game?.player?.coins  &&
-  prev.game?.player?.boosts === next.game?.player?.boosts &&
-  prev.game?.rareMarket    === next.game?.rareMarket    &&
-  prev.activeTank          === next.activeTank
+  prev.game?.shop         === next.game?.shop         &&
+  prev.game?.fish         === next.game?.fish         &&
+  prev.game?.player?.coins === next.game?.player?.coins &&
+  prev.activeTank         === next.activeTank
 );
