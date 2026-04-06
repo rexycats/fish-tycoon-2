@@ -931,7 +931,7 @@ function ApiKeyModal({ onClose }) {
     <div className="win-modal-overlay" onClick={onClose}>
       <div className="win-modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
         <div className="win-modal-title" style={{ fontSize: '1.3rem' }}>🤖 AI Fish Naming</div>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: '8px 0 16px' }}>
+        <p style={{ color: 'var(--text-dim)', fontSize: '0.88rem', margin: '8px 0 16px' }}>
           Paste your Anthropic API key to unlock AI-generated fish names and lore.
           Your key is stored only in this browser (localStorage) and never sent anywhere except Anthropic's API.
         </p>
@@ -941,8 +941,8 @@ function ApiKeyModal({ onClose }) {
           value={val}
           onChange={e => setVal(e.target.value)}
           style={{
-            width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border)',
-            background: 'var(--surface)', color: 'var(--text)', fontSize: '0.9rem', boxSizing: 'border-box',
+            width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--panel-border)',
+            background: 'var(--ocean-mid)', color: 'var(--text-primary)', fontSize: '0.9rem', boxSizing: 'border-box',
           }}
           onKeyDown={e => e.key === 'Enter' && handleSave()}
           autoFocus

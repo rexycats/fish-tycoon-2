@@ -71,6 +71,30 @@ body {
 .hud-actions { display: flex; gap: 8px; }
 
 
+/* ---- MAIN LAYOUT (desktop base — mobile overrides are in the @media block below) ---- */
+.main-layout {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+  overflow: hidden;
+  gap: 0;
+}
+
+.tank-col {
+  flex: 1 1 auto;
+  min-width: 0;
+  position: relative;
+}
+
+.side-col {
+  flex: 0 0 320px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  border-left: 1px solid var(--panel-border);
+}
+
 /* ---- TANK ---- */
 .tank-wrapper {
   width: 100%;

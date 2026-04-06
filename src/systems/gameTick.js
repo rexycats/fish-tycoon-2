@@ -333,12 +333,12 @@ export function processTick(state) {
   // Passive income: once per minute, happy tanks with adult fish earn visitor tips
   const passiveTick = (next.passiveTick || 0) + 1;
   if (passiveTick >= PASSIVE_INCOME_INTERVAL) {
-    const placed = next.decorations?.placed?.length || 0;
-    const decorMult = 1 + Math.min(10, placed) * PASSIVE_DECOR_BONUS;
     let tip = 0;
     for (const tank of next.tanks) {
       const adults = next.fish.filter(f => f.tankId === tank.id && f.stage === 'adult');
       if (adults.length === 0) continue;
+      const placed = tank.decorations?.placed?.length || 0;
+      const decorMult = 1 + Math.min(10, placed) * PASSIVE_DECOR_BONUS;
       tip += Math.floor((tank.happiness / 100) * decorMult * PASSIVE_INCOME_BASE);
     }
     if (tip > 0) {
