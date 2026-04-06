@@ -14,6 +14,14 @@ const HEALTH_HUNGER_DMG  = 0.06;
 const HEALTH_WATER_DMG   = 0.03;
 const HEALTH_REGEN       = 0.01;
 
+// --- PASSIVE INCOME ---
+// Once per minute, tanks with adult fish trickle a small coin bonus
+// based on happiness + placed decoration count. Max ~3 coins/min/tank —
+// meaningful during fish-dry spells, negligible vs active selling.
+const PASSIVE_INCOME_INTERVAL = 60;   // ticks (= 1 real minute)
+const PASSIVE_INCOME_BASE     = 2;    // coins/min at 100% happiness, 0 decor
+const PASSIVE_DECOR_BONUS     = 0.15; // +15% per placed decoration, capped at 10
+
 // --- DISEASE SYSTEM ---
 export const DISEASES = {
   ich: {
@@ -322,6 +330,26 @@ export function processTick(state) {
   }
 
   // Batch all messages into one state update — avoids N full state spreads
+  // Passive income: once per minute, happy tanks with adult fish earn visitor tips
+  const passiveTick = (next.passiveTick || 0) + 1;
+  if (passiveTick >= PASSIVE_INCOME_INTERVAL) {
+    const placed = next.decorations?.placed?.length || 0;
+    const decorMult = 1 + Math.min(10, placed) * PASSIVE_DECOR_BONUS;
+    let tip = 0;
+    for (const tank of next.tanks) {
+      const adults = next.fish.filter(f => f.tankId === tank.id && f.stage === 'adult');
+      if (adults.length === 0) continue;
+      tip += Math.floor((tank.happiness / 100) * decorMult * PASSIVE_INCOME_BASE);
+    }
+    if (tip > 0) {
+      next = { ...next, player: { ...next.player, coins: next.player.coins + tip } };
+      messages.push(`💰 Visitors left a ${tip}-coin tip!`);
+    }
+    next = { ...next, passiveTick: 0 };
+  } else {
+    next = { ...next, passiveTick };
+  }
+
   if (messages.length > 0) {
     const newEntries = messages.map(message => ({ time: Date.now(), message }));
     next = { ...next, log: [...newEntries, ...next.log].slice(0, 60) };

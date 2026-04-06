@@ -41,6 +41,21 @@ function BlueTangSprite({
   const aura   = RARITY_AURA[rarity];
   const stage  = fish?.stage || 'adult';
 
+  // ── Colour variants via CSS hue-shift ────────────────────
+  // 'default' = classic royal blue + yellow tail
+  // 'gold'    = gold body, blue stripe (palette inversion)
+  // 'midnight'= deep navy near-black with purple sheen
+  // 'albino'  = pale ice-blue with white markings
+  const variantKey = fish?.colorVariant || 'default';
+  const variantStyle = (() => {
+    switch (variantKey) {
+      case 'gold':     return { filter: 'hue-rotate(165deg) saturate(1.3) brightness(1.1)' };
+      case 'midnight': return { filter: 'hue-rotate(-20deg) saturate(0.7) brightness(0.60)' };
+      case 'albino':   return { filter: 'saturate(0.15) brightness(1.40)' };
+      default:         return {};
+    }
+  })();
+
   const W = size;
   const H = size * 0.72;
 
@@ -80,6 +95,7 @@ function BlueTangSprite({
         cursor:    onClick ? 'pointer' : 'default',
         transform: flipped ? 'scaleX(-1)' : 'none',
         overflow:  'visible',
+        ...variantStyle,
       }}
     >
       <defs>
@@ -166,9 +182,9 @@ function BlueTangSprite({
       )}
 
       {/* ════ TAIL FIN (forked, yellow) ════ */}
-      <path d={`M 17 36 C 5 22, 0 14, 8 11 C 13 8, 18 22, 17 36 Z`}
+      <path className="fish-tail" d={`M 17 36 C 5 22, 0 14, 8 11 C 13 8, 18 22, 17 36 Z`}
         fill={`url(#bt-tail-${uid})`} filter={`url(#bt-sh-${uid})`}/>
-      <path d={`M 17 36 C 5 50, 0 58, 8 61 C 13 64, 18 50, 17 36 Z`}
+      <path className="fish-tail" d={`M 17 36 C 5 50, 0 58, 8 61 C 13 64, 18 50, 17 36 Z`}
         fill={`url(#bt-tail-${uid})`}/>
       {/* Tail fin rays */}
       {[0.2, 0.5, 0.8].map((t, i) => (
@@ -179,7 +195,7 @@ function BlueTangSprite({
       ))}
 
       {/* ════ DORSAL FIN (runs ~full body length, high profile) ════ */}
-      <path d={`M 30 14 C 28 4, 36 1, 44 3 C 52 1, 60 3, 65 8 C 68 11, 66 14, 62 14 Z`}
+      <path className="fish-dorsal" d={`M 30 14 C 28 4, 36 1, 44 3 C 52 1, 60 3, 65 8 C 68 11, 66 14, 62 14 Z`}
         fill={`url(#bt-fin-${uid})`}/>
       {/* Dorsal fin rays */}
       {[[30,14,28,3],[37,14,36,1],[44,14,43,1],[51,14,52,1],[58,14,60,2],[63,14,66,7]].map(([x1,y1,x2,y2],i) => (
@@ -188,7 +204,7 @@ function BlueTangSprite({
       ))}
 
       {/* ════ ANAL FIN (mirror of dorsal on belly side) ════ */}
-      <path d={`M 30 58 C 28 68, 38 71, 48 69 C 56 67, 62 62, 65 58 Z`}
+      <path className="fish-fin" d={`M 30 58 C 28 68, 38 71, 48 69 C 56 67, 62 62, 65 58 Z`}
         fill={`url(#bt-fin-${uid})`}/>
       {/* Anal fin rays */}
       {[[30,58,28,68],[40,58,40,70],[52,58,54,68],[62,58,64,61]].map(([x1,y1,x2,y2],i) => (
@@ -197,7 +213,7 @@ function BlueTangSprite({
       ))}
 
       {/* ════ PECTORAL FIN ════ */}
-      <ellipse cx="62" cy="42" rx="10" ry="6"
+      <ellipse className="fish-fin" cx="62" cy="42" rx="10" ry="6"
         fill={`url(#bt-pec-${uid})`}
         transform="rotate(-15 62 42)"/>
       {/* Pectoral fin rays */}
@@ -287,11 +303,12 @@ function BlueTangSprite({
 }
 
 export default memo(BlueTangSprite, (prev, next) =>
-  prev.fish?.id      === next.fish?.id      &&
-  prev.fish?.stage   === next.fish?.stage   &&
-  prev.fish?.health  === next.fish?.health  &&
-  prev.fish?.disease === next.fish?.disease &&
-  prev.selected      === next.selected      &&
-  prev.size          === next.size          &&
-  prev.flipped       === next.flipped
+  prev.fish?.id           === next.fish?.id           &&
+  prev.fish?.stage        === next.fish?.stage        &&
+  prev.fish?.health       === next.fish?.health       &&
+  prev.fish?.disease      === next.fish?.disease      &&
+  prev.fish?.colorVariant === next.fish?.colorVariant &&
+  prev.selected           === next.selected           &&
+  prev.size               === next.size               &&
+  prev.flipped            === next.flipped
 );

@@ -412,11 +412,35 @@ export function createFish({ genome = null, stage = 'adult', parentIds = [], tan
     }
   }
   const now = Date.now();
+
+  // ── Colour variant selection ──────────────────────────────
+  // If the species defines colorVariants, pick one at random.
+  // The first entry (default) is weighted 3× more than others,
+  // 'rare' variants get 0.5× weight, matching their name.
+  let colorVariant = null;
+  if (species?.colorVariants?.length > 1) {
+    const variants = species.colorVariants;
+    const weights  = variants.map((v, i) =>
+      i === 0 ? 3.0 :
+      v === 'ghost' || v === 'black' ? 0.4 :
+      v === 'kohaku' || v === 'red'  ? 0.7 :
+      1.0
+    );
+    const total = weights.reduce((s, w) => s + w, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < variants.length; i++) {
+      r -= weights[i];
+      if (r <= 0) { colorVariant = variants[i]; break; }
+    }
+    colorVariant = colorVariant || variants[0];
+  }
+
   return {
     id: crypto.randomUUID(),
     genome: resolvedGenome,
     phenotype,
     species,
+    colorVariant,
     stage,
     bornAt: now,
     stageStartedAt: now,

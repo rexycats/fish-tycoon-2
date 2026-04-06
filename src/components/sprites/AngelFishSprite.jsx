@@ -49,6 +49,21 @@ function AngelFishSprite({
   const aura   = RARITY_AURA[rarity];
   const stage  = fish?.stage || 'adult';
 
+  // ── Colour variants via CSS hue-shift ────────────────────
+  // 'default'  = silver-white with black bars (classic)
+  // 'gold'     = golden body, dark amber bars
+  // 'marble'   = desaturated with faint grey pattern
+  // 'smoky'    = dark charcoal body (black angel variant)
+  const variantKey = fish?.colorVariant || 'default';
+  const variantStyle = (() => {
+    switch (variantKey) {
+      case 'gold':   return { filter: 'sepia(0.6) saturate(1.8) brightness(1.1)' };
+      case 'marble': return { filter: 'saturate(0.25) contrast(1.15)' };
+      case 'smoky':  return { filter: 'saturate(0.12) brightness(0.40)' };
+      default:       return {};
+    }
+  })();
+
   // Angelfish viewBox: 90 wide × 120 tall — taller than wide.
   // Extra 10px headroom (5 top, 5 bottom) prevents dorsal/anal filament tips
   // from sitting exactly on the viewBox edge and getting subpixel-clipped.
@@ -106,6 +121,7 @@ function AngelFishSprite({
         cursor:    onClick ? 'pointer' : 'default',
         transform: flipped ? 'scaleX(-1)' : 'none',
         overflow:  'visible',
+        ...variantStyle,
       }}
     >
       <defs>
@@ -213,7 +229,7 @@ function AngelFishSprite({
       {/* Short, slightly forked — centred on x≈26, y=55 (left body edge) */}
       {/* Top ray arcs up-left, bottom ray arcs down-left */}
       {/* Top lobe */}
-      <path d={`
+      <path className="fish-tail" d={`
         M 26 57
         C 18 51, 10 45, ${8 - 4*fs} ${43 - 8*fs}
         C ${10 - 2*fs} ${41 - 6*fs}, 16 47, 24 55
@@ -223,7 +239,7 @@ function AngelFishSprite({
         opacity={finOpacity}
         filter={`url(#af-sh-${uid})`}/>
       {/* Bottom lobe */}
-      <path d={`
+      <path className="fish-tail" d={`
         M 26 63
         C 18 69, 10 75, ${8 - 4*fs} ${77 + 8*fs}
         C ${10 - 2*fs} ${79 + 6*fs}, 16 73, 24 65
@@ -245,7 +261,7 @@ function AngelFishSprite({
       {/* Rises as a curved triangle above the body apex (body top ≈ y=27).
           Fan from x=35–62, peak at x=50,y=8, then narrows to a filament
           trailing back to approximately x=20, y=4*fs */}
-      <path d={`
+      <path className="fish-dorsal" d={`
         M 35 32
         C 34 23, 38 15, 50 12
         C 58 10, 64 15, 65 23
@@ -281,7 +297,7 @@ function AngelFishSprite({
 
       {/* ════ ANAL FIN + FILAMENT ════ */}
       {/* Mirror of dorsal below the body base (body bottom ≈ y=83) */}
-      <path d={`
+      <path className="fish-fin" d={`
         M 35 88
         C 34 97, 38 105, 50 108
         C 58 110, 64 105, 65 97
@@ -317,7 +333,7 @@ function AngelFishSprite({
 
       {/* ════ PECTORAL FINS ════ */}
       {/* Narrow translucent fins from behind the gill plate */}
-      <path d={`
+      <path className="fish-fin" d={`
         M 66 57
         C 70 61, 72 67, 70 73
         C 68 69, 66 63, 66 57
@@ -415,11 +431,12 @@ function AngelFishSprite({
 }
 
 export default memo(AngelFishSprite, (prev, next) =>
-  prev.fish?.id      === next.fish?.id      &&
-  prev.fish?.stage   === next.fish?.stage   &&
-  prev.fish?.health  === next.fish?.health  &&
-  prev.fish?.disease === next.fish?.disease &&
-  prev.selected      === next.selected      &&
-  prev.size          === next.size          &&
-  prev.flipped       === next.flipped
+  prev.fish?.id           === next.fish?.id           &&
+  prev.fish?.stage        === next.fish?.stage        &&
+  prev.fish?.health       === next.fish?.health       &&
+  prev.fish?.disease      === next.fish?.disease      &&
+  prev.fish?.colorVariant === next.fish?.colorVariant &&
+  prev.selected           === next.selected           &&
+  prev.size               === next.size               &&
+  prev.flipped            === next.flipped
 );

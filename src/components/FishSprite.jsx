@@ -15,19 +15,26 @@
 //   • Egg + Juvenile also fully shaded with matching treatment
 // ============================================================
 
-import React, { memo } from 'react';
-import ClownfishSprite  from './sprites/ClownfishSprite.jsx';
-import BlueTangSprite   from './sprites/BlueTangSprite.jsx';
-import BettaSprite      from './sprites/BettaSprite.jsx';
-import AngelFishSprite  from './sprites/AngelFishSprite.jsx';
+import React, { memo, lazy, Suspense } from 'react';
+
+// Lazy-loaded: each sprite is 12–17 KB of SVG paths. Using lazy() means
+// the chunk is only fetched the first time a fish of that species renders.
+const ClownfishSprite        = lazy(() => import('./sprites/ClownfishSprite.jsx'));
+const BlueTangSprite         = lazy(() => import('./sprites/BlueTangSprite.jsx'));
+const BettaSprite            = lazy(() => import('./sprites/BettaSprite.jsx'));
+const AngelFishSprite        = lazy(() => import('./sprites/AngelFishSprite.jsx'));
+const GoldfishSprite         = lazy(() => import('./sprites/GoldfishSprite.jsx'));
+const MandarinDragonetSprite = lazy(() => import('./sprites/MandarinDragonetSprite.jsx'));
 
 // ── Species sprite routing (Phase 12) ───────────────────────
 // Add new real-species entries here as they're built.
 const SPECIES_SPRITE_MAP = {
-  clownfish:  ClownfishSprite,
-  bluetang:   BlueTangSprite,
-  betta:      BettaSprite,
-  angelfish:  AngelFishSprite,
+  clownfish:         ClownfishSprite,
+  bluetang:          BlueTangSprite,
+  betta:             BettaSprite,
+  angelfish:         AngelFishSprite,
+  goldfish:          GoldfishSprite,
+  mandarin_dragonet: MandarinDragonetSprite,
 };
 
 // ─── COLOR PALETTES ─────────────────────────────────────────────────────────
@@ -312,7 +319,11 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
   if (fish.species?.visualType === 'species') {
     const SpeciesSprite = SPECIES_SPRITE_MAP[fish.species.key];
     if (SpeciesSprite) {
-      return <SpeciesSprite fish={fish} size={size} flipped={flipped} selected={selected} onClick={onClick}/>;
+      return (
+        <Suspense fallback={<svg width={size} height={size * 0.65} />}>
+          <SpeciesSprite fish={fish} size={size} flipped={flipped} selected={selected} onClick={onClick}/>
+        </Suspense>
+      );
     }
   }
 

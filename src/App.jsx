@@ -85,9 +85,9 @@ export default function App() {
     game.player.stats?.waterTreated  || 0,
     Math.max(0, ...game.tanks.map(t =>
       game.fish.filter(f => f.tankId === t.id).length >= t.capacity ? 1 : 0
-    )),
-    Math.max(0, ...game.tanks.map(t => Math.round(t.happiness || 0))),
-    Math.max(0, ...Object.values(game.shop.upgrades || {}).map(u => u.level || 0)),
+    ), 0),
+    Math.max(0, ...game.tanks.map(t => Math.round(t.happiness || 0)), 0),
+    Math.max(0, ...Object.values(game.shop.upgrades || {}).map(u => u.level || 0), 0),
   ].join(',');
 
   useEffect(() => {
@@ -159,6 +159,10 @@ export default function App() {
 
   // Toast: disease alerts (fire at most once per fish per disease)
   const diseasedRef = useRef(new Set());
+  const diseaseStateKey = (game.fish || [])
+    .filter(f => f.disease)
+    .map(f => `${f.id}:${f.disease}`)
+    .sort().join(',');
   useEffect(() => {
     for (const f of game.fish) {
       if (f.disease && !diseasedRef.current.has(f.id)) {
@@ -168,7 +172,7 @@ export default function App() {
         diseasedRef.current.delete(f.id);
       }
     }
-  }, [game.fish]);
+  }, [diseaseStateKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Fishdex + AI naming ──────────────────────────────────
   const updateFishdexEntry = useCallback((speciesName, updates) => {
@@ -180,6 +184,15 @@ export default function App() {
       },
     }));
   }, []);
+
+  // ── Fishdex discovery effect ──────────────────────────────
+  // Dependency: the set of unique species names currently in the tank.
+  // Using species names (not fish IDs) means this only fires when a
+  // genuinely new species appears — not on every tick or fish state update.
+  // We join sorted names so the string is stable regardless of fish order.
+  const speciesNameKey = [...new Set(
+    (game.fish || []).map(f => f.species?.name).filter(Boolean)
+  )].sort().join(',');
 
   useEffect(() => {
     const knownNames = new Set((game.player.fishdex || []).map(e => e.name));
@@ -194,6 +207,7 @@ export default function App() {
           name: f.species.name, rarity: f.species.rarity,
           basePrice: f.species.basePrice, phenotype: f.phenotype,
           firstDiscoveredAt: Date.now(), aiName: null, aiLore: null,
+          colorVariant: f.colorVariant || null,
           // Real species extras
           ...(realSpec && {
             visualType:         'species',
@@ -244,7 +258,7 @@ export default function App() {
         });
       }
     }
-  }, [(game.fish || []).map(f => f.id).join(',')]);
+  }, [speciesNameKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleGenerateLore = useCallback(async (speciesName) => {
     const entry = (gameRef.current.player.fishdex || []).find(e => e.name === speciesName);
@@ -419,11 +433,32 @@ export default function App() {
           clownfish:  { bodyShape: 'Round',  finType: 'Broad',   pattern: 'Lined',  primaryColor: 'Crimson', secondaryColor: 'Orange', glow: 'Normal',   size: 'Tiny',   mutation: 'None' },
           bluetang:   { bodyShape: 'Delta',  finType: 'Angular', pattern: 'Plain',  primaryColor: 'Azure',   secondaryColor: 'Indigo', glow: 'Normal',   size: 'Medium', mutation: 'None' },
           betta:      { bodyShape: 'Slender',finType: 'Veil',    pattern: 'Marble', primaryColor: 'Violet',  secondaryColor: 'Teal',   glow: 'Luminous', size: 'Tiny',   mutation: 'None' },
+          goldfish:          { bodyShape: 'Round',   finType: 'Veil',    pattern: 'Plain',  primaryColor: 'Gold',    secondaryColor: 'Orange', glow: 'Normal',   size: 'Medium', mutation: 'None' },
+          mandarin_dragonet: { bodyShape: 'Slender', finType: 'Broad',   pattern: 'Marble', primaryColor: 'Azure',   secondaryColor: 'Teal',   glow: 'Luminous', size: 'Tiny',   mutation: 'None' },
         };
         const canonicalPhenotype = SPECIES_PHENOTYPES[speciesKey] || { bodyShape: 'Round', finType: 'Broad', pattern: 'Plain', primaryColor: 'White', secondaryColor: 'Silver', glow: 'Normal', size: 'Medium', mutation: 'None' };
+
+        // Pick a colorVariant if the species defines them
+        let colorVariant = null;
+        if (spec.colorVariants?.length > 1) {
+          const variants = spec.colorVariants;
+          const weights  = variants.map((v, i) =>
+            i === 0 ? 3.0 :
+            v === 'ghost' || v === 'black' ? 0.4 :
+            v === 'kohaku' || v === 'red'  ? 0.7 : 1.0
+          );
+          const total = weights.reduce((s, w) => s + w, 0);
+          let r = Math.random() * total;
+          for (let i = 0; i < variants.length; i++) {
+            r -= weights[i];
+            if (r <= 0) { colorVariant = variants[i]; break; }
+          }
+          colorVariant = colorVariant || variants[0];
+        }
         newFish = {
           ...createFish({ stage: 'adult', tankId }),
           phenotype: canonicalPhenotype,
+          colorVariant,
           species: {
             name:       spec.name,
             rarity:     spec.rarity,
@@ -455,7 +490,7 @@ export default function App() {
       let next = {
         ...prev,
         player: { ...prev.player, coins: prev.player.coins - upg.cost },
-        shop: { ...prev.shop, upgrades: { ...upgrades, [upgradeId]: { ...upg, level: upg.level + 1, cost: Math.round(upg.cost * 1.8) } } },
+        shop: { ...prev.shop, upgrades: { ...upgrades, [upgradeId]: { ...upg, level: upg.level + 1, cost: Math.round(upg.cost * 2.8) } } },
       };
       if (upgradeId === 'slot')     next = { ...next, shop: { ...next.shop, slots: next.shop.slots + 1 } };
       if (upgradeId === 'capacity') {

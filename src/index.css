@@ -1,8 +1,4 @@
-/* ============================================================
-   FISH TYCOON 2 — STYLES
-   Aesthetic: Deep-sea luxury aquarium, dark oceanic palette
-   Fonts: Cinzel (display) + Crimson Pro (body)
-   ============================================================ */
+
 
 :root {
   --ocean-deep:    #0a1628;
@@ -74,46 +70,6 @@ body {
 
 .hud-actions { display: flex; gap: 8px; }
 
-/* ---- TAB BAR ---- */
-.tab-bar {
-  display: flex;
-  background: var(--ocean-mid);
-  border-bottom: 1px solid var(--panel-border);
-  flex-shrink: 0;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 10px 8px;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  color: var(--text-dim);
-  font-family: 'Crimson Pro', serif;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.tab-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
-.tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
-
-/* ---- MAIN LAYOUT ---- */
-.main-layout {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  gap: 0;
-}
-
-.tank-col { flex: 1 1 0; min-width: 0; position: relative; }
-.side-col {
-  width: 280px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  border-left: 1px solid var(--panel-border);
-}
 
 /* ---- TANK ---- */
 .tank-wrapper {
@@ -169,8 +125,8 @@ body {
   animation: kelpSway 4s ease-in-out infinite;
 }
 @keyframes kelpSway {
-  0%, 100% { transform: rotate(-5deg); }
-  50%       { transform: rotate(5deg); }
+  0%, 100%
+  50%
 }
 
 /* Anemone tentacle wave */
@@ -178,8 +134,8 @@ body {
   animation: tentacleWave 3s ease-in-out infinite;
 }
 @keyframes tentacleWave {
-  0%, 100% { transform: skewX(-6deg); }
-  50%       { transform: skewX(6deg); }
+  0%, 100%
+  50%
 }
 
 /* Decoration bubbles */
@@ -188,8 +144,8 @@ body {
 .deco-b2 { animation-delay: 2.5s; }
 .deco-b3 { animation-delay: 5s; }
 @keyframes decoRise {
-  0%   { opacity: 0.7; transform: translateY(0); }
-  100% { opacity: 0;   transform: translateY(-200px); }
+  0%
+  100%
 }
 
 /* Light rays */
@@ -197,22 +153,10 @@ body {
   position: absolute; top: 0; left: 0; right: 0; bottom: 0;
   pointer-events: none; z-index: 4;
 }
-.ray {
-  position: absolute; top: 0;
-  height: 70%;
-  transform-origin: top center;
-  animation: raySway 7s ease-in-out infinite;
-  background: linear-gradient(to bottom, rgba(200,230,255,0.09) 0%, transparent 100%);
-}
-.ray-0 { left: 12%; width: 50px; animation-delay: 0s; }
-.ray-1 { left: 30%; width: 30px; animation-delay: 1.8s; opacity: 0.8; }
-.ray-2 { left: 52%; width: 55px; animation-delay: 3.5s; }
-.ray-3 { left: 70%; width: 35px; animation-delay: 5.2s; opacity: 0.9; }
-.ray-4 { left: 85%; width: 25px; animation-delay: 2.5s; opacity: 0.7; }
 
 @keyframes raySway {
-  0%, 100% { transform: skewX(-10deg); opacity: 0.7; }
-  50%       { transform: skewX(10deg);  opacity: 1; }
+  0%, 100%
+  50%
 }
 
 /* Caustics shimmer */
@@ -229,18 +173,11 @@ body {
   pointer-events: none; z-index: 4;
 }
 @keyframes causticShift {
-  0%   { background-position: 0 0; }
-  100% { background-position: 80px 80px; }
+  0%
+  100%
 }
 
-/* Bubbles */
-.bubbles { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
-.bubble {
-  position: absolute; bottom: 14%; border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.45);
-  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.3), rgba(255,255,255,0.04));
-  animation: rise linear infinite;
-}
+
 .bubble-0 { left: 10%; width: 9px;  height: 9px;  animation-duration: 5.5s; animation-delay: 0s; }
 .bubble-1 { left: 22%; width: 5px;  height: 5px;  animation-duration: 7.5s; animation-delay: 1.4s; }
 .bubble-2 { left: 38%; width: 11px; height: 11px; animation-duration: 6.2s; animation-delay: 2.8s; }
@@ -251,11 +188,11 @@ body {
 .bubble-7 { left: 90%; width: 5px;  height: 5px;  animation-duration: 6.8s; animation-delay: 2.1s; }
 
 @keyframes rise {
-  0%   { transform: translateY(0) translateX(0);      opacity: 0.85; }
-  20%  { transform: translateY(-18vh) translateX(5px);  }
-  45%  { transform: translateY(-42vh) translateX(-6px); }
-  70%  { transform: translateY(-65vh) translateX(4px);  }
-  100% { transform: translateY(-94vh) translateX(-2px); opacity: 0; }
+  0%
+  20%
+  45%
+  70%
+  100%
 }
 
 /* Glass reflections */
@@ -278,14 +215,14 @@ body {
 .fish-container:hover { filter: brightness(1.25) drop-shadow(0 0 6px rgba(255,255,255,0.3)); }
 .fish-container.selected { z-index: 20; filter: drop-shadow(0 0 8px rgba(240,192,64,0.6)); }
 
-/* Diseased fish: pulsing red outline ring around the sprite */
+
 .fish-container.fish-diseased .fish-anim-inner {
   border-radius: 50%;
   animation: disease-pulse 1.1s ease-in-out infinite;
 }
 @keyframes disease-pulse {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(255, 60, 60, 0.55), 0 0 8px 3px rgba(255, 30, 30, 0.25); }
-  50%       { box-shadow: 0 0 0 4px rgba(255, 60, 60, 0.90), 0 0 16px 6px rgba(255, 30, 30, 0.55); }
+  0%, 100%
+  50%
 }
 
 .stage-badge {
@@ -308,8 +245,8 @@ body {
   filter: drop-shadow(0 0 4px #ff4444);
 }
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-4px); }
+  0%, 100%
+  50%
 }
 
 .empty-tank {
@@ -325,10 +262,7 @@ body {
 }
 
 /* Glow keyframe for epic fish */
-@keyframes fishGlow {
-  0%, 100% { filter: drop-shadow(0 0 4px rgba(255,255,160,0.4)); }
-  50%       { filter: drop-shadow(0 0 12px rgba(255,255,160,0.8)); }
-}
+
 
 /* ---- FULL-WIDTH VIEWS ---- */
 .shop-view, .breed-view, .fishdex-view {
@@ -429,9 +363,6 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 4px; }
 
-/* ============================================================
-   PHASE 3 — FISHDEX & BREEDING LAB STYLES
-   ============================================================ */
 
 /* Tab badge */
 .tab-badge {
@@ -562,7 +493,6 @@ body {
 .fdex-filter-btn:hover { border-color: #3a6a9a; color: #a0c8e8; }
 .fdex-filter-btn.active { background: #0a2a45; }
 
-/* fdex-main, fdex-grid, fdex-card — defined later in ITEM #12 block */
 
 .fdex-empty {
   grid-column: 1 / -1;
@@ -572,11 +502,7 @@ body {
   text-align: center;
 }
 
-/* Detail panel */
-.fdex-detail-panel {
-  width: 220px;
-  flex-shrink: 0;
-}
+
 .fdex-detail-empty {
   color: #4a7a9a;
   font-size: 0.8rem;
@@ -649,31 +575,12 @@ body {
   flex-direction: column;
   gap: 14px;
 }
-
-/* ======== #8 BREEDING LAB — DNA animation + egg glow ======== */
-.breed-parents {
-  display: flex;
-  gap: 0;
-  align-items: stretch;
-  position: relative;
-}
-.breed-heart {
-  font-size: 1.6rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: 0 10px;
-  position: relative;
-  z-index: 2;
-  animation: heartbeat 1.2s ease-in-out infinite;
-}
 @keyframes heartbeat {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.25); }
+  0%, 100%
+  50%
 }
 
-/* DNA strand connector drawn as pseudo-element when breed in progress */
+
 .breed-parents--breeding .breed-heart::before {
   content: '';
   position: absolute;
@@ -685,8 +592,8 @@ body {
   animation: dna-pulse 1s ease-in-out infinite;
 }
 @keyframes dna-pulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-  50%       { transform: translate(-50%, -50%) scale(1.4); opacity: 1; }
+  0%, 100%
+  50%
 }
 
 /* Parent slots — side-by-side comparison upgrade */
@@ -790,8 +697,8 @@ body {
   animation: egg-ready-pulse 1.2s ease-in-out infinite;
 }
 @keyframes egg-ready-pulse {
-  0%, 100% { box-shadow: 0 0 12px #2ec060, 0 0 0 0 #2ec06050; }
-  50%       { box-shadow: 0 0 28px #60e890, 0 0 30px #2ec06030; }
+  0%, 100%
+  50%
 }
 
 .breed-progress-wrap { width: 100%; }
@@ -817,13 +724,7 @@ body {
 .breed-ready { color: #60c080; font-size: 0.85rem; }
 .breed-hint { color: #4a7a9a; font-size: 0.85rem; }
 
-/* Predictions */
-.breed-predictions {
-  background: #0d1b2e;
-  border: 1px solid #1e3a5a;
-  border-radius: 12px;
-  padding: 14px;
-}
+
 .breed-predictions-title {
   font-size: 0.8rem;
   font-weight: 700;
@@ -840,21 +741,6 @@ body {
   border-bottom: 1px solid #1a2e45;
 }
 .predict-row:last-child { border-bottom: none; }
-.predict-name {
-  width: 140px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  flex-shrink: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.predict-rarity {
-  width: 70px;
-  font-size: 0.65rem;
-  flex-shrink: 0;
-  text-transform: capitalize;
-}
 .predict-bar-wrap {
   flex: 1;
   height: 6px;
@@ -959,9 +845,6 @@ body {
   text-align: center;
 }
 
-/* ============================================================
-   PHASES 4 & 5 — SHOP, UPGRADES, OFFLINE SUMMARY
-   ============================================================ */
 
 /* ---- OFFLINE MODAL ---- */
 .offline-overlay {
@@ -975,7 +858,7 @@ body {
   z-index: 1000;
   animation: fadeIn 0.3s ease;
 }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeIn { }
 
 .offline-modal {
   background: #0d1b2e;
@@ -988,7 +871,7 @@ body {
   box-shadow: 0 8px 40px rgba(0,80,160,0.4);
   animation: slideUp 0.3s ease;
 }
-@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes slideUp { }
 
 .offline-title {
   font-size: 1.3rem;
@@ -1021,7 +904,7 @@ body {
 .offline-event.warn { border-left: 3px solid #e08840; }
 .oe-icon { font-size: 1.2rem; flex-shrink: 0; }
 
-/* ── Offline Summary v2 ─────────────────────────────────── */
+
 .offline-modal-v2 {
   padding: 0;
   overflow: hidden;
@@ -1111,12 +994,12 @@ body {
   color: #a0e0ff;
 }
 .offline-discover-btn > span:first-child { font-size: 1.4rem; }
-.offline-discover-btn > span:nth-child(2) { flex: 1; text-align: left; }
+.offline-discover-btn > span:nth-child(2)
 .offline-discover-chevron { font-size: 1.4rem; opacity: 0.6; }
 
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: inset 0 0 0px rgba(96,192,255,0); }
-  50%       { box-shadow: inset 0 0 18px rgba(96,192,255,0.12); }
+  0%, 100%
+  50%
 }
 
 /* Discovery card (revealed) */
@@ -1145,8 +1028,8 @@ body {
   animation: floatBob 3s ease-in-out infinite;
 }
 @keyframes floatBob {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-4px); }
+  0%, 100%
+  50%
 }
 .offline-discovery-body { flex: 1; }
 .offline-discovery-headline {
@@ -1182,9 +1065,7 @@ body {
 
 
 /* ---- SHOP PANEL ---- */
-/* ============================================================
-   #7 SHOP TAB — full visual overhaul
-   ============================================================ */
+
 
 .shop-panel {
   display: flex;
@@ -1195,7 +1076,7 @@ body {
   overflow: hidden;
 }
 
-/* ── Shop header ──────────────────────────────────────────── */
+
 .shop-header {
   display: flex;
   justify-content: space-between;
@@ -1219,7 +1100,7 @@ body {
 .shop-stat-val { display: block; font-size: 1.1rem; font-weight: 700; color: #60c0ff; }
 .shop-stat-label { font-size: 0.6rem; color: #5a8ab0; text-transform: uppercase; letter-spacing: 0.07em; }
 
-/* ── Reputation bar ───────────────────────────────────────── */
+
 .rep-bar-wrap { width: 100%; }
 .rep-bar-header { display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 4px; }
 .rep-label { color: #8ab8d8; font-weight: 600; }
@@ -1239,7 +1120,7 @@ body {
   box-shadow: 0 0 6px #1e8fc855;
 }
 
-/* ── Sub-tabs ─────────────────────────────────────────────── */
+
 .shop-tabs {
   display: flex;
   gap: 0;
@@ -1280,7 +1161,7 @@ body {
   flex: 1;
 }
 
-/* ── Section titles ───────────────────────────────────────── */
+
 .listings-section { }
 .section-title {
   font-size: 0.72rem;
@@ -1297,7 +1178,7 @@ body {
 .mt { margin-top: 18px; }
 .section-subtitle { font-size: 0.68rem; font-weight: 400; color: #3a6a9a; text-transform: none; letter-spacing: 0; }
 
-/* ── Pricing hint banner ──────────────────────────────────── */
+
 .pricing-hint {
   display: flex;
   align-items: center;
@@ -1314,7 +1195,7 @@ body {
 }
 .pricing-hint-icon { font-size: 0.9rem; flex-shrink: 0; }
 
-/* ── Listing cards grid ───────────────────────────────────── */
+
 .listings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
@@ -1374,7 +1255,7 @@ body {
   border-radius: 2px; overflow: hidden;
 }
 
-/* ── Price control section inside card ───────────────────── */
+
 .listing-price-section {
   display: flex; flex-direction: column; gap: 4px;
   background: rgba(4,12,26,0.7);
@@ -1435,7 +1316,7 @@ body {
 .sale-rejected { opacity: 0.6; }
 .sale-rejected-label { font-size: 0.68rem; color: #a05050; white-space: nowrap; }
 
-/* ── Fish-to-list rows ────────────────────────────────────── */
+
 .fish-list { display: flex; flex-direction: column; gap: 4px; max-height: 300px; overflow-y: auto; }
 .fish-list-item {
   display: flex; align-items: center; gap: 8px; padding: 8px 10px;
@@ -1459,7 +1340,7 @@ body {
   margin-left: 10px; vertical-align: middle;
 }
 
-/* ── Upgrade cards ────────────────────────────────────────── */
+
 .upgrades-panel { display: flex; flex-direction: column; gap: 12px; }
 .upgrade-hint { font-size: 0.78rem; color: #5a8ab0; margin: 0 0 4px; line-height: 1.5; }
 .upgrades-grid {
@@ -1532,7 +1413,7 @@ body {
   letter-spacing: 0.12em; text-transform: uppercase;
 }
 
-/* ── Supply cards ─────────────────────────────────────────── */
+
 .supplies-panel { display: flex; flex-direction: column; gap: 12px; }
 .supplies-grid {
   display: grid;
@@ -1571,7 +1452,7 @@ body {
   width: 100%;
 }
 
-/* ── Sales history ────────────────────────────────────────── */
+
 .history-panel { }
 .sales-list { display: flex; flex-direction: column; gap: 5px; max-height: 420px; overflow-y: auto; }
 .sale-event {
@@ -1647,8 +1528,8 @@ body {
   animation: medicinePulse 1.6s ease-in-out infinite;
 }
 @keyframes medicinePulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 rgba(180,100,220,0); }
-  50%       { opacity: 0.7; box-shadow: 0 0 10px rgba(180,100,220,0.5); }
+  0%, 100%
+  50%
 }
 
 /* Fish actions row — ensure 3 buttons fit */
@@ -1735,10 +1616,6 @@ body {
   padding: 2px 8px;
 }
 
-/* ============================================================
-   PHASE 7 & 8 — NEW STYLES
-   Day/night, storefront, customer walk, Fishdex AI, sound btn
-   ============================================================ */
 
 /* ---- DAY / NIGHT OVERLAY & BADGE ---- */
 .day-night-overlay {
@@ -1762,8 +1639,8 @@ body {
   animation: starTwinkle 2.4s ease-in-out infinite alternate;
 }
 @keyframes starTwinkle {
-  0%   { opacity: 0.25; }
-  100% { opacity: 0.85; }
+  0%
+  100%
 }
 
 .day-phase-badge {
@@ -1782,7 +1659,7 @@ body {
   backdrop-filter: blur(4px);
 }
 
-/* tank-wrapper must be position:relative so badge is anchored */
+
 .tank-wrapper { position: relative; }
 
 /* ---- SHOP STOREFRONT ---- */
@@ -1817,12 +1694,12 @@ body {
 }
 
 @keyframes customerWalkIn {
-  0%   { left: -80px; opacity: 0; }
-  12%  { opacity: 1; }
-  40%  { left: 38%; }
-  55%  { left: 42%; }
-  80%  { left: 85%; opacity: 1; }
-  100% { left: 110%; opacity: 0; }
+  0%
+  12%
+  40%
+  55%
+  80%
+  100%
 }
 
 .customer-figure {
@@ -1856,8 +1733,8 @@ body {
   transform-origin: 20px 38px;
   animation: legR 0.45s ease-in-out infinite alternate;
 }
-@keyframes legL { 0% { transform: rotate(-12deg); } 100% { transform: rotate(12deg); } }
-@keyframes legR { 0% { transform: rotate(12deg);  } 100% { transform: rotate(-12deg); } }
+@keyframes legL { 0% 100% }
+@keyframes legR { 0% 100% }
 
 .customer-speech {
   background: rgba(10,22,40,0.92);
@@ -1908,10 +1785,6 @@ body {
   width: 16px; height: 16px;
   display: flex; align-items: center; justify-content: center;
   z-index: 3;
-}
-
-.fdex-card-sprite {
-  position: relative;
 }
 
 .fdex-card-genetic {
@@ -2053,11 +1926,7 @@ body {
   align-items: center;
   gap: 6px;
 }
-.btn-ai:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(212,168,48,0.25), rgba(180,100,220,0.25));
-  border-color: var(--gold);
-  box-shadow: 0 0 12px rgba(212,168,48,0.2);
-}
+.btn-ai:hover:not(:disabled)
 .btn-ai:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -2068,8 +1937,6 @@ body {
   animation: aiSpin 1s linear infinite;
 }
 @keyframes aiSpin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
 }
 
 /* ---- FISHDEX RARITY SUMMARY ---- */
@@ -2087,16 +1954,6 @@ body {
 .fdex-rarity-num { font-size: 1rem; font-weight: 700; }
 .fdex-rarity-name { font-size: 0.62rem; opacity: 0.7; text-transform: capitalize; }
 
-/* ---- FISHDEX LAYOUT IMPROVEMENTS ---- */
-.fdex-layout {
-  display: flex;
-  gap: 0;
-  min-height: 0;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* fdex-grid and fdex-detail-panel defined in ITEM #12 block below */
 
 .fdex-detail {
   display: flex;
@@ -2224,10 +2081,6 @@ body {
   border: 1px solid var(--panel-border);
 }
 
-/* ============================================================
-   FIXES — Drag-and-drop breeding, ripple, achievements,
-           AI error banner, species diversity, stat tracking
-   ============================================================ */
 
 /* ---- BREEDING: DRAG & DROP ---- */
 .breed-slot {
@@ -2306,11 +2159,11 @@ body {
 }
 
 @keyframes surfaceRipple {
-  0%   { background-position: 0% 50%; opacity: 0.6; }
-  25%  { opacity: 1; }
-  50%  { background-position: 100% 50%; opacity: 0.5; }
-  75%  { opacity: 0.9; }
-  100% { background-position: 0% 50%; opacity: 0.6; }
+  0%
+  25%
+  50%
+  75%
+  100%
 }
 
 /* Secondary ripple waves */
@@ -2329,9 +2182,9 @@ body {
   animation: rippleWave 7s ease-in-out infinite alternate;
 }
 @keyframes rippleWave {
-  0%   { opacity: 0.5; transform: scaleX(0.98); }
-  50%  { opacity: 1; transform: scaleX(1.01); }
-  100% { opacity: 0.6; transform: scaleX(0.99); }
+  0%
+  50%
+  100%
 }
 
 /* ---- ACHIEVEMENTS PANEL ---- */
@@ -2373,12 +2226,6 @@ body {
   border-radius: 3px;
   transition: width 0.6s ease;
 }
-
-.ach-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 5px;
-}
 .ach-stat-row {
   display: flex;
   justify-content: space-between;
@@ -2399,7 +2246,7 @@ body {
   padding: 12px;
 }
 
-/* ======== #14 ACHIEVEMENT CARD — progress bars + earned glow ======== */
+
 .ach-card {
   display: flex;
   align-items: center;
@@ -2431,7 +2278,7 @@ body {
 }
 .ach-card.locked { opacity: 0.5; filter: grayscale(0.4); }
 
-/* fake progress bar inside ach-card using a pseudo-bottom element */
+
 .ach-progress {
   position: absolute;
   bottom: 0; left: 0;
@@ -2518,9 +2365,6 @@ body {
   height: 4px;
 }
 
-/* ============================================================
-   MULTI-TANK — Tank Tab Bar
-   ============================================================ */
 
 .tank-tab-bar {
   display: flex;
@@ -2533,50 +2377,9 @@ body {
   overflow-x: auto;
 }
 
-.tank-tab {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px 8px;
-  background: var(--ocean-mid);
-  border: 1px solid var(--panel-border);
-  border-bottom: none;
-  border-radius: 8px 8px 0 0;
-  cursor: pointer;
-  min-width: 130px;
-  overflow: hidden;
-  transition: background 0.15s;
-  user-select: none;
-}
-
-.tank-tab:hover {
-  background: var(--ocean-surface);
-}
-
-.tank-tab.active {
-  background: var(--ocean-surface);
-  border-color: var(--gold);
-  border-bottom: 2px solid var(--ocean-surface);
-  margin-bottom: -2px;
-  z-index: 1;
-}
-
 .tank-tab-emoji {
   font-size: 16px;
   flex-shrink: 0;
-}
-
-.tank-tab-name {
-  font-size: 13px;
-  color: var(--text-primary);
-  font-family: 'Cinzel', serif;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 110px;
-  flex: 1;
 }
 
 .tank-tab.active .tank-tab-name {
@@ -2672,9 +2475,6 @@ body {
   border-color: var(--gold);
 }
 
-/* ============================================================
-   MULTI-TANK — Move Fish button in FishPanel
-   ============================================================ */
 
 .fish-move {
   display: flex;
@@ -2708,9 +2508,6 @@ body {
   border-color: var(--teal);
 }
 
-/* ============================================================
-   MULTI-TANK — Tank type badge in HUD
-   ============================================================ */
 
 .hud-tank-type {
   font-size: 11px;
@@ -2718,9 +2515,6 @@ body {
   font-style: italic;
 }
 
-/* ============================================================
-   MAGIC FISH PANEL
-   ============================================================ */
 
 .magic-panel {
   display: flex;
@@ -2732,14 +2526,7 @@ body {
   width: 100%;
 }
 
-/* Header */
-.magic-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
+
 .magic-header-left { flex: 1; min-width: 200px; }
 .magic-title {
   font-size: 1.2rem;
@@ -2754,27 +2541,12 @@ body {
   margin: 0;
   line-height: 1.5;
 }
-
-/* ======== #14 MAGIC FISH — constellation progress layout ======== */
-.magic-progress-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  flex-shrink: 0;
-}
 .magic-progress-label {
   font-size: 0.8rem;
   font-weight: 700;
   color: #c8a0f0;
 }
-/* constellation row: pips connected by lines */
-.magic-progress-bar {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  position: relative;
-}
+
 .magic-progress-pip {
   width: 26px;
   height: 26px;
@@ -2810,8 +2582,8 @@ body {
   opacity: 0.6;
 }
 @keyframes pip-sparkle {
-  0%, 100% { box-shadow: 0 0 8px var(--mrc, #b07ee8), 0 0 18px var(--mrc, #b07ee8)55; }
-  50%       { box-shadow: 0 0 14px var(--mrc, #b07ee8), 0 0 28px var(--mrc, #b07ee8)80; }
+  0%, 100%
+  50%
 }
 .magic-complete-badge {
   font-size: 0.75rem;
@@ -2832,8 +2604,8 @@ body {
   animation: magic-glow-pulse 3s ease-in-out infinite;
 }
 @keyframes magic-glow-pulse {
-  0%, 100% { box-shadow: 0 0 24px #9040e840, inset 0 0 24px #9040e810; }
-  50%       { box-shadow: 0 0 40px #c070ff60, inset 0 0 32px #9040e820; }
+  0%, 100%
+  50%
 }
 .magic-win-title {
   font-size: 1rem;
@@ -3011,10 +2783,6 @@ body {
 }
 
 
-/* ============================================================
-   DECORATION PANEL
-   ============================================================ */
-
 .decor-panel {
   display: flex;
   flex-direction: column;
@@ -3125,7 +2893,7 @@ body {
   border-color: #3a80b0;
   color: #80c0e8;
 }
-.decor-subtab:hover:not(.active) { background: #0d2038; color: #6aaad0; }
+.decor-subtab:hover:not(.active)
 
 /* ── Category filter ── */
 .decor-categories {
@@ -3150,7 +2918,7 @@ body {
   border-color: #3a80b0;
   color: #80c0e8;
 }
-.decor-cat-btn:hover:not(.active) { background: #0d2038; color: #6aaad0; }
+.decor-cat-btn:hover:not(.active)
 
 /* ── Shop grid ── */
 .decor-shop-grid {
@@ -3282,7 +3050,7 @@ body {
 
 
 /* ============================================================ */
-/* PHASE 10 — DISEASE SYSTEM                                    */
+
 /* ============================================================ */
 
 .disease-badge {
@@ -3298,8 +3066,8 @@ body {
 }
 
 @keyframes diseasePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%, 100%
+  50%
 }
 
 .disease-alert {
@@ -3330,13 +3098,13 @@ body {
   font-weight: 600;
 }
 
-/* Fish sprite "sick" tint in TankView — add to existing fish dots */
+
 .fish-sprite-sick {
   filter: hue-rotate(0deg) saturate(0.5) brightness(0.8);
 }
 
 /* ============================================================ */
-/* PHASE 10 — FISH AUTOPSY PANEL                                */
+
 /* ============================================================ */
 
 .autopsy-panel {
@@ -3648,7 +3416,7 @@ body {
 }
 
 /* ============================================================ */
-/* PHASE 10 — MAGIC FISH WIN MODAL                             */
+
 /* ============================================================ */
 
 .win-modal-overlay {
@@ -3664,8 +3432,6 @@ body {
 }
 
 @keyframes fadeInOverlay {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 .win-modal {
@@ -3682,8 +3448,6 @@ body {
 }
 
 @keyframes scaleIn {
-  from { transform: scale(0.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
 }
 
 .win-modal-stars {
@@ -3700,8 +3464,6 @@ body {
 }
 
 @keyframes starBob {
-  from { transform: translateY(0) rotate(-10deg); }
-  to { transform: translateY(-6px) rotate(10deg); }
 }
 
 .win-modal-title {
@@ -3718,8 +3480,6 @@ body {
 }
 
 @keyframes shimmer {
-  from { background-position: 0% center; }
-  to { background-position: 200% center; }
 }
 
 .win-modal-subtitle {
@@ -3743,8 +3503,6 @@ body {
 }
 
 @keyframes fishBob {
-  from { transform: translateY(0) scale(1); }
-  to { transform: translateY(-5px) scale(1.1); }
 }
 
 .win-modal-lore {
@@ -3790,15 +3548,6 @@ body {
 }
 
 
-/* ============================================================
-   PHASE 11 — PSEUDO-3D VISUAL OVERHAUL
-   Steps 2–6: Depth Layers, Water Effects, Glass Shell,
-               UI Polish, Fish Animation
-   ============================================================ */
-
-/* ── Step 4: Glass Tank Shell ─────────────────────────────── */
-
-/* Outer wrapper gets position:relative so the shell can float on top */
 .tank-wrapper {
   position: relative;
   width: 100%;
@@ -3806,14 +3555,14 @@ body {
   padding: 14px;            /* increased to accommodate bevel frame */
 }
 
-/* The glass shell sits *around* the tank div using absolute positioning */
+
 .tank-glass-shell {
   position: absolute;
   inset: 14px;              /* matches tank-wrapper padding */
   border-radius: calc(var(--radius) + 4px);
   pointer-events: none;
   z-index: 50;
-  /* Frame itself has no background — the bevels + bolts do the work */
+  
 }
 
 /* Thick bevel bars — simulate glass frame thickness */
@@ -3823,7 +3572,7 @@ body {
   pointer-events: none;
 }
 
-/* Top bevel: bright edge + shadowed inner edge = 3D raised bar */
+
 .tank-bevel-top {
   top: 0; left: 0; right: 0; height: 13px;
   background: linear-gradient(to bottom,
@@ -3886,7 +3635,7 @@ body {
   z-index: 55;
 }
 
-/* Diagonal glass shimmer — semi-transparent band across the face */
+
 .tank-glass-shimmer {
   position: absolute;
   inset: 0;
@@ -3904,7 +3653,7 @@ body {
   pointer-events: none;
 }
 
-/* Tank now has slightly thinner border because the shell bevel acts as frame */
+
 .tank {
   border: 1.5px solid rgba(30,60,120,0.45);
   box-shadow:
@@ -3931,7 +3680,7 @@ body {
   pointer-events: none; z-index: 20;
 }
 
-/* ── Step 3: Water depth gradient bottom darkening ─────────── */
+
 .tank-depth-bottom {
   position: absolute; bottom: 0; left: 0; right: 0; height: 38%;
   background: linear-gradient(to top,
@@ -3941,7 +3690,7 @@ body {
   pointer-events: none; z-index: 2;
 }
 
-/* ── Step 3: Surface ripple ─────────────────────────────────── */
+
 .surface-ripple {
   position: absolute; top: 0; left: 0; right: 0;
   height: 4px;
@@ -3970,13 +3719,13 @@ body {
   animation: rippleSurface 7.5s ease-in-out infinite 3.3s;
 }
 @keyframes rippleSurface {
-  0%  { transform: scaleX(0.92) translateX(-3%); opacity: 0.5; }
-  30% { opacity: 1; }
-  60% { transform: scaleX(1.06) translateX(3%); opacity: 0.7; }
+  0%
+  30%
+  60%
   100%{ transform: scaleX(0.92) translateX(-3%); opacity: 0.5; }
 }
 
-/* ── Step 3: Enhanced caustics ─────────────────────────────── */
+
 /* Layer 1: geometric pattern caustics on floor area */
 .caustics-overlay {
   position: absolute;
@@ -4001,68 +3750,265 @@ body {
     radial-gradient(ellipse 15px 6px at 92% 80%, rgba(180,222,255,0.11) 0%, transparent 70%);
 }
 @keyframes causticFloor {
-  0%   { background-position: 0% 0%; opacity: 0.6; }
-  33%  { opacity: 0.9; }
-  66%  { background-position: 30px -10px; opacity: 0.7; }
-  100% { background-position: 0% 0%; opacity: 0.6; }
+  0%
+  33%
+  66%
+  100%
 }
 @keyframes causticFloor2 {
-  0%   { background-position: 0% 0%; opacity: 0.5; transform: scaleX(1); }
-  50%  { background-position: -25px 8px; opacity: 0.85; transform: scaleX(1.03); }
-  100% { background-position: 0% 0%; opacity: 0.5; transform: scaleX(1); }
+  0%
+  50%
+  100%
 }
 
-/* Additional ray — 6th light ray */
-.ray-5 { left: 60%; width: 20px; animation-delay: 4.0s; opacity: 0.6; }
 
-/* ── Step 6: Fish Animation Polish ─────────────────────────── */
+/* ============================================================
+   FISH ANIMATION SYSTEM — Realistic body undulation
+   ============================================================
+   Strategy: three layers of movement compose together:
 
-/* Swimming: gentle lateral body undulation */
+   1. fishUndulate on .fish-anim-inner
+      The whole sprite gently pitches and squishes —
+      simulates the front half of the fish staying stable
+      while the rear drives the wave. Uses rotate + skewX
+      so the shape bends rather than just tilting flat.
+
+   2. tailSweep on .fish-tail elements
+      The tail sweeps a wider arc independently, out of phase
+      with the body — this is the power stroke. transform-origin
+      is set to the root of the tail (left center) so it pivots
+      naturally from where it attaches to the body.
+
+   3. finWiggle on .fish-fin + dorsalSway on .fish-dorsal
+      Fins oscillate at a different frequency from the tail —
+      they're passive surfaces reacting to water flow, not
+      driving the movement, so they move slightly slower
+      and with more flex/skew than pure rotation.
+
+   Species-specific timing via data-species attribute on
+   .fish-anim-inner lets each fish feel distinct:
+     clownfish  : fast, darty  (0.85s body / 0.50s tail)
+     bluetang   : fluid, wide  (1.20s body / 0.65s tail)
+     betta      : slow, regal  (2.00s body / 1.20s tail)
+     angelfish  : stately      (1.80s body / 1.00s tail)
+     goldfish   : lazy         (1.60s body / 0.90s tail)
+     mandarin   : creeping     (2.40s body / 1.60s tail)
+     generic    : medium       (1.40s body / 0.75s tail)
+   ============================================================ */
+
+/* ── Body wave ─────────────────────────────────────────────── */
 @keyframes fishUndulate {
-  0%   { transform: skewX(0deg)    scaleY(1.000); }
-  18%  { transform: skewX(1.8deg)  scaleY(0.988); }
-  36%  { transform: skewX(0deg)    scaleY(1.000); }
-  54%  { transform: skewX(-1.8deg) scaleY(0.988); }
-  72%  { transform: skewX(0deg)    scaleY(1.000); }
-  100% { transform: skewX(0deg)    scaleY(1.000); }
+  0%   { transform: rotate(-1.8deg) skewX(-1.2deg) scaleY(1.000); }
+  15%  { transform: rotate( 0.4deg) skewX( 0.8deg) scaleY(0.982); }
+  30%  { transform: rotate( 1.8deg) skewX( 1.4deg) scaleY(1.000); }
+  48%  { transform: rotate( 0.6deg) skewX( 0.4deg) scaleY(1.014); }
+  65%  { transform: rotate(-1.2deg) skewX(-0.8deg) scaleY(1.000); }
+  82%  { transform: rotate(-2.0deg) skewX(-1.6deg) scaleY(0.988); }
+  100% { transform: rotate(-1.8deg) skewX(-1.2deg) scaleY(1.000); }
 }
 
-/* Idle: gentle hover bob */
+/* ── Idle hover bob ────────────────────────────────────────── */
 @keyframes fishIdleBob {
-  0%,100% { transform: translateY(0px)    scaleX(1.00) scaleY(1.00); }
-  25%     { transform: translateY(-3.5px) scaleX(1.01) scaleY(0.99); }
-  50%     { transform: translateY(0px)    scaleX(1.00) scaleY(1.00); }
-  75%     { transform: translateY(2.5px)  scaleX(0.99) scaleY(1.01); }
+  0%,100% { transform: translateY(0px)   rotate( 0.0deg) skewX( 0.0deg); }
+  22%     { transform: translateY(-3px)  rotate( 0.7deg) skewX( 0.3deg); }
+  50%     { transform: translateY(-4px)  rotate( 0.0deg) skewX( 0.0deg); }
+  78%     { transform: translateY(-2px)  rotate(-0.7deg) skewX(-0.3deg); }
 }
 
-/* Note: animation is applied to the inner .fish-anim-inner wrapper so the outer
-   .fish-container's JS rotate(tilt) transform is never overridden by CSS keyframes. */
-.fish-anim-inner {
-  display: contents; /* pass-through by default; overridden below when animating */
+/* ── Tail power stroke — bigger arc, out of phase with body ── */
+@keyframes tailSweep {
+  0%,100% { transform: rotate( 0deg) skewY( 0deg);  }
+  22%     { transform: rotate(10deg) skewY( 2deg); }
+  50%     { transform: rotate( 0deg) skewY( 0deg);  }
+  78%     { transform: rotate(-10deg) skewY(-2deg); }
 }
+
+/* ── Idle tail: minimal drift ──────────────────────────────── */
+@keyframes tailIdleDrift {
+  0%,100% { transform: rotate(0deg);   }
+  40%     { transform: rotate( 3deg);  }
+  80%     { transform: rotate(-3deg);  }
+}
+
+/* ── Pectoral / paired fin wiggle ──────────────────────────── */
+@keyframes finWiggle {
+  0%,100% { transform: rotate( 0deg) scaleX(1.00) skewY(0deg);  }
+  28%     { transform: rotate( 7deg) scaleX(0.93) skewY(2deg);  }
+  58%     { transform: rotate(-5deg) scaleX(1.05) skewY(-1deg); }
+}
+
+/* ── Idle fin: slow passive drift ──────────────────────────── */
+@keyframes finIdleDrift {
+  0%,100% { transform: rotate(0deg) scaleX(1.00); }
+  50%     { transform: rotate(4deg) scaleX(0.96); }
+}
+
+/* ── Dorsal sway — slower, more flex ──────────────────────── */
+@keyframes dorsalSway {
+  0%,100% { transform: rotate( 0.0deg) skewX( 0.0deg) scaleX(1.00); }
+  35%     { transform: rotate( 4.5deg) skewX( 2.0deg) scaleX(0.96); }
+  70%     { transform: rotate(-3.5deg) skewX(-1.5deg) scaleX(1.02); }
+}
+
+/* ── Idle dorsal: almost still ────────────────────────────── */
+@keyframes dorsalIdleSway {
+  0%,100% { transform: rotate(0.0deg); }
+  50%     { transform: rotate(1.5deg); }
+}
+
+/* ============================================================
+   BASE ANIMATION WIRING
+   ============================================================ */
+
+.fish-anim-inner {
+  display: contents;
+}
+
+/* Swimming state */
 .fish-anim-inner.fish-swimming {
   display: block;
+  transform-origin: 35% center;   /* pivot from front-third, not centre */
   animation: fishUndulate 1.4s ease-in-out infinite;
+  will-change: transform;
 }
+
+/* Idle state */
 .fish-anim-inner.fish-idle {
   display: block;
+  transform-origin: center center;
   animation: fishIdleBob 3.2s ease-in-out infinite;
+  will-change: transform;
 }
 
-/* Override: selected fish stops undulate animation so selection ring stays stable */
-.fish-container.selected .fish-anim-inner {
+/* ── Tail animations ───────────────────────────────────────── */
+.fish-anim-inner.fish-swimming .fish-tail {
+  transform-origin: 8% center;    /* pivot from attachment point */
+  animation: tailSweep 0.70s ease-in-out infinite;
+  will-change: transform;
+}
+.fish-anim-inner.fish-idle .fish-tail {
+  transform-origin: 8% center;
+  animation: tailIdleDrift 3.0s ease-in-out infinite;
+}
+
+/* ── Paired / pectoral fins ────────────────────────────────── */
+.fish-anim-inner.fish-swimming .fish-fin {
+  transform-origin: top center;
+  animation: finWiggle 0.80s ease-in-out infinite;
+  will-change: transform;
+}
+.fish-anim-inner.fish-idle .fish-fin {
+  transform-origin: top center;
+  animation: finIdleDrift 2.6s ease-in-out infinite;
+}
+
+/* ── Dorsal fin ────────────────────────────────────────────── */
+.fish-anim-inner.fish-swimming .fish-dorsal {
+  transform-origin: bottom center;
+  animation: dorsalSway 1.10s ease-in-out infinite;
+  will-change: transform;
+}
+.fish-anim-inner.fish-idle .fish-dorsal {
+  transform-origin: bottom center;
+  animation: dorsalIdleSway 3.8s ease-in-out infinite;
+}
+
+/* ============================================================
+   SPECIES-SPECIFIC TIMING
+   Adjust duration on .fish-anim-inner[data-species="..."]
+   The tail, fin, dorsal inherit the same ratio via CSS vars.
+   ============================================================ */
+
+/* Clownfish — short darty strokes */
+.fish-anim-inner[data-species="clownfish"].fish-swimming {
+  animation-duration: 0.82s;
+}
+.fish-anim-inner[data-species="clownfish"].fish-swimming .fish-tail   { animation-duration: 0.42s; }
+.fish-anim-inner[data-species="clownfish"].fish-swimming .fish-fin    { animation-duration: 0.55s; }
+.fish-anim-inner[data-species="clownfish"].fish-swimming .fish-dorsal { animation-duration: 0.95s; }
+
+/* Blue Tang — fluid wide sweeps */
+.fish-anim-inner[data-species="bluetang"].fish-swimming {
+  animation-duration: 1.15s;
+}
+.fish-anim-inner[data-species="bluetang"].fish-swimming .fish-tail   { animation-duration: 0.60s; }
+.fish-anim-inner[data-species="bluetang"].fish-swimming .fish-fin    { animation-duration: 0.82s; }
+.fish-anim-inner[data-species="bluetang"].fish-swimming .fish-dorsal { animation-duration: 1.30s; }
+
+/* Betta — slow regal drift, fins trail */
+.fish-anim-inner[data-species="betta"].fish-swimming {
+  animation-duration: 2.10s;
+}
+.fish-anim-inner[data-species="betta"].fish-swimming .fish-tail   { animation-duration: 1.20s; }
+.fish-anim-inner[data-species="betta"].fish-swimming .fish-fin    { animation-duration: 1.60s; }
+.fish-anim-inner[data-species="betta"].fish-swimming .fish-dorsal { animation-duration: 2.40s; }
+
+/* Betta idle — fins drift extra slowly (veil tails) */
+.fish-anim-inner[data-species="betta"].fish-idle .fish-fin    { animation-duration: 4.0s; }
+.fish-anim-inner[data-species="betta"].fish-idle .fish-tail   { animation-duration: 4.8s; }
+.fish-anim-inner[data-species="betta"].fish-idle .fish-dorsal { animation-duration: 5.5s; }
+
+/* Angelfish — stately vertical undulation */
+.fish-anim-inner[data-species="angelfish"].fish-swimming {
+  animation-duration: 1.85s;
+  transform-origin: 40% center;
+}
+.fish-anim-inner[data-species="angelfish"].fish-swimming .fish-tail   { animation-duration: 0.95s; }
+.fish-anim-inner[data-species="angelfish"].fish-swimming .fish-fin    { animation-duration: 1.20s; }
+.fish-anim-inner[data-species="angelfish"].fish-swimming .fish-dorsal { animation-duration: 2.00s; }
+
+/* Goldfish — lazy bottom-dwelling paddle */
+.fish-anim-inner[data-species="goldfish"].fish-swimming {
+  animation-duration: 1.65s;
+}
+.fish-anim-inner[data-species="goldfish"].fish-swimming .fish-tail   { animation-duration: 0.85s; }
+.fish-anim-inner[data-species="goldfish"].fish-swimming .fish-fin    { animation-duration: 1.10s; }
+.fish-anim-inner[data-species="goldfish"].fish-swimming .fish-dorsal { animation-duration: 1.80s; }
+
+/* Mandarin Dragonet — creeping, uses pectorals to "walk" */
+.fish-anim-inner[data-species="mandarin_dragonet"].fish-swimming {
+  animation-duration: 2.50s;
+}
+.fish-anim-inner[data-species="mandarin_dragonet"].fish-swimming .fish-tail   { animation-duration: 1.60s; }
+.fish-anim-inner[data-species="mandarin_dragonet"].fish-swimming .fish-fin    { animation-duration: 0.95s; } /* pectorals faster — "walking" */
+.fish-anim-inner[data-species="mandarin_dragonet"].fish-swimming .fish-dorsal { animation-duration: 2.80s; }
+
+/* ── Stagger so fish don't all sync up ─────────────────────── */
+.fish-container:nth-child(2n)   .fish-fin    { animation-delay: -0.23s; }
+.fish-container:nth-child(3n)   .fish-fin    { animation-delay: -0.51s; }
+.fish-container:nth-child(4n)   .fish-fin    { animation-delay: -0.38s; }
+.fish-container:nth-child(2n)   .fish-tail   { animation-delay: -0.17s; }
+.fish-container:nth-child(3n)   .fish-tail   { animation-delay: -0.38s; }
+.fish-container:nth-child(4n)   .fish-tail   { animation-delay: -0.62s; }
+.fish-container:nth-child(odd)  .fish-dorsal { animation-delay: -0.29s; }
+.fish-container:nth-child(3n+1) .fish-dorsal { animation-delay: -0.44s; }
+.fish-container:nth-child(2n)   .fish-anim-inner { animation-delay: -0.33s; }
+.fish-container:nth-child(3n)   .fish-anim-inner { animation-delay: -0.71s; }
+.fish-container:nth-child(4n)   .fish-anim-inner { animation-delay: -0.55s; }
+
+/* ── Selection: freeze animation so sprite is inspectable ──── */
+.fish-container.selected .fish-anim-inner,
+.fish-container.selected .fish-anim-inner.fish-swimming,
+.fish-container.selected .fish-anim-inner.fish-idle {
   animation: none;
+  transform: none;
+}
+.fish-container.selected .fish-fin,
+.fish-container.selected .fish-tail,
+.fish-container.selected .fish-dorsal {
+  animation: none;
+  transform: none;
 }
 
-/* Fish container: remove the old bare transition so JS tilt works cleanly */
+
+
 .fish-container {
   transition: opacity 0.3s, filter 0.2s;
 }
 
-/* ── Step 2: Depth layer visual cues ─────────────────────────── */
-/* Back layer (0): blur + saturation/brightness applied fully inline from TankView JS */
+
 .fish-container.depth-layer-0 {
-  /* intentionally empty — all filter values set inline so they compose correctly */
+  
 }
 .fish-container.depth-layer-0.selected {
   filter: saturate(0.88) brightness(1.0) drop-shadow(0 0 8px rgba(240,192,64,0.6));
@@ -4076,7 +4022,6 @@ body {
   filter: saturate(1.08) contrast(1.05) drop-shadow(0 0 8px rgba(240,192,64,0.6));
 }
 
-/* ── Step 5: UI Panels Polish ─────────────────────────────────── */
 
 /* Cards — subtle 3D lift with perspective */
 .panel-card,
@@ -4140,42 +4085,10 @@ button:active, .btn:active, .action-btn:active {
     0 1px 2px rgba(0,0,0,0.50);
 }
 
-/* Tab bar — beveled active state */
-.tab-btn.active {
-  color: var(--gold);
-  border-bottom-color: var(--gold);
-  background: linear-gradient(to bottom, rgba(212,168,48,0.08) 0%, transparent 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(212,168,48,0.15),
-    inset 0 -3px 0 var(--gold);
-  text-shadow: 0 0 10px rgba(212,168,48,0.45);
-}
-.tab-btn:not(.active) {
-  box-shadow: none;
-}
-.tab-btn:hover:not(.active) {
-  background: rgba(255,255,255,0.04);
-  box-shadow: inset 0 -2px 0 rgba(255,255,255,0.08);
-}
 
-/* Side panel refinement */
-.side-col {
-  background: linear-gradient(to bottom,
-    rgba(10,22,40,0.92) 0%,
-    rgba(8,18,35,0.96) 100%);
-  box-shadow: inset 2px 0 8px rgba(0,0,0,0.30);
-}
+.tab-btn:not(.active)
+.tab-btn:hover:not(.active)
 
-/* ── Glow badge for epic fish ─────────────────────────────────── */
-@keyframes fishGlow {
-  0%, 100% { filter: drop-shadow(0 0 4px rgba(255,255,160,0.45)); }
-  50%       { filter: drop-shadow(0 0 14px rgba(255,255,160,0.85)); }
-}
-
-
-/* ============================================================
-   FISH PANEL v2 — Rich card redesign
-   ============================================================ */
 
 /* Empty state */
 .fish-panel--empty {
@@ -4207,27 +4120,11 @@ button:active, .btn:active, .action-btn:active {
 
 /* Enter animation */
 @keyframes fpSlideIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
 }
 .fish-panel--entering {
   animation: fpSlideIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* ── Hero banner ── */
-.fp-hero {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 16px 14px;
-  border-bottom: 1px solid var(--panel-border);
-  overflow: hidden;
-  background: linear-gradient(135deg,
-    rgba(10, 22, 40, 0.6) 0%,
-    var(--rarity-color-dim, rgba(42, 80, 144, 0.15)) 100%
-  );
-}
 
 /* Soft radial glow behind sprite */
 .fp-hero-glow {
@@ -4255,17 +4152,6 @@ button:active, .btn:active, .action-btn:active {
   background: var(--rarity-color, var(--gold));
   border-radius: 0 2px 2px 0;
   transition: background 0.4s ease;
-}
-
-.fp-sprite-stage {
-  position: relative;
-  flex-shrink: 0;
-  width: 112px;
-  height: 84px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
 }
 
 .fp-hero-info {
@@ -4350,8 +4236,8 @@ button:active, .btn:active, .action-btn:active {
   animation: fpDiseaseAlert 1.8s ease-in-out infinite;
 }
 @keyframes fpDiseaseAlert {
-  0%, 100% { border-left-color: #ff4455; }
-  50%       { border-left-color: #ff8866; }
+  0%, 100%
+  50%
 }
 .fp-disease-icon {
   font-size: 20px;
@@ -4413,77 +4299,10 @@ button:active, .btn:active, .action-btn:active {
   color: var(--text-dim);
   flex: 1;
 }
-.fp-stat-pct {
-  font-size: 13px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  transition: color 0.5s ease;
-  min-width: 36px;
-  text-align: right;
-}
 
-.fp-bar-track {
-  position: relative;
-  height: 7px;
-  background: rgba(255,255,255,0.07);
-  border-radius: 6px;
-  overflow: hidden;
-}
-.fp-bar-fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  border-radius: 6px;
-  transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-              background 0.45s ease,
-              box-shadow 0.45s ease;
-}
-/* Glass shine on top of bar */
-.fp-bar-shine {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom,
-    rgba(255,255,255,0.18) 0%,
-    rgba(255,255,255,0.00) 60%
-  );
-  border-radius: 6px;
-  pointer-events: none;
-}
 
-/* ── Action buttons ── */
-.fp-actions {
-  display: flex;
-  gap: 6px;
-  padding: 12px 12px;
-  border-bottom: 1px solid var(--panel-border);
-  flex-wrap: wrap;
-}
-
-.fp-action-btn {
-  flex: 1 1 0;
-  min-width: 72px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 9px 6px 8px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.05);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background 0.18s, border-color 0.18s, transform 0.12s, opacity 0.18s;
-  font-family: inherit;
-}
-.fp-action-btn:hover:not(:disabled) {
-  background: rgba(255,255,255,0.10);
-  border-color: rgba(255,255,255,0.20);
-  transform: translateY(-1px);
-}
-.fp-action-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
+.fp-action-btn:hover:not(:disabled)
+.fp-action-btn:active:not(:disabled)
 .fp-action-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
@@ -4501,39 +4320,21 @@ button:active, .btn:active, .action-btn:active {
 }
 
 /* Variant tints */
-.fp-action-btn--feed:not(:disabled) {
-  border-color: rgba(93,190,138,0.30);
-  background: rgba(93,190,138,0.08);
-}
-.fp-action-btn--feed:hover:not(:disabled) {
-  background: rgba(93,190,138,0.16);
-  border-color: rgba(93,190,138,0.50);
-}
+.fp-action-btn--feed:not(:disabled)
+.fp-action-btn--feed:hover:not(:disabled)
 
-.fp-action-btn--medicine:not(:disabled) {
-  border-color: rgba(180,100,220,0.30);
-  background: rgba(180,100,220,0.08);
-}
-.fp-action-btn--medicine:hover:not(:disabled) {
-  background: rgba(180,100,220,0.16);
-  border-color: rgba(180,100,220,0.50);
-}
+.fp-action-btn--medicine:not(:disabled)
+.fp-action-btn--medicine:hover:not(:disabled)
 .fp-action-btn--pulse {
   animation: fpMedPulse 1.6s ease-in-out infinite;
 }
 @keyframes fpMedPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(180,100,220,0); }
-  50%       { box-shadow: 0 0 0 4px rgba(180,100,220,0.25); }
+  0%, 100%
+  50%
 }
 
-.fp-action-btn--sell:not(:disabled) {
-  border-color: rgba(212,168,48,0.30);
-  background: rgba(212,168,48,0.08);
-}
-.fp-action-btn--sell:hover:not(:disabled) {
-  background: rgba(212,168,48,0.16);
-  border-color: rgba(212,168,48,0.50);
-}
+.fp-action-btn--sell:not(:disabled)
+.fp-action-btn--sell:hover:not(:disabled)
 
 .fp-action-btn--listed {
   border-color: rgba(93,180,230,0.40);
@@ -4627,9 +4428,6 @@ button:active, .btn:active, .action-btn:active {
   transform: translateY(-1px);
 }
 
-/* ============================================================
-   HUD v2 — Glass morphism redesign
-   ============================================================ */
 
 /* Override old .hud completely */
 .hud {
@@ -4752,44 +4550,27 @@ button:active, .btn:active, .action-btn:active {
 
 /* Coin flash states */
 @keyframes hudCoinUp {
-  0%   { background: rgba(61, 219, 160, 0.08); border-color: rgba(61,219,160,0.35); }
-  60%  { background: rgba(61, 219, 160, 0.18); border-color: rgba(61,219,160,0.55); }
-  100% { background: rgba(212, 168, 48, 0.10); border-color: rgba(212,168,48,0.22); }
+  0%
+  60%
+  100%
 }
 @keyframes hudCoinDown {
-  0%   { background: rgba(255, 85, 102, 0.08); border-color: rgba(255,85,102,0.35); }
-  60%  { background: rgba(255, 85, 102, 0.16); border-color: rgba(255,85,102,0.50); }
-  100% { background: rgba(212, 168, 48, 0.10); border-color: rgba(212,168,48,0.22); }
+  0%
+  60%
+  100%
 }
 .hud2-coin--up   { animation: hudCoinUp   0.9s ease forwards; }
 .hud2-coin--down { animation: hudCoinDown 0.9s ease forwards; }
 
-/* ── Stat pills ── */
-.hud2-pills {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-.hud2-pill {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 9px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  transition: background 0.2s, border-color 0.2s;
-  cursor: default;
-}
+
 .hud2-pill--alert {
   background: rgba(255, 85, 102, 0.10);
   border-color: rgba(255, 85, 102, 0.28);
   animation: hudPillPulse 2s ease-in-out infinite;
 }
 @keyframes hudPillPulse {
-  0%, 100% { border-color: rgba(255,85,102,0.28); }
-  50%       { border-color: rgba(255,85,102,0.55); }
+  0%, 100%
+  50%
 }
 .hud2-pill-icon {
   font-size: 12px;
@@ -4883,12 +4664,8 @@ button:active, .btn:active, .action-btn:active {
   white-space: nowrap;
   line-height: 1;
 }
-.hud2-btn:hover:not(:disabled) {
-  background: rgba(255,255,255,0.10);
-  border-color: rgba(255,255,255,0.20);
-  transform: translateY(-1px);
-}
-.hud2-btn:active:not(:disabled) { transform: translateY(0); }
+.hud2-btn:hover:not(:disabled)
+.hud2-btn:active:not(:disabled)
 .hud2-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
@@ -4903,9 +4680,7 @@ button:active, .btn:active, .action-btn:active {
   border-color: rgba(93, 190, 138, 0.35);
   color: #3ddba0;
 }
-.hud2-btn--active:hover:not(:disabled) {
-  background: rgba(93, 190, 138, 0.22);
-}
+.hud2-btn--active:hover:not(:disabled)
 
 .hud2-btn--warn {
   background: rgba(255, 85, 102, 0.12);
@@ -4914,12 +4689,10 @@ button:active, .btn:active, .action-btn:active {
   animation: hudBtnWarnPulse 1.8s ease-in-out infinite;
 }
 @keyframes hudBtnWarnPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255,85,102,0); }
-  50%       { box-shadow: 0 0 0 3px rgba(255,85,102,0.18); }
+  0%, 100%
+  50%
 }
-.hud2-btn--warn:hover:not(:disabled) {
-  background: rgba(255, 85, 102, 0.22);
-}
+.hud2-btn--warn:hover:not(:disabled)
 
 .hud2-btn--icon {
   padding: 5px 8px;
@@ -5984,6 +5757,18 @@ button:active, .btn:active, .action-btn:active {
 .fdex-card:hover .fdex-card-price,
 .fdex-card.selected .fdex-card-price {
   color: var(--gold);
+}
+.fdex-card-date {
+  font-size: 8px;
+  color: var(--text-dim);
+  opacity: 0.70;
+  margin-top: 1px;
+  font-variant-numeric: tabular-nums;
+}
+.fdex-card-status {
+  font-size: 10px;
+  margin-top: 2px;
+  line-height: 1;
 }
 
 /* ── Bottom accent line ──────────────────────────────────────── */

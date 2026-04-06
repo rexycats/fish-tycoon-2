@@ -49,6 +49,21 @@ function BettaSprite({
   const aura   = RARITY_AURA[rarity];
   const stage  = fish?.stage || 'adult';
 
+  // ── Colour variants via CSS hue-shift ────────────────────
+  // 'default'  = deep crimson with teal iridescence
+  // 'cobalt'   = pure cobalt blue body
+  // 'emerald'  = vivid green with gold sheen
+  // 'albino'   = pale rose-white with cream fins
+  const variantKey = fish?.colorVariant || 'default';
+  const variantStyle = (() => {
+    switch (variantKey) {
+      case 'cobalt':  return { filter: 'hue-rotate(140deg) saturate(1.2)' };
+      case 'emerald': return { filter: 'hue-rotate(100deg) saturate(1.3) brightness(0.95)' };
+      case 'albino':  return { filter: 'saturate(0.18) brightness(1.45)' };
+      default:        return {};
+    }
+  })();
+
   // Betta is wider than tall — viewBox 110 × 80, body takes ~60% of height
   const W = size;
   const H = size * 0.73;
@@ -100,6 +115,7 @@ function BettaSprite({
         cursor:    onClick ? 'pointer' : 'default',
         transform: flipped ? 'scaleX(-1)' : 'none',
         overflow:  'visible',
+        ...variantStyle,
       }}
     >
       <defs>
@@ -204,7 +220,7 @@ function BettaSprite({
       {/* ════ VEIL TAIL — TOP LOBE ════ */}
       {/* Flows back-left and upward from the tail junction (~x=22,y=40) */}
       {/* Top lobe sweeps up to a long trailing filament */}
-      <path d={`
+      <path className="fish-tail" d={`
         M 22 38
         C ${22 - 10*fs} ${38 - 14*fs}, ${22 - 18*fs} ${38 - 26*fs}, ${22 - 20*fs} ${38 - 36*fs}
         C ${22 - 18*fs} ${38 - 40*fs}, ${22 - 14*fs} ${38 - 38*fs}, ${22 - 10*fs} ${38 - 30*fs}
@@ -226,7 +242,7 @@ function BettaSprite({
 
       {/* ════ VEIL TAIL — BOTTOM LOBE ════ */}
       {/* Mirror: sweeps down to a long trailing filament */}
-      <path d={`
+      <path className="fish-tail" d={`
         M 22 42
         C ${22 - 10*fs} ${42 + 14*fs}, ${22 - 18*fs} ${42 + 26*fs}, ${22 - 20*fs} ${42 + 36*fs}
         C ${22 - 18*fs} ${42 + 40*fs}, ${22 - 14*fs} ${42 + 38*fs}, ${22 - 10*fs} ${42 + 30*fs}
@@ -256,7 +272,7 @@ function BettaSprite({
         fill="#7a1010" opacity={0.55 * finOpacity}/>
 
       {/* ════ ANAL FIN (runs full belly, trails back) ════ */}
-      <path d={`
+      <path className="fish-fin" d={`
         M 30 ${40 + 13}
         C 36 ${40 + 18*fs}, 45 ${40 + 20*fs}, 55 ${40 + 18*fs}
         C 65 ${40 + 16*fs}, 72 ${40 + 12*fs}, 78 ${40 + 8}
@@ -272,7 +288,7 @@ function BettaSprite({
       ))}
 
       {/* ════ DORSAL FIN (tall sail from mid-back) ════ */}
-      <path d={`
+      <path className="fish-dorsal" d={`
         M 38 ${40 - 14}
         C 40 ${40 - 14 - 16*fs}, 50 ${40 - 14 - 20*fs}, 60 ${40 - 14 - 16*fs}
         C 68 ${40 - 14 - 12*fs}, 74 ${40 - 14 - 5*fs},  78 ${40 - 14 - 2}
@@ -289,7 +305,7 @@ function BettaSprite({
 
       {/* ════ PECTORAL FINS (long, draping, from behind gill) ════ */}
       {/* Left (visible) pectoral */}
-      <path d={`
+      <path className="fish-fin" d={`
         M 78 42
         C 80 ${42 + 10*fs}, 74 ${42 + 18*fs}, 68 ${42 + 20*fs}
         C 72 ${42 + 14*fs}, 76 ${42 + 6*fs},  78 42
@@ -372,11 +388,12 @@ function BettaSprite({
 }
 
 export default memo(BettaSprite, (prev, next) =>
-  prev.fish?.id      === next.fish?.id      &&
-  prev.fish?.stage   === next.fish?.stage   &&
-  prev.fish?.health  === next.fish?.health  &&
-  prev.fish?.disease === next.fish?.disease &&
-  prev.selected      === next.selected      &&
-  prev.size          === next.size          &&
-  prev.flipped       === next.flipped
+  prev.fish?.id           === next.fish?.id           &&
+  prev.fish?.stage        === next.fish?.stage        &&
+  prev.fish?.health       === next.fish?.health       &&
+  prev.fish?.disease      === next.fish?.disease      &&
+  prev.fish?.colorVariant === next.fish?.colorVariant &&
+  prev.selected           === next.selected           &&
+  prev.size               === next.size               &&
+  prev.flipped            === next.flipped
 );

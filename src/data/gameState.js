@@ -76,9 +76,9 @@ export function createDefaultTank(id, type = 'display') {
 export function createDefaultState() {
   const tank0 = createDefaultTank('tank_0', 'display');
   const starterFish = [
-    createFish({ stage: 'adult', tankId: 'tank_0' }),
-    createFish({ stage: 'adult', tankId: 'tank_0' }),
-    createFish({ stage: 'adult', tankId: 'tank_0' }),
+    createFish({ stage: 'juvenile', tankId: 'tank_0' }),
+    createFish({ stage: 'juvenile', tankId: 'tank_0' }),
+    createFish({ stage: 'juvenile', tankId: 'tank_0' }),
   ];
 
   return {
@@ -88,7 +88,7 @@ export function createDefaultState() {
     offlineSummary: null,
 
     player: {
-      coins: 500,
+      coins: 175,
       totalCoinsEarned: 0,
       shopLevel: 1,
       fishdex: [],
@@ -156,6 +156,7 @@ function migrateSave(parsed) {
   parsed.tanks = (parsed.tanks || []).map(t => ({
     autoFeedTick: 0,
     ...t,
+    decorations: t.decorations ?? getDefaultDecorations(),
     supplies: { breedingBoost: 0, ...t.supplies },
   }));
   if (!parsed.player.achievements) parsed.player.achievements = [];

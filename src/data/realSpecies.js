@@ -27,6 +27,7 @@ export const REAL_SPECIES = [
     rarity:         'uncommon',
     visualType:     'species',
     basePrice:      120,
+    colorVariants:  ['default', 'cinnabar', 'snowflake', 'melanistic'],
     lore:           'Found sheltering among the stinging tentacles of sea anemones, the clownfish is coated in a special mucus that makes it immune. A fearless defender of its home.',
     habitat:        'Indo-Pacific coral reefs, 1–15m depth',
     funFact:        'All clownfish are born male. The dominant fish in a group can change sex to become female.',
@@ -63,6 +64,7 @@ export const REAL_SPECIES = [
     rarity:         'rare',
     visualType:     'species',
     basePrice:      280,
+    colorVariants:  ['default', 'gold', 'midnight', 'albino'],
     lore:           'The blue tang carries a sharp spine near its tail — a scalpel-like defence that gives its family the name "surgeonfish". In the wild it roams coral reefs in loose schools, grazing on algae.',
     habitat:        'Indo-Pacific coral reefs, 2–40m depth',
     funFact:        'Blue tangs can change shade — they go pale when stressed or sleeping, and return to vivid blue when active.',
@@ -106,6 +108,7 @@ export const REAL_SPECIES = [
     rarity:         'rare',
     visualType:     'species',
     basePrice:      320,
+    colorVariants:  ['default', 'cobalt', 'emerald', 'albino'],
     lore:           'Known as the Siamese fighting fish, the betta has been selectively bred for centuries into an astonishing variety of fin shapes and colour morphs. Each fish is a living work of art — and fiercely territorial.',
     habitat:        'Shallow rice paddies and slow streams of Southeast Asia',
     funFact:        'Bettas breathe air directly using a specialised organ called the labyrinth, letting them survive in oxygen-poor water.',
@@ -155,6 +158,7 @@ export const REAL_SPECIES = [
     rarity:         'uncommon',
     visualType:     'species',
     basePrice:      180,
+    colorVariants:  ['default', 'gold', 'marble', 'smoky'],
     lore:           'The freshwater angelfish has been a centrepiece of the aquarium hobby for over a century. Its triangular profile and regal bearing make it one of the most recognisable fish in the world — despite being a cichlid at heart.',
     habitat:        'Amazon Basin slow-moving rivers and flooded forests, 0–10m depth',
     funFact:        'Angelfish form devoted mating pairs and both parents guard their eggs fiercely, fanning them with their fins to keep the water oxygenated.',
@@ -166,6 +170,87 @@ export const REAL_SPECIES = [
       preferredYRange:[28, 70],  // tightened from [20,75] — tall sprite clips tank edges
       idleProbability:0.22,
       dartiness:      0.08,
+    },
+  },
+  {
+    // ── DESIGN AUDIT ────────────────────────────────────────
+    // Silhouette : deep rounded body, nearly as tall as long.
+    //              Fancy/ryukin body type with pronounced dorsal
+    //              hump. Small head relative to body. Twin veil
+    //              butterfly tail — two broad lobes, each wide
+    //              and rounded. Tall triangular dorsal sail fin.
+    //              Large wing-like pectoral fins.
+    // Markings   : solid warm orange-gold with cream-gold belly.
+    //              Scale texture catches light as rhombus glints.
+    //              No bars or stripes — colour IS the marking.
+    //              Colour variants: kohaku (white+red cap),
+    //              calico (blotched), black (melanistic moor).
+    // Palette    : body #e8820a, belly #f8c868, hump #c86008,
+    //              fin #c86808 / #e8a020, glint #fff8d0.
+    // Personality: slow graceful loops, prefers lower half of
+    //              tank, gentle bob, occasionally flicks tail.
+    // ────────────────────────────────────────────────────────
+    key:            'goldfish',
+    name:           'Goldfish',
+    scientificName: 'Carassius auratus',
+    rarity:         'uncommon',
+    visualType:     'species',
+    basePrice:      90,
+    lore:           'Selectively bred in China over a thousand years from wild carp, the goldfish was the first fish ever kept purely for ornamental purposes. Fancy varieties like the ryukin and oranda remain among the most popular aquarium fish on Earth.',
+    habitat:        'Originally slow-moving freshwater rivers and ponds of East Asia; now worldwide in aquaria and garden ponds',
+    funFact:        'Goldfish do not have a three-second memory — they can be trained to navigate mazes and remember them months later.',
+    conservationStatus: 'Not Evaluated (domesticated species)',
+    colorVariants:  ['default', 'kohaku', 'calico', 'black'],
+    behaviorProfile: {
+      swimSpeed:      0.38,
+      turnChance:     0.028,
+      bobAmplitude:   0.022,
+      preferredYRange:[50, 85],
+      idleProbability:0.30,
+      dartiness:      0.10,
+    },
+  },
+  {
+    // ── DESIGN AUDIT ────────────────────────────────────────
+    // Silhouette : small elongated torpedo body with a huge
+    //              fan-like dorsal fin that dominates the profile.
+    //              Blunt head with downturned froggy mouth. Body
+    //              tapers to a narrow squared-off tail. Pectoral
+    //              fins large, wing-like and splayed outward.
+    // Markings   : THE psychedelic fish. Electric blue body
+    //              covered in dense orange-red maze/labyrinth
+    //              pattern — irregular closed cells like stained
+    //              glass. Dorsal fin carries the same pattern with
+    //              more elongated cells. Tail fin: blue with orange
+    //              spots. Pectorals: translucent blue-green.
+    //              Bright yellow iris — distinctive and striking.
+    //              Variants: psychedelic (default), red-phase,
+    //              ghost (melanistic).
+    // Palette    : base #0a4ab8, mid #1260d8, hi #20a0f0.
+    //              Maze orange #f07010 / edge #e84808.
+    //              Shimmer green #20d080. Eye #f8d820.
+    // Personality: slow deliberate walk/hop along tank bottom,
+    //              occasionally rises and drifts, very low in
+    //              tank, uses pectorals to "walk". Rests often.
+    // ────────────────────────────────────────────────────────
+    key:            'mandarin_dragonet',
+    name:           'Mandarin Dragonet',
+    scientificName: 'Synchiropus splendidus',
+    rarity:         'epic',
+    visualType:     'species',
+    basePrice:      1200,
+    lore:           'Widely considered the most beautiful fish in the ocean, the Mandarin Dragonet\'s psychedelic blue-and-orange maze pattern is produced not by pigment cells but by specialised pigmented cells called cyanophores — rare in fish. It is cloaked in a noxious mucus that deters nearly all predators.',
+    habitat:        'Indo-Pacific coral reefs, sheltered lagoons and inshore reefs, 1–18m depth',
+    funFact:        'Mandarin Dragonets have no scales — instead their body is coated in a pungent, bitter mucus so toxic that even other fish avoid eating them.',
+    conservationStatus: 'Least Concern (declining from collection pressure in some areas)',
+    colorVariants:  ['psychedelic', 'red', 'ghost'],
+    behaviorProfile: {
+      swimSpeed:      0.28,
+      turnChance:     0.055,
+      bobAmplitude:   0.008,
+      preferredYRange:[72, 92],
+      idleProbability:0.55,
+      dartiness:      0.05,
     },
   },
 ];

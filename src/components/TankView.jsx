@@ -116,7 +116,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
     for (const id of Object.keys(pos)) {
       if (!ids.has(id)) delete pos[id];
     }
-  }, [fish]);
+  }, [fishIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Convenience alias for reading positions in render (ref value, not state)
   const positions = posRef.current;
@@ -482,7 +482,8 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
               onMouseEnter={() => setHoveredFishId(f.id)}
               onMouseLeave={() => setHoveredFishId(null)}
               onClick={() => onSelectFish(f.id === selectedFishId ? null : f.id)}>
-              <div className={`fish-anim-inner ${animClass}`}>
+              <div className={`fish-anim-inner ${animClass}`}
+                   data-species={f.species?.key || undefined}>
                 <FishSprite fish={f} size={spriteSize} flipped={pos.flipped} selected={isSelected}/>
               </div>
               {f.stage !== 'adult' && <div className="stage-badge">{f.stage}</div>}

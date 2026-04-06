@@ -28,6 +28,18 @@ const RARITY_AURA = {
   legendary: { color: '#ff8040', opacity: 0.55, blur: 14 },
 };
 
+// ── Colour variants ──────────────────────────────────────────
+const VARIANTS_CF = {
+  // Default: classic vivid orange
+  default: { body: '#e8621a', bodyHi: '#f5a030', bar: '#f5f0e8', barShad: '#d8e4ee' },
+  // Rare: cinnabar — deep red body, cream bars
+  cinnabar: { body: '#b82010', bodyHi: '#e03020', bar: '#f8f0e0', barShad: '#ddd0c0' },
+  // Rare: snowflake — pale gold body, white bars
+  snowflake: { body: '#d4a030', bodyHi: '#f0c860', bar: '#ffffff', barShad: '#e8e8e8' },
+  // Mutated: melanistic — charcoal body, dim bars
+  melanistic: { body: '#2a1808', bodyHi: '#483020', bar: '#505050', barShad: '#303030' },
+};
+
 function ClownfishSprite({
   fish,
   size     = 60,
@@ -40,12 +52,28 @@ function ClownfishSprite({
   const aura   = RARITY_AURA[rarity];
   const stage  = fish?.stage || 'adult';
 
+  // Resolve colour variant
+  const variantKey = fish?.colorVariant || 'default';
+  const V = VARIANTS_CF[variantKey] || VARIANTS_CF.default;
+
   const W = size;
   const H = size * 0.68;
 
   // ── Juvenile: only 1 white bar (head bar), smaller body ──
   const isJuvenile = stage === 'juvenile';
   const barCount   = isJuvenile ? 1 : 3;
+
+  // ── Variant hue-shift via CSS filter ────────────────────
+  // 'default' keeps the original orange palette.
+  // Others apply a CSS hue-rotation and/or brightness shift.
+  const variantStyle = (() => {
+    switch (variantKey) {
+      case 'cinnabar':   return { filter: 'hue-rotate(-25deg) saturate(1.2) brightness(0.85)' };
+      case 'snowflake':  return { filter: 'hue-rotate(20deg) saturate(0.65) brightness(1.15)' };
+      case 'melanistic': return { filter: 'saturate(0.10) brightness(0.45)' };
+      default:           return {};
+    }
+  })();
 
   // ── Egg: simple orange oval ───────────────────────────────
   if (stage === 'egg') {
@@ -78,6 +106,7 @@ function ClownfishSprite({
         cursor:    onClick ? 'pointer' : 'default',
         transform: flipped ? 'scaleX(-1)' : 'none',
         overflow:  'visible',
+        ...variantStyle,
       }}
     >
       <defs>
@@ -170,9 +199,9 @@ function ClownfishSprite({
 
       {/* ════ TAIL FIN ════ */}
       {/* Two lobes of the forked tail */}
-      <path d={`M 18 34 C 6 22, 2 14, 10 12 C 16 10, 20 20, 18 34 Z`}
+      <path className="fish-tail" d={`M 18 34 C 6 22, 2 14, 10 12 C 16 10, 20 20, 18 34 Z`}
         fill={`url(#cf-tail-${uid})`} filter={`url(#cf-sh-${uid})`}/>
-      <path d={`M 18 34 C 6 46, 2 54, 10 56 C 16 58, 20 48, 18 34 Z`}
+      <path className="fish-tail" d={`M 18 34 C 6 46, 2 54, 10 56 C 16 58, 20 48, 18 34 Z`}
         fill={`url(#cf-tail-${uid})`}/>
       {/* Fin rays */}
       {[0.25, 0.5, 0.75].map((t, i) => (
@@ -184,10 +213,10 @@ function ClownfishSprite({
 
       {/* ════ DORSAL FIN (notched — 2 lobes, clownfish signature) ════ */}
       {/* Rear lobe */}
-      <path d={`M 38 14 C 36 4, 46 2, 52 10 C 54 14, 50 14, 48 14 Z`}
+      <path className="fish-dorsal" d={`M 38 14 C 36 4, 46 2, 52 10 C 54 14, 50 14, 48 14 Z`}
         fill={`url(#cf-fin-${uid})`}/>
       {/* Front lobe (slightly taller) */}
-      <path d={`M 52 14 C 52 4, 62 0, 68 8 C 70 12, 66 14, 62 14 Z`}
+      <path className="fish-dorsal" d={`M 52 14 C 52 4, 62 0, 68 8 C 70 12, 66 14, 62 14 Z`}
         fill={`url(#cf-fin-${uid})`}/>
       {/* Notch valley between lobes */}
       <path d={`M 48 14 C 49 10, 51 10, 52 14`}
@@ -203,7 +232,7 @@ function ClownfishSprite({
         fill={`url(#cf-fin-${uid})`}/>
 
       {/* ════ PECTORAL FIN ════ */}
-      <ellipse cx="58" cy="40" rx="10" ry="6"
+      <ellipse className="fish-fin" cx="58" cy="40" rx="10" ry="6"
         fill={`url(#cf-pec-${uid})`}
         transform="rotate(-20 58 40)"/>
       {/* Pectoral fin rays */}
@@ -296,11 +325,12 @@ function ClownfishSprite({
 }
 
 export default memo(ClownfishSprite, (prev, next) =>
-  prev.fish?.id      === next.fish?.id      &&
-  prev.fish?.stage   === next.fish?.stage   &&
-  prev.fish?.health  === next.fish?.health  &&
-  prev.fish?.disease === next.fish?.disease &&
-  prev.selected      === next.selected      &&
-  prev.size          === next.size          &&
-  prev.flipped       === next.flipped
+  prev.fish?.id           === next.fish?.id           &&
+  prev.fish?.stage        === next.fish?.stage        &&
+  prev.fish?.health       === next.fish?.health       &&
+  prev.fish?.disease      === next.fish?.disease      &&
+  prev.fish?.colorVariant === next.fish?.colorVariant &&
+  prev.selected           === next.selected           &&
+  prev.size               === next.size               &&
+  prev.flipped            === next.flipped
 );

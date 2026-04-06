@@ -420,7 +420,8 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
             <SupplyCard name="Blue Tang"  emoji="🐟" stock="∞" cost={350} amount={1} coins={player.coins} desc="Paracanthurus hepatus — royal blue with bold black stripe and yellow tail. Sweeps the full tank." onBuy={() => onBuyFish(350, null, 'bluetang')} />
             <SupplyCard name="Betta"      emoji="🐠" stock="∞" cost={420} amount={1} coins={player.coins} desc="Betta splendens — flowing crimson veil fins with teal iridescent sheen. A regal, solitary drifter." onBuy={() => onBuyFish(420, null, 'betta')} />
             <SupplyCard name="Angelfish"  emoji="🪸" stock="∞" cost={240} amount={1} coins={player.coins} desc="Pterophyllum scalare — silver with 3 black bars and trailing dorsal filaments. A stately vertical swimmer." onBuy={() => onBuyFish(240, null, 'angelfish')} />
-            <ComingSoonCard name="Goldfish" emoji="🟡" rarity="common" teaser="Carassius auratus — classic fancy tail, beginner-friendly, long-lived companion." />
+            <SupplyCard name="Goldfish"   emoji="🟡" stock="∞" cost={120} amount={1} coins={player.coins} desc="Carassius auratus — fancy twin veil tail, lazy bottom-dweller. May spawn in kohaku, calico or black moor variants." onBuy={() => onBuyFish(120, null, 'goldfish')} />
+            <SupplyCard name="Mandarin Dragonet" emoji="🌈" stock="∞" cost={1500} amount={1} coins={player.coins} desc="Synchiropus splendidus — psychedelic blue-orange maze pattern. The rarest and most striking fish in the ocean." onBuy={() => onBuyFish(1500, null, 'mandarin_dragonet')} />
           </div>
         </div>
       )}
