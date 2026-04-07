@@ -100,6 +100,8 @@ export function createDefaultState() {
       stats: { eggsCollected: 0, totalFishBred: 0, medicineUsed: 0, waterTreated: 0 },
       autopsies: [],        // post-mortem records
       boosts: {},           // active booster flags, e.g. { rarityBoost: 1, luckyCharm: 1 }
+      unlockedDecorations: [], // decoration IDs granted by achievements (not purchasable)
+      legendFishUnlocked: false, // true after earning Legend of the Deep (magic_7)
     },
 
     rareMarket: {
@@ -180,6 +182,8 @@ function migrateSave(parsed) {
     supplies: { breedingBoost: 0, ...t.supplies },
   }));
   if (!parsed.player.achievements) parsed.player.achievements = [];
+  if (!parsed.player.unlockedDecorations) parsed.player.unlockedDecorations = [];
+  if (parsed.player.legendFishUnlocked === undefined) parsed.player.legendFishUnlocked = false;
   if (!parsed.player.stats) {
     parsed.player.stats = { eggsCollected: 0, totalFishBred: 0, medicineUsed: 0, waterTreated: 0 };
   }
@@ -341,6 +345,15 @@ export function addLog(state, message) {
 // ── Achievements ───────────────────────────────────────────
 const ACHIEVEMENT_TIER_REWARDS = { common: 25, rare: 100, secret: 500 };
 
+// Decorations unlocked by specific achievements (not purchasable in shop)
+const ACHIEVEMENT_DECOR_REWARDS = {
+  tank_happy:  'golden_coral',
+  species_10:  'ancient_ruin',
+  three_tanks: 'sunken_galleon',
+  magic_3:     'magic_orb',
+  magic_7:     'legend_throne',
+};
+
 export function checkAchievements(state, messages) {
   // Guard against corrupt state
   if (!state?.player || !state?.fish || !state?.tanks) return state;
@@ -350,6 +363,8 @@ export function checkAchievements(state, messages) {
   const earned = new Set((state.player.achievements || []).map(a => a.id));
   const newAchievements = [];
   let coinsAwarded = 0;
+  const newUnlockedDecorations = [];
+  let legendFishGrant = false;
 
   function award(id) {
     if (earned.has(id)) return;
@@ -360,6 +375,16 @@ export function checkAchievements(state, messages) {
     coinsAwarded += reward;
     earned.add(id);
     messages.push(`🏆 Achievement unlocked: ${def.emoji} ${def.label}! +🪙${reward}`);
+
+    // Decoration reward
+    const decorId = ACHIEVEMENT_DECOR_REWARDS[id];
+    if (decorId && !(state.player.unlockedDecorations || []).includes(decorId) && !newUnlockedDecorations.includes(decorId)) {
+      newUnlockedDecorations.push(decorId);
+      messages.push(`🎨 Decoration unlocked: ${decorId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}!`);
+    }
+
+    // Legend Fish unlock
+    if (id === 'magic_7') legendFishGrant = true;
   }
 
   const { player, fish, tanks, shop } = state;
@@ -410,6 +435,8 @@ export function checkAchievements(state, messages) {
       ...player,
       coins: (player.coins || 0) + coinsAwarded,
       achievements: [...player.achievements, ...newAchievements],
+      unlockedDecorations: [...(player.unlockedDecorations || []), ...newUnlockedDecorations],
+      legendFishUnlocked: player.legendFishUnlocked || legendFishGrant,
     },
   };
 }

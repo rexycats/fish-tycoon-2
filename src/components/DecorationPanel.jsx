@@ -170,19 +170,23 @@ function PlacedItemRow({ item, onRemove }) {
 }
 
 // ── Main component ────────────────────────────────────────────
-export default function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveDecor }) {
+export default function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveDecor, unlockedDecorations = [], onClaimUnlockedDecor }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedDecorType, setSelectedDecorType]  = useState(null);
   const [placingScale, setPlacingScale] = useState(1.0);
-  const [subTab, setSubTab] = useState('shop'); // 'shop' | 'placed'
+  const [subTab, setSubTab] = useState('shop'); // 'shop' | 'placed' | 'awards'
 
   const { player } = game;
   const owned = activeTank?.decorations?.owned || {};
   const placed = activeTank?.decorations?.placed || [];
 
+  // Split catalog: shop items vs achievement-exclusive items
+  const shopCatalog = DECOR_CATALOG.filter(d => !d.achievementLocked);
+  const achievementCatalog = DECOR_CATALOG.filter(d => d.achievementLocked);
+
   const catalogFiltered = activeCategory === 'all'
-    ? DECOR_CATALOG
-    : DECOR_CATALOG.filter(d => d.category === activeCategory);
+    ? shopCatalog
+    : shopCatalog.filter(d => d.category === activeCategory);
 
   const handleSelectPlace = (id) => {
     setSelectedDecorType(prev => prev === id ? null : id);
@@ -242,6 +246,9 @@ export default function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceD
         <button className={`decor-subtab ${subTab==='placed'?'active':''}`} onClick={() => setSubTab('placed')}>
           📋 Placed ({placed.length})
         </button>
+        <button className={`decor-subtab ${subTab==='awards'?'active':''}`} onClick={() => setSubTab('awards')}>
+          🏆 Awards {unlockedDecorations.length > 0 ? `(${unlockedDecorations.length})` : ''}
+        </button>
       </div>
 
       {subTab === 'shop' && (
@@ -288,6 +295,58 @@ export default function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceD
                 onRemove={(id) => onRemoveDecor(activeTank.id, id)}
               />
             ))
+          )}
+        </div>
+      )}
+
+      {subTab === 'awards' && (
+        <div className="decor-awards-list">
+          {achievementCatalog.length === 0 ? (
+            <p className="decor-empty">No award decorations exist yet.</p>
+          ) : (
+            achievementCatalog.map(decor => {
+              const isUnlocked = unlockedDecorations.includes(decor.id);
+              const isClaimed  = (owned[decor.id] || 0) > 0;
+              return (
+                <div key={decor.id} className={`decor-award-card ${isUnlocked ? 'unlocked' : 'locked'}`}>
+                  <div className="decor-preview-wrap">
+                    <DecorPreview decor={decor} size={72} />
+                    {!isUnlocked && <div className="decor-locked-overlay">🔒</div>}
+                    {isClaimed && <div className="decor-stock-badge">In Tank</div>}
+                  </div>
+                  <div className="decor-card-info">
+                    <div className="decor-card-name">{decor.label}</div>
+                    <div className="decor-card-desc">{decor.desc}</div>
+                    <div className="decor-achievement-badge">
+                      🏆 {decor.achievementLabel}
+                    </div>
+                    <div className="decor-card-actions" style={{ marginTop: 6 }}>
+                      {isUnlocked ? (
+                        isClaimed ? (
+                          <button
+                            className="btn btn-sm btn-place"
+                            onClick={() => handleSelectPlace(decor.id)}
+                          >
+                            {selectedDecorType === decor.id ? '✕ Cancel' : '📍 Place'}
+                          </button>
+                        ) : (
+                          <button
+                            className="decor-claim-btn"
+                            onClick={() => { onClaimUnlockedDecor(decor.id); }}
+                          >
+                            ✨ Add to Inventory
+                          </button>
+                        )
+                      ) : (
+                        <span className="decor-locked-hint">
+                          Earn the <em>{decor.achievementLabel}</em> achievement to unlock
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       )}

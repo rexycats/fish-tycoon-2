@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import ToastManager, { fireToast } from './components/ToastManager.jsx';
 import { createDefaultState, saveGame, loadGame, addLog, checkAchievements, exportSave, importSave, ACHIEVEMENT_DEFS, createDefaultTank, TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
 import { processTick, applyOfflineProgress, TICK_INTERVAL_MS, refreshDailyChallenges, updateChallengeProgress } from './systems/gameTick.js';
-import { breedGenomes, createFish, MAGIC_FISH, checkMagicFishMatch, getFoundMagicFish } from './data/genetics.js';
+import { breedGenomes, createFish, MAGIC_FISH, checkMagicFishMatch } from './data/genetics.js';
 import { REAL_SPECIES_MAP } from './data/realSpecies.js';
 import { DECOR_CATALOG } from './data/decorations.js';
 import { generateFishName, generateFishLore, AI_ERRORS, getApiKey, setApiKey } from './services/aiService.js';
@@ -678,6 +678,28 @@ export default function App() {
     });
   }, [activeTank]);
 
+  // Claim an achievement-unlocked decoration into the active tank's inventory
+  const claimUnlockedDecoration = useCallback((decorId) => {
+    const decor = DECOR_CATALOG.find(d => d.id === decorId);
+    if (!decor) return;
+    setGame(prev => {
+      const tank = prev.tanks.find(t => t.id === activeTank?.id) || prev.tanks[0];
+      const currentOwned = tank.decorations?.owned || {};
+      // Already claimed into inventory — don't double-add
+      if ((currentOwned[decorId] || 0) > 0) return prev;
+      return addLog({
+        ...prev,
+        tanks: prev.tanks.map(t => t.id === tank.id ? {
+          ...t,
+          decorations: {
+            ...t.decorations,
+            owned: { ...currentOwned, [decorId]: 1 },
+          },
+        } : t),
+      }, `🎨 ${decor.label} added to your decoration inventory!`);
+    });
+  }, [activeTank]);
+
   const placeDecoration = useCallback((tankId, decorType, x, y, scale) => {
     setGame(prev => {
       const tank = prev.tanks.find(t => t.id === tankId);
@@ -1028,6 +1050,8 @@ export default function App() {
             onBuyDecor={buyDecoration}
             onPlaceDecor={placeDecoration}
             onRemoveDecor={removeDecoration}
+            unlockedDecorations={game.player.unlockedDecorations || []}
+            onClaimUnlockedDecor={claimUnlockedDecoration}
           />
         )}
         {activeTab === 'autopsy' && (
@@ -1341,6 +1365,11 @@ function MagicWinModal({ totalReward, onDismiss }) {
         </p>
         <div className="win-modal-reward">
           Total reward collected: <strong>🪙 {totalReward.toLocaleString()}</strong>
+        </div>
+        <div className="win-modal-unlocks">
+          <div className="win-unlock-item">🎨 <strong>Legend Throne</strong> decoration unlocked — check your Decor tab!</div>
+          <div className="win-unlock-item">🐉 <strong>Legend Fish</strong> species unlocked in the Fishdex!</div>
+          <div className="win-unlock-item">🏆 <strong>+🪙500</strong> achievement bonus awarded!</div>
         </div>
         <div className="win-modal-actions">
           <button className="btn btn-primary win-continue-btn" onClick={onDismiss}>

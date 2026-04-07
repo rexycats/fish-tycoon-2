@@ -2623,6 +2623,131 @@ body {
 }
 .ach-desc  { font-size: 0.75rem; color: #5a8ab0; }
 .ach-date  { font-size: 0.68rem; color: #3a5a7a; margin-top: 3px; }
+.ach-earned-coins { color: var(--gold); font-weight: 600; }
+
+/* Reward badges row on each achievement card */
+.ach-rewards-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+.ach-coin-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: 0.01em;
+}
+.ach-coin-badge--common  { background: rgba(90,180,120,0.18); color: #5ab478; border: 1px solid rgba(90,180,120,0.3); }
+.ach-coin-badge--rare    { background: rgba(140,100,230,0.18); color: #a076e0; border: 1px solid rgba(140,100,230,0.3); }
+.ach-coin-badge--secret  { background: rgba(240,192,48,0.18);  color: var(--gold); border: 1px solid rgba(240,192,48,0.35); }
+.ach-decor-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: rgba(80,160,220,0.14);
+  color: #60b0e8;
+  border: 1px solid rgba(80,160,220,0.28);
+  cursor: default;
+}
+.ach-legend-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: rgba(255,126,179,0.15);
+  color: #ff8ebb;
+  border: 1px solid rgba(255,126,179,0.32);
+  cursor: default;
+}
+
+/* Win modal unlock list */
+.win-modal-unlocks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0 4px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  text-align: left;
+}
+.win-unlock-item {
+  font-size: 0.82rem;
+  color: #b8d8f8;
+}
+.win-unlock-item strong { color: #f0e060; }
+
+/* Achievement-locked decoration badge in Decor panel */
+.decor-achievement-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(240,192,48,0.15);
+  color: var(--gold);
+  border: 1px solid rgba(240,192,48,0.3);
+  margin-top: 4px;
+}
+.decor-claim-btn {
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4a90d0, #2a60b0);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 5px;
+}
+.decor-claim-btn:hover { background: linear-gradient(135deg, #5aa0e0, #3a70c0); }
+
+/* Awards list in Decor panel */
+.decor-awards-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  padding: 4px 2px;
+}
+.decor-award-card {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  transition: background 0.15s;
+}
+.decor-award-card.unlocked {
+  border-color: rgba(240,192,48,0.3);
+  background: rgba(240,192,48,0.05);
+}
+.decor-award-card.locked { opacity: 0.55; filter: grayscale(0.5); }
+.decor-locked-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  background: rgba(0,0,0,0.45);
+  border-radius: 8px;
+}
+.decor-locked-hint {
+  font-size: 0.68rem;
+  color: #6a8aa8;
+  font-style: italic;
+  margin-top: 5px;
+  display: block;
+}
+
+
 
 .ach-badge {
   font-size: 1rem;
