@@ -6,6 +6,7 @@ import { DISEASES } from '../systems/gameTick.js';
 function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicineStock, foodStock = 0, tanks = [], onMoveFish }) {
   const prevFishId = useRef(null);
   const [entering, setEntering] = useState(false);
+  const [showGenetics, setShowGenetics] = useState(false);
 
   useEffect(() => {
     if (fish?.id !== prevFishId.current) {
@@ -37,7 +38,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
   const satietyPct = Math.max(0, 100 - Math.round(fish.hunger));
   const healthColor = disease ? '#ff4455' : healthPct > 70 ? '#3ddba0' : healthPct > 40 ? '#f5c542' : '#ff6055';
   const satietyColor = satietyPct > 70 ? '#5db8e8' : satietyPct > 40 ? '#f5a742' : '#ff6055';
-  const showGenetics = fish.genome && fish.species?.visualType !== 'species';
+  const hasGenetics = fish.genome && fish.species?.visualType !== 'species';
   const isLegendary = fish.species.rarity === 'legendary';
   const isEpic      = fish.species.rarity === 'epic';
   const rarityShimmer = isLegendary ? 'fp-hero--legendary' : isEpic ? 'fp-hero--epic' : '';
@@ -66,6 +67,10 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
 
   return (
     <div className={`fish-panel ${entering ? 'fish-panel--entering' : ''}`}>
+
+      {/* ── Step 5: Rarity color strip ── */}
+      <div className="fp-rarity-strip" style={{ background: rarity.color }} />
+
       <div className={`fp-hero ${rarityShimmer}`} style={{ '--rarity-color': rarity.color, '--rarity-color-dim': rarity.color + '22' }}>
         <div className="fp-hero-glow" style={{ background: rarity.color }} />
         <div className="fp-sprite-stage">
@@ -83,9 +88,15 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
           <h2 className="fp-name">{fish.species.name}</h2>
           <div className="fp-meta-row">
             <span className="fp-meta-chip">⏱ {ageMin}m old</span>
-            <span className="fp-meta-chip fp-meta-value">🪙 {salePrice}</span>
           </div>
         </div>
+      </div>
+
+      {/* ── Step 6: Prominent value display ── */}
+      <div className="fp-value-banner" style={{ '--rarity-color': rarity.color }}>
+        <span className="fp-value-coin">🪙</span>
+        <span className="fp-value-number">{salePrice}</span>
+        <span className="fp-value-label">sale value</span>
       </div>
 
       {disease && (
@@ -107,10 +118,16 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
         </div>
       )}
 
-      <div className="fp-vitals">
-        <div className="fp-vitals-label">Vitals</div>
-        <RichStatBar label="Health" value={healthPct} color={healthColor} icon="❤" />
-        <RichStatBar label="Satiety" value={satietyPct} color={satietyColor} icon="🍤" />
+      {/* ── Step 7: Grouped stats with section headers ── */}
+      <div className="fp-section">
+        <div className="fp-section-header">
+          <span className="fp-section-icon">❤️</span>
+          <span className="fp-section-title">Health</span>
+        </div>
+        <div className="fp-section-body">
+          <RichStatBar label="Health" value={healthPct} color={healthColor} icon="❤" />
+          <RichStatBar label="Satiety" value={satietyPct} color={satietyColor} icon="🍤" />
+        </div>
       </div>
 
       <div className="fp-actions">
@@ -129,18 +146,25 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
         )}
       </div>
 
-      {showGenetics && (
-        <div className="fp-genetics">
-          <div className="fp-genetics-label">Genetics</div>
-          <div className="fp-gene-grid">
-            {Object.entries(fish.phenotype).map(([gene, expressed]) => (
-              <div key={gene} className="fp-gene-row">
-                <span className="fp-gene-name">{GENES[gene]?.name}</span>
-                <span className="fp-gene-val">{expressed}</span>
-                <span className="fp-gene-raw">{fish.genome[gene]?.join('') ?? '??'}</span>
-              </div>
-            ))}
-          </div>
+      {/* ── Step 8: Collapsible genetics ── */}
+      {hasGenetics && (
+        <div className="fp-section fp-section--genetics">
+          <button className="fp-section-header fp-section-header--toggle" onClick={() => setShowGenetics(v => !v)}>
+            <span className="fp-section-icon">🧬</span>
+            <span className="fp-section-title">Genetics</span>
+            <span className="fp-toggle-arrow">{showGenetics ? '▲' : '▼'}</span>
+          </button>
+          {showGenetics && (
+            <div className="fp-section-body fp-gene-grid">
+              {Object.entries(fish.phenotype).map(([gene, expressed]) => (
+                <div key={gene} className="fp-gene-row">
+                  <span className="fp-gene-name">{GENES[gene]?.name}</span>
+                  <span className="fp-gene-val">{expressed}</span>
+                  <span className="fp-gene-raw">{fish.genome[gene]?.join('') ?? '??'}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

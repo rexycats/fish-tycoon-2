@@ -934,6 +934,8 @@ export default function App() {
     ['autopsy',    '🔬', 'Autopsy'],
     ['achieve',    '🏆', 'Awards'],
   ];
+  // Primary tabs get full visual weight; secondary tabs are dimmed to reduce clutter
+  const PRIMARY_TABS = new Set(['tank', 'shop', 'breed', 'challenges']);
   const activeTabIdx = TAB_LIST.findIndex(([t]) => t === activeTab);
 
   return (
@@ -1008,7 +1010,7 @@ export default function App() {
           return (
             <button
               key={tab}
-              className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
+              className={`tab-btn ${activeTab === tab ? 'active' : ''} ${!PRIMARY_TABS.has(tab) ? 'tab-btn--secondary' : ''}`}
               onClick={() => handleTabChange(tab)}
             >
               <span className="tab-btn-icon">{icon}</span>

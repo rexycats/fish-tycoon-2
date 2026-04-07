@@ -107,6 +107,11 @@ body {
 }
 .tab-btn:hover { color: rgba(180,210,255,0.8); background: rgba(255,255,255,0.025); }
 .tab-btn.active { color: var(--gold-light); }
+.tab-btn--secondary { opacity: 0.5; flex: 0.75; }
+.tab-btn--secondary .tab-btn-icon  { font-size: 12px; }
+.tab-btn--secondary .tab-btn-label { font-size: 8px; }
+.tab-btn--secondary:hover  { opacity: 0.85; }
+.tab-btn--secondary.active { opacity: 1; color: var(--gold-light); }
 .tab-btn-icon { font-size: 16px; }
 .tab-btn-label { font-size: 9px; text-transform: uppercase; }
 .tab-pill {
@@ -193,7 +198,7 @@ body {
 
 /* ── Log ──────────────────────────────────────────────────── */
 .log-panel { background: rgba(4,10,22,0.95); border-top: 1px solid rgba(16,40,90,0.6); }
-.log-entry { font-family: 'Space Mono', monospace; font-size: 10.5px; line-height: 1.5; padding: 3px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--text-dim); }
+.log-entry { font-family: 'Space Mono', monospace; font-size: 13px; line-height: 1.5; padding: 6px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text-dim); }
 .log-entry:first-child { color: var(--text-primary); }
 
 /* ── Shop ─────────────────────────────────────────────────── */
@@ -4848,10 +4853,112 @@ button:active, .btn:active, .action-btn:active {
   letter-spacing: 0.05em;
 }
 
+/* ── Step 5: Rarity color strip ── */
+.fp-rarity-strip {
+  height: 4px;
+  width: 100%;
+  flex-shrink: 0;
+  border-radius: 0;
+  transition: background 0.4s ease;
+  box-shadow: 0 0 12px var(--rarity-color, #888);
+}
+
+/* ── Step 6: Prominent value banner ── */
+.fp-value-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(90deg, rgba(212,168,48,0.06), rgba(212,168,48,0.12), rgba(212,168,48,0.06));
+  border-bottom: 1px solid rgba(212,168,48,0.18);
+  position: relative;
+}
+.fp-value-coin {
+  font-size: 20px;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px rgba(212,168,48,0.7));
+}
+.fp-value-number {
+  font-family: 'Cinzel', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #f5d060;
+  text-shadow: 0 0 16px rgba(212,168,48,0.6), 0 0 32px rgba(212,168,48,0.3);
+  line-height: 1;
+  letter-spacing: 0.03em;
+}
+.fp-value-label {
+  font-size: 10px;
+  color: rgba(212,168,48,0.55);
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  align-self: flex-end;
+  margin-bottom: 3px;
+}
+
+/* ── Step 7: Grouped stat sections ── */
+.fp-section {
+  border-bottom: 1px solid var(--panel-border);
+}
+.fp-section-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px 0;
+  margin-bottom: 8px;
+}
+.fp-section-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+.fp-section-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  opacity: 0.75;
+  flex: 1;
+}
+.fp-section-body {
+  padding: 0 16px 12px;
+}
+
+/* ── Step 8: Collapsible genetics toggle ── */
+.fp-section--genetics {
+  border-bottom: 1px solid var(--panel-border);
+}
+.fp-section-header--toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 14px;
+  margin-bottom: 0;
+  transition: background 0.15s;
+  border-radius: 0;
+}
+.fp-section-header--toggle:hover {
+  background: rgba(255,255,255,0.04);
+}
+.fp-toggle-arrow {
+  font-size: 9px;
+  color: var(--text-dim);
+  opacity: 0.5;
+  margin-left: auto;
+}
+.fp-section--genetics .fp-gene-grid {
+  padding: 0 14px 12px;
+}
+
 /* ── Move tank section ── */
 .fp-move {
   padding: 10px 14px 12px;
 }
+
 .fp-move-label {
   font-size: 10px;
   font-weight: 700;
@@ -5222,6 +5329,23 @@ button:active, .btn:active, .action-btn:active {
 }
 .tab-btn:hover  { color: var(--text-primary); background: rgba(255,255,255,0.03); }
 .tab-btn.active { color: var(--gold); }
+
+/* Secondary tabs — visually de-emphasised to reduce cognitive load */
+.tab-btn--secondary {
+  opacity: 0.5;
+  flex: 0.75;               /* slightly narrower than primary tabs */
+}
+.tab-btn--secondary .tab-btn-icon  { font-size: 12px; }
+.tab-btn--secondary .tab-btn-label { font-size: 8px; opacity: 0.8; }
+.tab-btn--secondary:hover  { opacity: 0.8; color: var(--text-primary); }
+.tab-btn--secondary.active { opacity: 1; color: var(--gold); }
+
+/* Divider between primary and secondary groups */
+.tab-btn--secondary:first-of-type {
+  border-left: 1px solid rgba(255,255,255,0.08);
+  margin-left: 2px;
+  padding-left: 6px;
+}
 
 .tab-btn-icon  { font-size: 15px; line-height: 1; }
 .tab-btn-label { font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
@@ -6531,33 +6655,95 @@ button:active, .btn:active, .action-btn:active {
 }
 
 .log-entries {
-  max-height: 180px;
+  max-height: 220px;
   overflow-y: auto;
-  padding: 4px 0;
+  padding: 6px 0;
 }
 
 .log-entry {
   display: flex;
   gap: 8px;
-  padding: 4px 12px;
-  font-size: 12px;
-  line-height: 1.4;
+  padding: 6px 12px;           /* Step 3: more vertical breathing room */
+  font-size: 13px;             /* Step 3: up from 12px — less "debug log" */
+  line-height: 1.5;
   border-left: 2px solid transparent;
+  transition: background 0.15s;
 }
 
+/* Step 4 — Notable: bold text + faint background lift */
+.log-entry--notable {
+  font-weight: 600;
+}
+.log-entry--notable .log-entry-msg {
+  color: inherit;
+  filter: brightness(1.2);
+}
+.log-entry--notable .log-entry-icon {
+  filter: drop-shadow(0 0 3px currentColor);
+}
+
+/* Step 4 — Epic: bold + animated glow for discoveries & magic fish */
+.log-entry--epic {
+  font-weight: 700;
+  background: rgba(160,110,255,0.08) !important;
+  border-left-color: #b06fff !important;
+  color: #d4aaff !important;
+  animation: log-pulse 2.5s ease-in-out infinite;
+}
+.log-entry--epic .log-entry-icon {
+  filter: drop-shadow(0 0 5px #c080ff);
+  animation: log-icon-spin 4s linear infinite;
+}
+.log-entry--epic .log-entry-msg {
+  color: #ddbfff;
+}
+
+@keyframes log-pulse {
+  0%, 100% { background: rgba(160,110,255,0.08); }
+  50%       { background: rgba(160,110,255,0.16); }
+}
+@keyframes log-icon-spin {
+  0%   { filter: drop-shadow(0 0 4px #c080ff) hue-rotate(0deg);   }
+  100% { filter: drop-shadow(0 0 4px #c080ff) hue-rotate(360deg); }
+}
+
+/* error / critical → red */
 .log-entry--critical {
-  border-left-color: #ff6060;
-  background: rgba(255,60,60,0.05);
-  color: #ffaaaa;
+  border-left-color: #f55;
+  background: rgba(255,60,60,0.07);
+  color: #ffb3b3;
 }
 
+/* warning → amber/yellow */
 .log-entry--warn {
   border-left-color: #f0c040;
-  color: rgba(220,200,140,0.9);
+  background: rgba(240,192,64,0.05);
+  color: #f0d080;
 }
 
+/* success → green */
+.log-entry--success {
+  border-left-color: #4caf82;
+  background: rgba(76,175,130,0.06);
+  color: #7de8b0;
+}
+
+/* info → muted blue-gray */
 .log-entry--info {
-  color: rgba(140,180,230,0.7);
+  border-left-color: rgba(100,140,200,0.25);
+  color: rgba(140,180,230,0.65);
+}
+
+.log-entry-icon {
+  font-size: 13px;
+  line-height: 1;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+  /* vertically nudge emoji to sit on the text baseline */
+  margin-top: 1px;
+  /* prevent icon from stretching row height on tall emoji */
+  align-self: flex-start;
 }
 
 .log-entry-time {
@@ -6826,7 +7012,7 @@ button:active, .btn:active, .action-btn:active {
 /* #3 – Bump tiny text sizes */
 .tab-btn-label           { font-size: 11px !important; }
 .tank-tab-name           { font-size: 11px !important; }
-.log-entry               { font-size: 11.5px !important; }
+.log-entry               { font-size: 13px !important; }
 .fp-vitals-label,
 .fp-genetics-label       { font-size: 11px !important; }
 .fp-action-label         { font-size: 11px !important; }
