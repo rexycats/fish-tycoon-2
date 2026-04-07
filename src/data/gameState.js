@@ -24,29 +24,29 @@ export const TANK_UNLOCK = [
 
 // ── Achievement definitions ────────────────────────────────
 export const ACHIEVEMENT_DEFS = [
-  { id: 'first_fish',      label: 'Aquarist',         desc: 'Discover your first species',         emoji: '🐟', secret: false },
-  { id: 'species_5',       label: 'Explorer',          desc: 'Discover 5 different species',        emoji: '🔍', secret: false },
-  { id: 'species_10',      label: 'Geneticist',        desc: 'Discover 10 different species',       emoji: '🧬', secret: false },
-  { id: 'species_25',      label: 'Taxonomist',        desc: 'Discover 25 different species',       emoji: '📖', secret: false },
-  { id: 'first_sale',      label: 'Merchant',          desc: 'Make your first sale',                emoji: '🏪', secret: false },
-  { id: 'coins_500',       label: 'Entrepreneur',      desc: 'Earn 500 total coins from sales',     emoji: '🪙', secret: false },
-  { id: 'coins_5000',      label: 'Tycoon',            desc: 'Earn 5,000 total coins from sales',   emoji: '💰', secret: false },
-  { id: 'coins_50000',     label: 'Mogul',             desc: 'Earn 50,000 total coins from sales',  emoji: '🤑', secret: true  },
-  { id: 'rare_discovery',  label: 'Rare Find',         desc: 'Discover a rare species',             emoji: '💎', secret: false },
-  { id: 'epic_discovery',  label: 'Legendary Catch',   desc: 'Discover an epic species',            emoji: '✨', secret: true  },
-  { id: 'full_tank',       label: 'Full House',        desc: 'Fill any tank to capacity',           emoji: '🐠', secret: false },
-  { id: 'bred_5',          label: 'Matchmaker',        desc: 'Breed 5 batches of eggs',             emoji: '💕', secret: false },
-  { id: 'bred_20',         label: 'Speed Breeder',     desc: 'Breed 20 batches of eggs',            emoji: '⚡', secret: false },
-  { id: 'tank_happy',      label: 'Happy Habitat',     desc: 'Reach 100% tank happiness',           emoji: '😊', secret: false },
-  { id: 'upgrade_max',     label: 'Maximalist',        desc: 'Max out any shop upgrade',            emoji: '⬆️', secret: false },
-  { id: 'fish_rescued',    label: 'Healer',            desc: 'Use medicine on a sick fish',         emoji: '💊', secret: false },
-  { id: 'water_pristine',  label: 'Pure Waters',       desc: 'Treat water back to 100% quality',   emoji: '🧪', secret: false },
-  { id: 'survived_night',  label: 'Night Watch',       desc: 'Keep all fish alive overnight',       emoji: '🌙', secret: true  },
-  { id: 'two_tanks',       label: 'Expanding Empire',  desc: 'Unlock a second tank',               emoji: '🏗️', secret: false },
-  { id: 'three_tanks',     label: 'Aquarium Baron',    desc: 'Unlock all three tanks',             emoji: '👑', secret: true  },
-  { id: 'magic_1',         label: 'First Wonder',      desc: 'Discover the first Magic Fish',      emoji: '🔮', secret: false },
-  { id: 'magic_3',         label: 'Halfway There',     desc: 'Discover 3 of the 7 Magic Fish',     emoji: '✨', secret: false },
-  { id: 'magic_7',         label: 'Legend of the Deep',desc: 'Discover all 7 Magic Fish',          emoji: '🌟', secret: true  },
+  { id: 'first_fish',      label: 'Aquarist',         desc: 'Discover your first species',         emoji: '🐟', secret: false, tier: 'common' },
+  { id: 'species_5',       label: 'Explorer',          desc: 'Discover 5 different species',        emoji: '🔍', secret: false, tier: 'common' },
+  { id: 'species_10',      label: 'Geneticist',        desc: 'Discover 10 different species',       emoji: '🧬', secret: false, tier: 'rare'   },
+  { id: 'species_25',      label: 'Taxonomist',        desc: 'Discover 25 different species',       emoji: '📖', secret: false, tier: 'rare'   },
+  { id: 'first_sale',      label: 'Merchant',          desc: 'Make your first sale',                emoji: '🏪', secret: false, tier: 'common' },
+  { id: 'coins_500',       label: 'Entrepreneur',      desc: 'Earn 500 total coins from sales',     emoji: '🪙', secret: false, tier: 'common' },
+  { id: 'coins_5000',      label: 'Tycoon',            desc: 'Earn 5,000 total coins from sales',   emoji: '💰', secret: false, tier: 'rare'   },
+  { id: 'coins_50000',     label: 'Mogul',             desc: 'Earn 50,000 total coins from sales',  emoji: '🤑', secret: true,  tier: 'secret' },
+  { id: 'rare_discovery',  label: 'Rare Find',         desc: 'Discover a rare species',             emoji: '💎', secret: false, tier: 'common' },
+  { id: 'epic_discovery',  label: 'Legendary Catch',   desc: 'Discover an epic species',            emoji: '✨', secret: true,  tier: 'secret' },
+  { id: 'full_tank',       label: 'Full House',        desc: 'Fill any tank to capacity',           emoji: '🐠', secret: false, tier: 'common' },
+  { id: 'bred_5',          label: 'Matchmaker',        desc: 'Breed 5 batches of eggs',             emoji: '💕', secret: false, tier: 'common' },
+  { id: 'bred_20',         label: 'Speed Breeder',     desc: 'Breed 20 batches of eggs',            emoji: '⚡', secret: false, tier: 'rare'   },
+  { id: 'tank_happy',      label: 'Happy Habitat',     desc: 'Reach 100% tank happiness',           emoji: '😊', secret: false, tier: 'common' },
+  { id: 'upgrade_max',     label: 'Maximalist',        desc: 'Max out any shop upgrade',            emoji: '⬆️', secret: false, tier: 'rare'   },
+  { id: 'fish_rescued',    label: 'Healer',            desc: 'Use medicine on a sick fish',         emoji: '💊', secret: false, tier: 'common' },
+  { id: 'water_pristine',  label: 'Pure Waters',       desc: 'Treat water back to 100% quality',   emoji: '🧪', secret: false, tier: 'common' },
+  { id: 'survived_night',  label: 'Night Watch',       desc: 'Keep all fish alive overnight',       emoji: '🌙', secret: true,  tier: 'secret' },
+  { id: 'two_tanks',       label: 'Expanding Empire',  desc: 'Unlock a second tank',               emoji: '🏗️', secret: false, tier: 'common' },
+  { id: 'three_tanks',     label: 'Aquarium Baron',    desc: 'Unlock all three tanks',             emoji: '👑', secret: true,  tier: 'secret' },
+  { id: 'magic_1',         label: 'First Wonder',      desc: 'Discover the first Magic Fish',      emoji: '🔮', secret: false, tier: 'rare'   },
+  { id: 'magic_3',         label: 'Halfway There',     desc: 'Discover 3 of the 7 Magic Fish',     emoji: '✨', secret: false, tier: 'rare'   },
+  { id: 'magic_7',         label: 'Legend of the Deep',desc: 'Discover all 7 Magic Fish',          emoji: '🌟', secret: true,  tier: 'secret' },
 ];
 
 // ── Default tank factory ───────────────────────────────────
@@ -65,7 +65,10 @@ export function createDefaultTank(id, type = 'display') {
     decorations: getDefaultDecorations(),
     supplies: {
       food: 40,
-      medicine: 5,
+      medicine: 0,           // legacy key — kept at 0 so old saves don't break
+      antibiotic: 3,
+      antiparasitic: 2,
+      digestiveRemedy: 2,
       waterTreatment: 8,
       heater: 0,
       breedingBoost: 0,
@@ -104,6 +107,11 @@ export function createDefaultState() {
       purchased: [],        // [{ day, itemId }]
     },
 
+    dailyChallenges: {
+      day: 0,               // UTC day number when challenges were generated
+      challenges: [],       // [{ id, desc, emoji, goal, progress, reward, completed }]
+    },
+
     tanks: [tank0],
     fish: starterFish,
 
@@ -116,13 +124,14 @@ export function createDefaultState() {
       lastCustomerAt: 0,
       salesHistory: [],
       upgrades: {
-        slot:       { level: 0, maxLevel: 5, cost: 80,   label: 'Extra Slot',              description: '+1 sale slot per level' },
-        reputation: { level: 0, maxLevel: 5, cost: 120,  label: 'Advertising',             description: 'Customers arrive faster' },
-        capacity:   { level: 0, maxLevel: 5, cost: 150,  label: 'Tank Expansion',          description: '+4 fish capacity (active tank)' },
-        breeding:   { level: 0, maxLevel: 5, cost: 200,  label: 'Speed Breeding',          description: '-25% breed time per level' },
+        slot:       { level: 0, maxLevel: 7, cost: 80,   label: 'Extra Slot',              description: '+1 sale slot per level (up to +7)' },
+        reputation: { level: 0, maxLevel: 7, cost: 120,  label: 'Advertising',             description: 'Customers arrive faster (up to −75% interval)' },
+        capacity:   { level: 0, maxLevel: 7, cost: 150,  label: 'Tank Expansion',          description: '+4 fish capacity per level (up to +28)' },
+        breeding:   { level: 0, maxLevel: 7, cost: 200,  label: 'Speed Breeding',          description: '−20% breed time per level (up to −80%)' },
         lighting:   { level: 0, maxLevel: 3, cost: 350,  label: 'Premium Display Lighting',description: '+10% sale price per level' },
         vip:        { level: 0, maxLevel: 3, cost: 500,  label: 'VIP Membership',          description: 'Wealthy Patrons visit sooner & more often' },
         hatchery:   { level: 0, maxLevel: 3, cost: 450,  label: 'Hatchery',                description: '-15% egg & juvenile grow time per level' },
+        tankSitter: { level: 0, maxLevel: 3, cost: 600,  label: 'Tank Sitter',             description: '+24h offline progress cap per level (base: 48h)' },
       },
     },
 
@@ -130,7 +139,7 @@ export function createDefaultState() {
       slots: [null, null],
       eggReady: false,
       breedingStartedAt: null,
-      breedingDurationMs: 30_000,
+      breedingDurationMs: 300_000,
       storedGenomeA: null,
       storedGenomeB: null,
       storedGenomeC: null,
@@ -139,7 +148,7 @@ export function createDefaultState() {
 
     log: [
       { time: Date.now(), message: '🐠 Welcome to Fish Tycoon 2! Your aquarium awaits.' },
-      { time: Date.now() - 1, message: '🎁 Starter bundle: 325 coins, extra food, medicine & water treatment included.' },
+      { time: Date.now() - 1, message: '🎁 Starter bundle: 325 coins, food, water treatment, antibiotic, antiparasitic & digestive remedy included.' },
     ],
   };
 }
@@ -183,13 +192,14 @@ function migrateSave(parsed) {
   // Migrate maxLevel and new upgrade categories into old saves
   if (parsed.shop?.upgrades) {
     const u = parsed.shop.upgrades;
-    if (!u.slot.maxLevel)       u.slot       = { ...u.slot,       maxLevel: 5, description: '+1 sale slot per level' };
-    if (!u.reputation?.maxLevel) u.reputation = { ...(u.reputation||{}), maxLevel: 5 };
-    if (!u.capacity?.maxLevel)  u.capacity   = { ...(u.capacity||{}),   maxLevel: 5 };
-    if (!u.breeding?.maxLevel)  u.breeding   = { ...(u.breeding||{}),   maxLevel: 5, description: '-25% breed time per level' };
-    if (!u.lighting)  u.lighting  = { level: 0, maxLevel: 3, cost: 350,  label: 'Premium Display Lighting', description: '+10% sale price per level' };
-    if (!u.vip)       u.vip       = { level: 0, maxLevel: 3, cost: 500,  label: 'VIP Membership',           description: 'Wealthy Patrons visit sooner & more often' };
-    if (!u.hatchery)  u.hatchery  = { level: 0, maxLevel: 3, cost: 450,  label: 'Hatchery',                 description: '-15% egg & juvenile grow time per level' };
+    if (!u.slot.maxLevel || u.slot.maxLevel < 7)       u.slot       = { ...u.slot,       maxLevel: 7, description: '+1 sale slot per level (up to +7)' };
+    if (!u.reputation?.maxLevel || u.reputation.maxLevel < 7) u.reputation = { ...(u.reputation||{}), maxLevel: 7, description: 'Customers arrive faster (up to −75% interval)' };
+    if (!u.capacity?.maxLevel || u.capacity.maxLevel < 7)  u.capacity   = { ...(u.capacity||{}),   maxLevel: 7, description: '+4 fish capacity per level (up to +28)' };
+    if (!u.breeding?.maxLevel || u.breeding.maxLevel < 7)  u.breeding   = { ...(u.breeding||{}),   maxLevel: 7, description: '−20% breed time per level (up to −80%)' };
+    if (!u.lighting)    u.lighting    = { level: 0, maxLevel: 3, cost: 350,  label: 'Premium Display Lighting', description: '+10% sale price per level' };
+    if (!u.vip)         u.vip         = { level: 0, maxLevel: 3, cost: 500,  label: 'VIP Membership',           description: 'Wealthy Patrons visit sooner & more often' };
+    if (!u.hatchery)    u.hatchery    = { level: 0, maxLevel: 3, cost: 450,  label: 'Hatchery',                 description: '-15% egg & juvenile grow time per level' };
+    if (!u.tankSitter)  u.tankSitter  = { level: 0, maxLevel: 3, cost: 600,  label: 'Tank Sitter',              description: '+24h offline progress cap per level (base: 48h)' };
   }
   if (!parsed.player.magicFishFound) parsed.player.magicFishFound = [];
   if (!parsed.player.autopsies) parsed.player.autopsies = [];
@@ -204,7 +214,7 @@ function migrateSave(parsed) {
   if (!parsed.breedingTank) {
     parsed.breedingTank = {
       slots: [null, null], eggReady: false, breedingStartedAt: null,
-      breedingDurationMs: 30000, storedGenomeA: null, storedGenomeB: null, storedTankId: null,
+      breedingDurationMs: 300000, storedGenomeA: null, storedGenomeB: null, storedTankId: null,
     };
   }
   // Guard breedingTank.slots not an array
@@ -233,6 +243,23 @@ function migrateSave(parsed) {
   }
   if (!parsed.player.boosts)    parsed.player.boosts = {};
   if (!parsed.rareMarket) parsed.rareMarket = { lastRefreshDay: 0, purchased: [] };
+  if (!parsed.dailyChallenges) parsed.dailyChallenges = { day: 0, challenges: [] };
+  // Migrate medicine → distinct treatments on old saves
+  parsed.tanks = (parsed.tanks || []).map(t => {
+    const s = t.supplies || {};
+    if (s.antibiotic !== undefined) return t; // already migrated
+    const legacy = s.medicine || 0;
+    return {
+      ...t,
+      supplies: {
+        ...s,
+        medicine: 0,
+        antibiotic:      legacy > 0 ? legacy : 3,
+        antiparasitic:   legacy > 0 ? Math.max(1, Math.floor(legacy / 2)) : 2,
+        digestiveRemedy: legacy > 0 ? Math.max(1, Math.floor(legacy / 2)) : 2,
+      },
+    };
+  });
   parsed.version = SAVE_VERSION;
   return parsed;
 }
@@ -312,6 +339,8 @@ export function addLog(state, message) {
 }
 
 // ── Achievements ───────────────────────────────────────────
+const ACHIEVEMENT_TIER_REWARDS = { common: 25, rare: 100, secret: 500 };
+
 export function checkAchievements(state, messages) {
   // Guard against corrupt state
   if (!state?.player || !state?.fish || !state?.tanks) return state;
@@ -320,14 +349,17 @@ export function checkAchievements(state, messages) {
 
   const earned = new Set((state.player.achievements || []).map(a => a.id));
   const newAchievements = [];
+  let coinsAwarded = 0;
 
   function award(id) {
     if (earned.has(id)) return;
     const def = ACHIEVEMENT_DEFS.find(d => d.id === id);
     if (!def) return;
-    newAchievements.push({ id, unlockedAt: Date.now() });
+    const reward = ACHIEVEMENT_TIER_REWARDS[def.tier] ?? ACHIEVEMENT_TIER_REWARDS.common;
+    newAchievements.push({ id, unlockedAt: Date.now(), reward });
+    coinsAwarded += reward;
     earned.add(id);
-    messages.push(`🏆 Achievement unlocked: ${def.emoji} ${def.label}!`);
+    messages.push(`🏆 Achievement unlocked: ${def.emoji} ${def.label}! +🪙${reward}`);
   }
 
   const { player, fish, tanks, shop } = state;
@@ -372,5 +404,12 @@ export function checkAchievements(state, messages) {
   }
 
   if (newAchievements.length === 0) return state;
-  return { ...state, player: { ...player, achievements: [...player.achievements, ...newAchievements] } };
+  return {
+    ...state,
+    player: {
+      ...player,
+      coins: (player.coins || 0) + coinsAwarded,
+      achievements: [...player.achievements, ...newAchievements],
+    },
+  };
 }

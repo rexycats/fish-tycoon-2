@@ -123,6 +123,7 @@ const UPGRADE_ICONS = {
   lighting:   '💡',
   vip:        '💎',
   hatchery:   '🥚',
+  tankSitter: '🌙',
 };
 
 function UpgradeCard({ id, upgrade, coins, onBuy }) {
@@ -412,7 +413,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
 
       {shopTab === 'upgrades' && (
         <div className="upgrades-panel">
-          <p className="upgrade-hint">Invest your coins to grow your shop and breed better fish faster. All four original upgrades now go to level 5 — and three new advanced tiers await.</p>
+          <p className="upgrade-hint">Invest your coins to grow your shop and breed better fish faster. Core upgrades now go to level 7 — and four advanced tiers await high-rollers.</p>
 
           <div className="section-title" style={{ marginBottom: '0.5rem' }}>Core Upgrades</div>
           <div className="upgrades-grid">
@@ -424,7 +425,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
 
           <div className="section-title" style={{ margin: '1rem 0 0.5rem' }}>Advanced Upgrades</div>
           <div className="upgrades-grid">
-            {['lighting', 'vip', 'hatchery'].map(id => {
+            {['lighting', 'vip', 'hatchery', 'tankSitter'].map(id => {
               const upg = shop.upgrades?.[id];
               return upg ? <UpgradeCard key={id} id={id} upgrade={upg} coins={player.coins} onBuy={onBuyUpgrade} /> : null;
             })}
@@ -460,11 +461,13 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
             <p className="fish-list-empty">No tank selected.</p>
           ) : (
             <div className="supplies-grid">
-              <SupplyCard name="Fish Food"        emoji="🍤" stock={tank.supplies?.food ?? 0}               cost={10} amount={10} coins={player.coins} desc="Reduces hunger for all fish"           onBuy={() => onBuySupply('food',          10, 10)} />
-              <SupplyCard name="Water Treatment"  emoji="🧪" stock={tank.supplies?.waterTreatment ?? 0}     cost={25} amount={3}  coins={player.coins} desc="Restore water quality by 35%"         onBuy={() => onBuySupply('waterTreatment', 25, 3)} />
-              <SupplyCard name="Medicine"         emoji="💊" stock={tank.supplies?.medicine ?? 0}           cost={40} amount={2}  coins={player.coins} desc="Restores sick fish to full health"     onBuy={() => onBuySupply('medicine',       40, 2)} />
-              <SupplyCard name="Breeding Boost"   emoji="💉" stock={tank.supplies?.breedingBoost ?? 0}      cost={60} amount={1}  coins={player.coins} desc="Next breeding takes only 10 seconds"  onBuy={() => onBuySupply('breedingBoost',  60, 1)} />
-              <SupplyCard name="Heater Cartridge" emoji="🌡" stock={tank.supplies?.heater ?? 0}             cost={30} amount={2}  coins={player.coins} desc="Nudges temperature 4°F toward 74°F"  onBuy={() => onBuySupply('heater',         30, 2)} />
+              <SupplyCard name="Fish Food"          emoji="🍤" stock={tank.supplies?.food ?? 0}               cost={10} amount={10} coins={player.coins} desc="Reduces hunger for all fish"                          onBuy={() => onBuySupply('food',             10, 10)} />
+              <SupplyCard name="Water Treatment"    emoji="🧪" stock={tank.supplies?.waterTreatment ?? 0}     cost={25} amount={3}  coins={player.coins} desc="Restore water quality by 35%"                       onBuy={() => onBuySupply('waterTreatment',   25,  3)} />
+              <SupplyCard name="Antibiotic"         emoji="💊" stock={tank.supplies?.antibiotic ?? 0}         cost={35} amount={2}  coins={player.coins} desc="Cures Ich and Fin Rot (bacterial infections)"        onBuy={() => onBuySupply('antibiotic',       35,  2)} />
+              <SupplyCard name="Antiparasitic"      emoji="🔬" stock={tank.supplies?.antiparasitic ?? 0}      cost={50} amount={2}  coins={player.coins} desc="Cures Velvet (parasitic infection)"                  onBuy={() => onBuySupply('antiparasitic',    50,  2)} />
+              <SupplyCard name="Digestive Remedy"   emoji="🟡" stock={tank.supplies?.digestiveRemedy ?? 0}    cost={30} amount={2}  coins={player.coins} desc="Cures Bloat (digestive illness)"                    onBuy={() => onBuySupply('digestiveRemedy',  30,  2)} />
+              <SupplyCard name="Breeding Boost"     emoji="💉" stock={tank.supplies?.breedingBoost ?? 0}      cost={60} amount={1}  coins={player.coins} desc="Next breeding takes only 10 seconds"                 onBuy={() => onBuySupply('breedingBoost',    60,  1)} />
+              <SupplyCard name="Heater Cartridge"   emoji="🌡" stock={tank.supplies?.heater ?? 0}             cost={30} amount={2}  coins={player.coins} desc="Nudges temperature 4°F toward 74°F"                 onBuy={() => onBuySupply('heater',           30,  2)} />
             </div>
           )}
         </div>

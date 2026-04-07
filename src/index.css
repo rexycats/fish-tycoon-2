@@ -6323,3 +6323,340 @@ button:active, .btn:active, .action-btn:active {
   padding-top: 4px;
   border-top: 1px solid rgba(80,130,210,0.1);
 }
+
+/* ── Log Panel with Severity Filtering ── */
+.log-panel {
+  background: rgba(10,20,40,0.7);
+  border: 1px solid rgba(80,130,210,0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.log-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(20,40,80,0.6);
+  border-bottom: 1px solid rgba(80,130,210,0.15);
+  user-select: none;
+}
+
+.log-panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(160,200,255,0.85);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.log-alert-badge {
+  background: rgba(255,80,80,0.2);
+  color: #ff8080;
+  border: 1px solid rgba(255,80,80,0.35);
+  border-radius: 10px;
+  font-size: 11px;
+  padding: 1px 7px;
+  font-weight: 700;
+}
+
+.log-panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.log-filter-btn {
+  padding: 3px 8px;
+  font-size: 11px;
+  border-radius: 5px;
+  border: 1px solid rgba(80,130,210,0.3);
+  background: transparent;
+  color: rgba(160,200,255,0.6);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.log-filter-btn.active, .log-filter-btn:hover {
+  background: rgba(80,130,210,0.2);
+  color: rgba(160,200,255,0.95);
+}
+
+.log-filter-btn--critical.active {
+  background: rgba(255,80,80,0.15);
+  border-color: rgba(255,80,80,0.4);
+  color: #ff9090;
+}
+
+.log-filter-btn--warn.active {
+  background: rgba(240,192,64,0.15);
+  border-color: rgba(240,192,64,0.4);
+  color: #f0c040;
+}
+
+.log-collapse-btn {
+  padding: 2px 6px;
+  font-size: 11px;
+  border: none;
+  background: transparent;
+  color: rgba(160,200,255,0.4);
+  cursor: pointer;
+}
+
+.log-entries {
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.log-entry {
+  display: flex;
+  gap: 8px;
+  padding: 4px 12px;
+  font-size: 12px;
+  line-height: 1.4;
+  border-left: 2px solid transparent;
+}
+
+.log-entry--critical {
+  border-left-color: #ff6060;
+  background: rgba(255,60,60,0.05);
+  color: #ffaaaa;
+}
+
+.log-entry--warn {
+  border-left-color: #f0c040;
+  color: rgba(220,200,140,0.9);
+}
+
+.log-entry--info {
+  color: rgba(140,180,230,0.7);
+}
+
+.log-entry-time {
+  color: rgba(100,140,200,0.45);
+  font-size: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.log-entry-msg { flex: 1; }
+
+.log-empty {
+  padding: 12px;
+  text-align: center;
+  color: rgba(120,160,210,0.4);
+  font-size: 12px;
+}
+
+/* ── Aquarium Overview Panel ── */
+.aquarium-overview {
+  background: rgba(10,20,40,0.75);
+  border: 1px solid rgba(80,130,210,0.25);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.aquarium-overview-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(160,200,255,0.75);
+  margin-bottom: 10px;
+}
+
+.aquarium-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.overview-card {
+  background: rgba(20,40,80,0.5);
+  border: 1px solid rgba(80,130,210,0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.overview-card:hover {
+  background: rgba(30,55,100,0.6);
+  border-color: rgba(100,160,255,0.4);
+}
+
+.overview-card--active {
+  border-color: rgba(100,180,255,0.55);
+  background: rgba(30,60,110,0.6);
+}
+
+.overview-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(180,215,255,0.9);
+  margin-bottom: 6px;
+}
+
+.overview-alert {
+  color: #ff8080;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.overview-card-counts {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(140,185,240,0.75);
+  margin-bottom: 8px;
+}
+
+.overview-capacity {
+  color: rgba(100,140,200,0.45);
+}
+
+.overview-bars { display: flex; flex-direction: column; gap: 5px; }
+
+.overview-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.overview-bar-label { font-size: 11px; width: 16px; flex-shrink: 0; }
+
+.overview-bar-track {
+  flex: 1;
+  height: 5px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.overview-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.overview-bar-val {
+  font-size: 10px;
+  color: rgba(140,185,240,0.55);
+  width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Daily Challenges Panel ── */
+.challenges-panel {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.challenges-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.challenges-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(180,215,255,0.95);
+  margin: 0 0 4px;
+}
+
+.challenges-subtitle {
+  font-size: 13px;
+  color: rgba(120,165,220,0.6);
+  margin: 0;
+}
+
+.challenges-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.challenge-card {
+  background: rgba(15,30,60,0.75);
+  border: 1px solid rgba(80,130,210,0.25);
+  border-radius: 12px;
+  padding: 14px 16px;
+  transition: border-color 0.2s;
+}
+
+.challenge-card--done {
+  border-color: rgba(126,200,160,0.5);
+  background: rgba(15,40,30,0.5);
+}
+
+.challenge-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.challenge-emoji {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.challenge-info { flex: 1; }
+
+.challenge-desc {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(180,215,255,0.9);
+  margin-bottom: 3px;
+}
+
+.challenge-progress-text {
+  font-size: 12px;
+  color: rgba(120,165,220,0.65);
+}
+
+.challenge-reward {
+  font-size: 15px;
+  font-weight: 700;
+  color: #d4a830;
+  white-space: nowrap;
+}
+
+.challenge-bar-track {
+  height: 8px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.challenge-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.challenges-complete-banner {
+  margin-top: 20px;
+  text-align: center;
+  padding: 14px;
+  background: rgba(126,200,160,0.12);
+  border: 1px solid rgba(126,200,160,0.35);
+  border-radius: 10px;
+  color: #7ec8a0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.challenges-empty {
+  text-align: center;
+  color: rgba(120,165,220,0.4);
+  padding: 30px;
+  font-size: 14px;
+}

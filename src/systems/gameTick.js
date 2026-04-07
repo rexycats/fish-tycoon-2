@@ -19,8 +19,8 @@ const HEALTH_REGEN       = 0.01;
 // based on happiness + placed decoration count. Max ~3 coins/min/tank —
 // meaningful during fish-dry spells, negligible vs active selling.
 const PASSIVE_INCOME_INTERVAL = 60;   // ticks (= 1 real minute)
-const PASSIVE_INCOME_BASE     = 2;    // coins/min at 100% happiness, 0 decor
-const PASSIVE_DECOR_BONUS     = 0.15; // +15% per placed decoration, capped at 10
+const PASSIVE_INCOME_BASE     = 4;    // coins/min at 100% happiness, 0 decor
+const PASSIVE_DECOR_BONUS     = 0.25; // +25% per placed decoration, capped at 10
 
 // --- DISEASE SYSTEM ---
 export const DISEASES = {
@@ -30,7 +30,8 @@ export const DISEASES = {
     healthDmgPerSec: 0.08,
     spreadChancePerSec: 0.003,
     color: '#ff4444',
-    curedBy: 'medicine',
+    curedBy: 'antibiotic',
+    treatmentName: 'Antibiotic',
   },
   fin_rot: {
     id: 'fin_rot', name: 'Fin Rot', emoji: '🟤',
@@ -38,7 +39,8 @@ export const DISEASES = {
     healthDmgPerSec: 0.04,
     spreadChancePerSec: 0.001,
     color: '#a06020',
-    curedBy: 'medicine',
+    curedBy: 'antibiotic',
+    treatmentName: 'Antibiotic',
   },
   bloat: {
     id: 'bloat', name: 'Bloat', emoji: '🟡',
@@ -46,7 +48,8 @@ export const DISEASES = {
     healthDmgPerSec: 0.05,
     spreadChancePerSec: 0,
     color: '#d4c020',
-    curedBy: 'medicine',
+    curedBy: 'digestiveRemedy',
+    treatmentName: 'Digestive Remedy',
   },
   velvet: {
     id: 'velvet', name: 'Velvet', emoji: '🟠',
@@ -54,7 +57,8 @@ export const DISEASES = {
     healthDmgPerSec: 0.1,
     spreadChancePerSec: 0.004,
     color: '#e06820',
-    curedBy: 'medicine',
+    curedBy: 'antiparasitic',
+    treatmentName: 'Antiparasitic',
   },
 };
 
@@ -63,8 +67,9 @@ const DISEASE_BASE_CHANCE  = 0.00008;  // base chance per fish per second
 const DISEASE_WATER_MULT   = 3.5;      // multiplier when water quality < 30
 const DISEASE_CROWD_MULT   = 2.0;      // multiplier when tank is >80% full
 
-const CUSTOMER_BASE_INTERVAL_MS = 18_000;
-const MAX_OFFLINE_SECONDS        = 60 * 60 * 12;
+const CUSTOMER_BASE_INTERVAL_MS  = 18_000;
+const BASE_OFFLINE_SECONDS       = 60 * 60 * 48;   // 48h base cap
+const TANK_SITTER_BONUS_SECONDS  = 60 * 60 * 24;   // +24h per Tank Sitter level
 
 const CUSTOMER_TYPES = [
   { id: 'tourist',   name: 'Tourist',       budgetMult: 0.85, haggle: 0.0,  rarityBias: 'common',   emoji: '👒' },
@@ -148,7 +153,7 @@ function processOneTank(tank, allFish, messages, now) {
       if ((fish.hunger || 0) > 70) pool = ['bloat', 'bloat', 'ich'];
       const diseaseId = pool[Math.floor(Math.random() * pool.length)];
       const diseaseDef = DISEASES[diseaseId];
-      messages.push(`🚨 ${fish.species?.name || 'A fish'} in ${tank.name} contracted ${diseaseDef?.name || diseaseId}! Treat quickly.`);
+      messages.push({ message: `🚨 ${fish.species?.name || 'A fish'} in ${tank.name} contracted ${diseaseDef?.name || diseaseId}! Use ${diseaseDef?.treatmentName || 'medicine'} to cure it.`, severity: 'critical' });
       return { ...fish, disease: diseaseId, diseaseSince: Date.now() };
     }
     return fish;
@@ -223,6 +228,109 @@ function processOneTank(tank, allFish, messages, now) {
   };
 
   return { updatedTank, updatedTankFish };
+}
+
+// ============================================================
+// DAILY CHALLENGES
+// ============================================================
+const CHALLENGE_TEMPLATES = [
+  { id: 'sell_common',    emoji: '🐟', desc: 'Sell 3 common fish today',          type: 'sell_rarity',   rarity: 'common',   goal: 3,  reward: 40  },
+  { id: 'sell_uncommon',  emoji: '✨', desc: 'Sell 2 uncommon fish today',         type: 'sell_rarity',   rarity: 'uncommon', goal: 2,  reward: 80  },
+  { id: 'sell_rare',      emoji: '💎', desc: 'Sell 1 rare fish today',             type: 'sell_rarity',   rarity: 'rare',     goal: 1,  reward: 150 },
+  { id: 'earn_coins',     emoji: '🪙', desc: 'Earn 200 coins from sales today',    type: 'earn_coins',    goal: 200,          reward: 60  },
+  { id: 'breed_eggs',     emoji: '🥚', desc: 'Collect 2 eggs from breeding today', type: 'breed_eggs',    goal: 2,            reward: 70  },
+  { id: 'treat_water',    emoji: '🧪', desc: 'Treat water quality 2 times today',  type: 'treat_water',   goal: 2,            reward: 35  },
+  { id: 'cure_fish',      emoji: '💊', desc: 'Cure a sick fish today',             type: 'cure_fish',     goal: 1,            reward: 50  },
+  { id: 'happiness_high', emoji: '😊', desc: 'Keep tank happiness above 90% for 10 minutes', type: 'happiness_timer', goal: 600, reward: 55 },
+  { id: 'sell_5_fish',    emoji: '🛒', desc: 'Sell 5 fish in total today',         type: 'sell_any',      goal: 5,            reward: 90  },
+  { id: 'discover',       emoji: '🔍', desc: 'Discover 1 new species today',       type: 'discover',      goal: 1,            reward: 100 },
+];
+
+function todayUTCDay() {
+  return Math.floor(Date.now() / 86_400_000);
+}
+
+function generateDailyChallenges(day) {
+  // Shuffle and pick 3 diverse challenges
+  const shuffled = [...CHALLENGE_TEMPLATES].sort(() => Math.random() - 0.5);
+  const picked = [];
+  const types = new Set();
+  for (const t of shuffled) {
+    if (!types.has(t.type.split('_')[0])) {
+      picked.push({ ...t, progress: 0, completed: false });
+      types.add(t.type.split('_')[0]);
+    }
+    if (picked.length === 3) break;
+  }
+  // Fallback: if we couldn't get 3 diverse ones, just take first 3
+  while (picked.length < 3) {
+    const next = shuffled[picked.length];
+    if (next) picked.push({ ...next, progress: 0, completed: false });
+  }
+  return { day, challenges: picked };
+}
+
+export function refreshDailyChallenges(state) {
+  const today = todayUTCDay();
+  const dc = state.dailyChallenges;
+  if (!dc || dc.day !== today) {
+    return { ...state, dailyChallenges: generateDailyChallenges(today) };
+  }
+  return state;
+}
+
+// Called from App.jsx when a challenge-relevant event occurs
+export function updateChallengeProgress(state, eventType, payload = {}) {
+  const dc = state.dailyChallenges;
+  if (!dc || !dc.challenges) return state;
+  const today = todayUTCDay();
+  if (dc.day !== today) return state;
+
+  let coinsAwarded = 0;
+  const messages = [];
+  const updated = dc.challenges.map(c => {
+    if (c.completed) return c;
+    let progress = c.progress;
+    let matches = false;
+
+    if (c.type === 'sell_rarity' && eventType === 'sell' && payload.rarity === c.rarity) {
+      matches = true; progress += 1;
+    } else if (c.type === 'sell_any' && eventType === 'sell') {
+      matches = true; progress += 1;
+    } else if (c.type === 'earn_coins' && eventType === 'earn_coins') {
+      matches = true; progress += (payload.amount || 0);
+    } else if (c.type === 'breed_eggs' && eventType === 'collect_egg') {
+      matches = true; progress += 1;
+    } else if (c.type === 'treat_water' && eventType === 'treat_water') {
+      matches = true; progress += 1;
+    } else if (c.type === 'cure_fish' && eventType === 'cure_fish') {
+      matches = true; progress += 1;
+    } else if (c.type === 'discover' && eventType === 'discover') {
+      matches = true; progress += 1;
+    } else if (c.type === 'happiness_timer' && eventType === 'happiness_tick') {
+      // payload.tanks = array of happiness values
+      const allHigh = (payload.tanks || []).every(h => h >= 90);
+      if (allHigh) { matches = true; progress += 1; }
+    }
+
+    if (!matches) return c;
+    const completed = progress >= c.goal;
+    if (completed && !c.completed) {
+      coinsAwarded += c.reward;
+      messages.push(`🎯 Daily challenge complete: ${c.emoji} ${c.desc}! +🪙${c.reward}`);
+    }
+    return { ...c, progress: Math.min(progress, c.goal), completed };
+  });
+
+  let next = { ...state, dailyChallenges: { ...dc, challenges: updated } };
+  if (coinsAwarded > 0) {
+    next = { ...next, player: { ...next.player, coins: next.player.coins + coinsAwarded } };
+  }
+  if (messages.length > 0) {
+    const entries = messages.map(message => ({ time: Date.now(), message, severity: 'warn' }));
+    next = { ...next, log: [...entries, ...next.log].slice(0, 60) };
+  }
+  return next;
 }
 
 // ============================================================
@@ -304,7 +412,7 @@ export function processTick(state) {
       },
       player: {
         ...next.player,
-        autopsies: [...(next.player.autopsies || []), ...newAutopsies].slice(0, 20),
+        autopsies: [...(next.player.autopsies || []), ...newAutopsies].slice(0, 50),
       },
     };
     for (const f of deadFish) messages.push(`💀 ${f.species?.name || 'A fish'} has died. (Cause: ${newAutopsies.find(a => a._fishId === f.id)?.cause || 'Unknown'})`);
@@ -352,14 +460,20 @@ export function processTick(state) {
     next = { ...next, passiveTick };
   }
 
+  // Refresh daily challenges at UTC midnight and track happiness timer challenge
+  next = refreshDailyChallenges(next);
+  const happinessValues = next.tanks.map(t => t.happiness || 0);
+  next = updateChallengeProgress(next, 'happiness_tick', { tanks: happinessValues });
+
   if (messages.length > 0) {
-    const newEntries = messages.map(message => ({ time: Date.now(), message }));
+    const newEntries = messages.map(m =>
+      typeof m === 'string' ? { time: Date.now(), message: m } : { time: Date.now(), ...m }
+    );
     next = { ...next, log: [...newEntries, ...next.log].slice(0, 60) };
   }
 
   return { ...next, lastTickAt: now };
 }
-
 // ============================================================
 // CUSTOMER
 // ============================================================
@@ -471,7 +585,7 @@ function processCustomerVisit(state, messages) {
   const fishPrices = { ...(state.shop.fishPrices || {}) };
   delete fishPrices[fish.id];
 
-  return {
+  const soldState = {
     ...state,
     player: {
       ...state.player,
@@ -496,6 +610,10 @@ function processCustomerVisit(state, messages) {
       ].slice(0, 20),
     },
   };
+  // Update daily challenge progress for sell events
+  const afterSell = updateChallengeProgress(soldState, 'sell', { rarity: fish.species?.rarity || 'common' });
+  const afterEarn = updateChallengeProgress(afterSell, 'earn_coins', { amount: earnedCoins });
+  return updateChallengeProgress(afterEarn, 'sell_any');
 }
 
 // ============================================================
@@ -587,9 +705,11 @@ function generateOfflineEvent(state, secondsAway) {
 }
 
 export function applyOfflineProgress(state) {
-  const now     = Date.now();
-  const elapsed = now - (state.lastTickAt || now);
-  const ticks   = Math.min(Math.floor(elapsed / 1000), MAX_OFFLINE_SECONDS);
+  const now             = Date.now();
+  const elapsed         = now - (state.lastTickAt || now);
+  const tankSitterLevel = state.shop?.upgrades?.tankSitter?.level || 0;
+  const maxOfflineSecs  = BASE_OFFLINE_SECONDS + tankSitterLevel * TANK_SITTER_BONUS_SECONDS;
+  const ticks           = Math.min(Math.floor(elapsed / 1000), maxOfflineSecs);
 
   if (ticks < 5) return state;
 
@@ -679,7 +799,7 @@ export function applyOfflineProgress(state) {
       },
       player: {
         ...next.player,
-        autopsies: [...(next.player.autopsies || []), ...offlineAutopsies].slice(0, 20),
+        autopsies: [...(next.player.autopsies || []), ...offlineAutopsies].slice(0, 50),
       },
     };
   }

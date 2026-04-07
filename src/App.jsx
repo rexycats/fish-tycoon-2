@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import ToastManager, { fireToast } from './components/ToastManager.jsx';
 import { createDefaultState, saveGame, loadGame, addLog, checkAchievements, exportSave, importSave, ACHIEVEMENT_DEFS, createDefaultTank, TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
-import { processTick, applyOfflineProgress, TICK_INTERVAL_MS } from './systems/gameTick.js';
+import { processTick, applyOfflineProgress, TICK_INTERVAL_MS, refreshDailyChallenges, updateChallengeProgress } from './systems/gameTick.js';
 import { breedGenomes, createFish, MAGIC_FISH, checkMagicFishMatch, getFoundMagicFish } from './data/genetics.js';
 import { REAL_SPECIES_MAP } from './data/realSpecies.js';
 import { DECOR_CATALOG } from './data/decorations.js';
@@ -27,8 +27,9 @@ export default function App() {
   const _initSave = _initSaveRef.current;
 
   const [game, setGame] = useState(() => {
-    if (_initSave) return applyOfflineProgress(_initSave);
-    return createDefaultState();
+    let g = _initSave ? applyOfflineProgress(_initSave) : createDefaultState();
+    g = refreshDailyChallenges(g);
+    return g;
   });
 
   const [selectedFishId, setSelectedFishId]   = useState(null);
@@ -226,6 +227,8 @@ export default function App() {
       setGame(prev => {
         let next = { ...prev, player: { ...prev.player, fishdex: [...(prev.player.fishdex || []), ...newEntries] } };
         for (const e of newEntries) next = addLog(next, `📖 New species: ${e.name}! (${e.rarity})`);
+        // Update discover challenge
+        next = updateChallengeProgress(next, 'discover');
 
         // Check for newly discovered magic fish
         const alreadyFound = new Set(prev.player.magicFishFound || []);
@@ -348,7 +351,7 @@ export default function App() {
       const tank = prev.tanks.find(t => t.id === activeTank?.id);
       if (!tank || tank.supplies.waterTreatment <= 0) { playWarning(); return addLog(prev, '⚠️ No water treatment! Buy more.'); }
       playBubble();
-      return {
+      return updateChallengeProgress({
         ...prev,
         tanks: prev.tanks.map(t => t.id === tank.id ? {
           ...t,
@@ -356,25 +359,52 @@ export default function App() {
           supplies: { ...t.supplies, waterTreatment: t.supplies.waterTreatment - 1 },
         } : t),
         player: { ...prev.player, stats: { ...(prev.player.stats || {}), waterTreated: (prev.player.stats?.waterTreated || 0) + 1 } },
-      };
+      }, 'treat_water');
     });
   }, [activeTank]);
 
   const useMedicine = useCallback((fishId) => {
+    const CURE_MAP = {
+      ich:       'antibiotic',
+      fin_rot:   'antibiotic',
+      velvet:    'antiparasitic',
+      bloat:     'digestiveRemedy',
+    };
+    const TREATMENT_NAMES = {
+      antibiotic:      'Antibiotic',
+      antiparasitic:   'Antiparasitic',
+      digestiveRemedy: 'Digestive Remedy',
+    };
+
     setGame(prev => {
       const fish = prev.fish.find(f => f.id === fishId);
       if (!fish) return prev;
       const tank = prev.tanks.find(t => t.id === fish.tankId);
-      if (!tank || tank.supplies.medicine <= 0) { playWarning(); return addLog(prev, '⚠️ No medicine in that tank!'); }
+      if (!tank) return prev;
+
+      const disease    = fish.disease;
+      const supplyKey  = disease ? (CURE_MAP[disease] ?? 'antibiotic') : 'antibiotic';
+      const supplyName = TREATMENT_NAMES[supplyKey] ?? supplyKey;
+      const stock      = tank.supplies[supplyKey] ?? 0;
+
+      if (stock <= 0) {
+        playWarning();
+        return addLog(prev, `⚠️ No ${supplyName} in that tank!${disease ? ` (needed for ${disease.replace('_', ' ')})` : ''}`);
+      }
+
       playCoin();
-      const curedDisease = fish.disease;
-      return addLog({
+      const curedState = addLog({
         ...prev,
         tanks: prev.tanks.map(t => t.id === tank.id
-          ? { ...t, supplies: { ...t.supplies, medicine: t.supplies.medicine - 1 } } : t),
-        fish: prev.fish.map(f => f.id === fishId ? { ...f, health: 100, hunger: Math.max(0, f.hunger - 20), disease: null, diseaseSince: null } : f),
+          ? { ...t, supplies: { ...t.supplies, [supplyKey]: stock - 1 } } : t),
+        fish: prev.fish.map(f => f.id === fishId
+          ? { ...f, health: 100, hunger: Math.max(0, f.hunger - 20), disease: null, diseaseSince: null } : f),
         player: { ...prev.player, stats: { ...(prev.player.stats || {}), medicineUsed: (prev.player.stats?.medicineUsed || 0) + 1 } },
-      }, curedDisease ? `💊 Cured ${fish.species?.name || 'fish'} of ${curedDisease}!` : `💊 Treated ${fish.species?.name || 'fish'} — fully healed!`);
+      }, disease
+        ? `💊 Used ${supplyName} — cured ${fish.species?.name || 'fish'} of ${disease.replace('_', ' ')}!`
+        : `💊 Used ${supplyName} — ${fish.species?.name || 'fish'} fully healed!`
+      );
+      return disease ? updateChallengeProgress(curedState, 'cure_fish') : curedState;
     });
   }, []);
 
@@ -498,7 +528,7 @@ export default function App() {
         const tid = activeTank?.id;
         next = { ...next, tanks: next.tanks.map(t => t.id === tid ? { ...t, capacity: t.capacity + 4 } : t) };
       }
-      if (upgradeId === 'breeding') next = { ...next, breedingTank: { ...next.breedingTank, breedingDurationMs: Math.round(next.breedingTank.breedingDurationMs * 0.75) } };
+      if (upgradeId === 'breeding') next = { ...next, breedingTank: { ...next.breedingTank, breedingDurationMs: Math.max(30_000, Math.round(next.breedingTank.breedingDurationMs * 0.80)) } };
       // Hatchery level 1 unlocks the third (Genetic Donor) breeding slot
       if (upgradeId === 'hatchery' && upg.level === 0) {
         const bt = next.breedingTank;
@@ -507,9 +537,10 @@ export default function App() {
 
       const newLevel = upg.level + 1;
       const logMessages = {
-        lighting: `💡 Premium Lighting Lv${newLevel}: sale prices +${newLevel * 10}%!`,
-        vip:      `💎 VIP Membership Lv${newLevel}: Wealthy Patrons will visit ${newLevel === 1 ? 'sooner' : newLevel === 2 ? 'more often' : 'much more often'}!`,
-        hatchery: `🥚 Hatchery Lv${newLevel}: eggs & juveniles grow ${newLevel * 15}% faster!`,
+        lighting:   `💡 Premium Lighting Lv${newLevel}: sale prices +${newLevel * 10}%!`,
+        vip:        `💎 VIP Membership Lv${newLevel}: Wealthy Patrons will visit ${newLevel === 1 ? 'sooner' : newLevel === 2 ? 'more often' : 'much more often'}!`,
+        hatchery:   `🥚 Hatchery Lv${newLevel}: eggs & juveniles grow ${newLevel * 15}% faster!`,
+        tankSitter: `🐟 Tank Sitter Lv${newLevel}: offline cap extended to ${48 + newLevel * 24}h!`,
       };
       playCoin();
       return addLog(next, logMessages[upgradeId] || `⬆️ Upgraded: ${upg.label} to level ${newLevel}!`);
@@ -754,7 +785,7 @@ export default function App() {
     setGame(prev => {
       const bt = prev.breedingTank;
       if (!bt.breedingStartedAt || bt.eggReady) return prev;
-      const baseDuration = 30_000 * Math.pow(0.75, (prev.shop.upgrades?.breeding?.level || 0));
+      const baseDuration = Math.max(30_000, 300_000 * Math.pow(0.80, (prev.shop.upgrades?.breeding?.level || 0)));
       const hasThirdSlot = bt.slots.length >= 3;
       return addLog({
         ...prev,
@@ -797,10 +828,10 @@ export default function App() {
       const offspringGenome = breedGenomes(genomeA, genomeB, donorGenome);
       const donorNote = donorGenome ? ' 🧬 Genetic donor influence applied!' : '';
       const newFish = createFish({ genome: offspringGenome, stage: 'egg', parentIds: [idA, idB], tankId: eggTankId });
-      const baseDuration = 30_000 * Math.pow(0.75, (prev.shop.upgrades?.breeding?.level || 0));
+      const baseDuration = Math.max(30_000, 300_000 * Math.pow(0.80, (prev.shop.upgrades?.breeding?.level || 0)));
       const hasThirdSlot = bt.slots.length >= 3;
       playBreed();
-      return addLog({
+      const eggState = addLog({
         ...prev,
         fish: [...prev.fish, newFish],
         breedingTank: { ...bt, slots: hasThirdSlot ? [null, null, null] : [null, null], eggReady: false, breedingStartedAt: null, breedingDurationMs: Math.round(baseDuration), storedGenomeC: null },
@@ -809,6 +840,7 @@ export default function App() {
           stats: { ...(prev.player.stats || {}), eggsCollected: (prev.player.stats?.eggsCollected || 0) + 1 },
         },
       }, `🥚 Egg collected in ${eggTank?.name || 'Tank'}! It might become a ${newFish.species?.name || 'fish'}.${donorNote}`);
+      return updateChallengeProgress(eggState, 'collect_egg');
     });
   }, []);
 
@@ -845,14 +877,15 @@ export default function App() {
   const isListed     = selectedFish ? game.shop.listedFish.includes(selectedFish.id) : false;
   const newAchCount  = (game.player.achievements || []).length;
   const TAB_LIST = [
-    ['tank',    '🐠', 'Tank'],
-    ['shop',    '🏪', 'Shop'],
-    ['breed',   '🧬', 'Breed'],
-    ['fishdex', '📖', 'Fishdex'],
-    ['magic',   '🔮', 'Magic'],
-    ['decor',   '🎨', 'Decor'],
-    ['autopsy', '🔬', 'Autopsy'],
-    ['achieve', '🏆', 'Awards'],
+    ['tank',       '🐠', 'Tank'],
+    ['shop',       '🏪', 'Shop'],
+    ['breed',      '🧬', 'Breed'],
+    ['challenges', '🎯', 'Goals'],
+    ['fishdex',    '📖', 'Fishdex'],
+    ['magic',      '🔮', 'Magic'],
+    ['decor',      '🎨', 'Decor'],
+    ['autopsy',    '🔬', 'Autopsy'],
+    ['achieve',    '🏆', 'Awards'],
   ];
   const activeTabIdx = TAB_LIST.findIndex(([t]) => t === activeTab);
 
@@ -909,11 +942,14 @@ export default function App() {
           const fishdexCount = (game.player.fishdex || []).length;
           const magicCount   = (game.player.magicFishFound || []).length;
           const autopsyCount = (game.player.autopsies || []).length;
+          const challengeDone = (game.dailyChallenges?.challenges || []).filter(c => c.completed).length;
+          const challengeTotal = (game.dailyChallenges?.challenges || []).length;
           let badge = null;
           if (tab === 'fishdex' && fishdexCount > 0) badge = <span className="tab-dot">{fishdexCount}</span>;
           if (tab === 'magic')   badge = <span className="tab-dot tab-dot--magic">{magicCount}/7</span>;
           if (tab === 'autopsy' && autopsyCount > 0) badge = <span className="tab-dot tab-dot--warn">{autopsyCount}</span>;
           if (tab === 'achieve' && newAchCount > 0)  badge = <span className="tab-dot tab-dot--gold">{newAchCount}</span>;
+          if (tab === 'challenges') badge = <span className={`tab-dot ${challengeDone === challengeTotal && challengeTotal > 0 ? 'tab-dot--gold' : ''}`}>{challengeDone}/{challengeTotal}</span>;
           return (
             <button
               key={tab}
@@ -931,6 +967,9 @@ export default function App() {
       <main className="main-layout">
         {activeTab === 'tank' && (
           <>
+            {game.tanks.length > 1 && (
+              <AquariumOverview tanks={game.tanks} fish={game.fish} activeTankId={activeTank?.id} onSelectTank={setActiveTankId} />
+            )}
             <div className="tank-col">
               <TankView
                 fish={tankFish}
@@ -948,13 +987,18 @@ export default function App() {
                 onMedicine={useMedicine}
                 isListed={isListed}
                 coins={game.player.coins}
-                medicineStock={activeTank?.supplies?.medicine ?? 0}
+                antibioticStock={activeTank?.supplies?.antibiotic ?? 0}
+                antiparasiticStock={activeTank?.supplies?.antiparasitic ?? 0}
+                digestiveRemedyStock={activeTank?.supplies?.digestiveRemedy ?? 0}
                 tanks={game.tanks}
                 onMoveFish={moveFishToTank}
               />
               <LogPanel log={game.log} />
             </div>
           </>
+        )}
+        {activeTab === 'challenges' && (
+          <DailyChallengesPanel dailyChallenges={game.dailyChallenges} />
         )}
         {activeTab === 'shop' && (
           <Shop game={game} activeTank={activeTank} onToggleSell={toggleSellFish} onSetPrice={setFishPrice} onBuyUpgrade={buyUpgrade} onBuySupply={(k, c, a) => buySupply(k, c, a, activeTank?.id)} onBuyFish={buyFish} onBuyRareItem={buyRareMarketItem} />
@@ -1015,6 +1059,121 @@ export default function App() {
           🤖 AI Key {getApiKey() ? '✅' : '⚠️'}
         </button>
       </footer>
+    </div>
+  );
+}
+
+// ── Aquarium Overview Panel ──────────────────────────────────
+function AquariumOverview({ tanks, fish, activeTankId, onSelectTank }) {
+  return (
+    <div className="aquarium-overview">
+      <div className="aquarium-overview-title">🌊 Aquarium Overview</div>
+      <div className="aquarium-overview-grid">
+        {tanks.map(tank => {
+          const tankFish  = fish.filter(f => f.tankId === tank.id);
+          const sick      = tankFish.filter(f => f.disease).length;
+          const adults    = tankFish.filter(f => f.stage === 'adult').length;
+          const eggs      = tankFish.filter(f => f.stage === 'egg').length;
+          const juveniles = tankFish.filter(f => f.stage === 'juvenile').length;
+          const wq        = Math.round(tank.waterQuality ?? 100);
+          const hap       = Math.round(tank.happiness ?? 100);
+          const wqColor   = wq > 60 ? '#7ec8a0' : wq > 30 ? '#f0c040' : '#ff7070';
+          const hapColor  = hap > 60 ? '#7ec8a0' : hap > 30 ? '#f0c040' : '#ff7070';
+          const isActive  = tank.id === activeTankId;
+
+          return (
+            <div
+              key={tank.id}
+              className={`overview-card ${isActive ? 'overview-card--active' : ''}`}
+              onClick={() => onSelectTank(tank.id)}
+            >
+              <div className="overview-card-name">
+                {tank.name}
+                {sick > 0 && <span className="overview-alert"> 🚨{sick}</span>}
+              </div>
+              <div className="overview-card-counts">
+                <span title="Adults">🐟{adults}</span>
+                {juveniles > 0 && <span title="Juveniles">🐠{juveniles}</span>}
+                {eggs > 0 && <span title="Eggs">🥚{eggs}</span>}
+                <span className="overview-capacity">/{tank.capacity}</span>
+              </div>
+              <div className="overview-bars">
+                <div className="overview-bar-row">
+                  <span className="overview-bar-label">💧</span>
+                  <div className="overview-bar-track">
+                    <div className="overview-bar-fill" style={{ width: `${wq}%`, background: wqColor }} />
+                  </div>
+                  <span className="overview-bar-val">{wq}%</span>
+                </div>
+                <div className="overview-bar-row">
+                  <span className="overview-bar-label">😊</span>
+                  <div className="overview-bar-track">
+                    <div className="overview-bar-fill" style={{ width: `${hap}%`, background: hapColor }} />
+                  </div>
+                  <span className="overview-bar-val">{hap}%</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Daily Challenges Panel ───────────────────────────────────
+function DailyChallengesPanel({ dailyChallenges }) {
+  const challenges = dailyChallenges?.challenges || [];
+  const msUntilReset = (() => {
+    const now = Date.now();
+    const nextMidnight = (Math.floor(now / 86_400_000) + 1) * 86_400_000;
+    const ms = nextMidnight - now;
+    const h = Math.floor(ms / 3_600_000);
+    const m = Math.floor((ms % 3_600_000) / 60_000);
+    return `${h}h ${m}m`;
+  })();
+
+  return (
+    <div className="challenges-panel">
+      <div className="challenges-header">
+        <div>
+          <h2 className="challenges-title">🎯 Daily Challenges</h2>
+          <p className="challenges-subtitle">Complete all 3 for bonus coins. Resets in {msUntilReset}.</p>
+        </div>
+      </div>
+      <div className="challenges-list">
+        {challenges.map((c, i) => {
+          const pct = Math.min(100, Math.round((c.progress / c.goal) * 100));
+          return (
+            <div key={i} className={`challenge-card ${c.completed ? 'challenge-card--done' : ''}`}>
+              <div className="challenge-top">
+                <span className="challenge-emoji">{c.emoji}</span>
+                <div className="challenge-info">
+                  <div className="challenge-desc">{c.desc}</div>
+                  <div className="challenge-progress-text">
+                    {c.completed ? '✅ Complete!' : `${c.progress} / ${c.goal}`}
+                  </div>
+                </div>
+                <div className="challenge-reward">+🪙{c.reward}</div>
+              </div>
+              <div className="challenge-bar-track">
+                <div
+                  className="challenge-bar-fill"
+                  style={{ width: `${pct}%`, background: c.completed ? '#7ec8a0' : '#6ab0de' }}
+                />
+              </div>
+            </div>
+          );
+        })}
+        {challenges.length === 0 && (
+          <div className="challenges-empty">No challenges loaded yet — they'll appear on next tick!</div>
+        )}
+      </div>
+      {challenges.length > 0 && challenges.every(c => c.completed) && (
+        <div className="challenges-complete-banner">
+          🎉 All challenges complete! Come back tomorrow for new ones.
+        </div>
+      )}
     </div>
   );
 }
