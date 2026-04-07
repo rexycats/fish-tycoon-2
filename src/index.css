@@ -4564,6 +4564,11 @@ button:active, .btn:active, .action-btn:active {
   font-size: 40px;
   margin-bottom: 10px;
   filter: grayscale(0.4);
+  animation: fishBreath 2.8s ease-in-out infinite;
+}
+@keyframes fishBreath {
+  0%, 100% { transform: scale(1) translateY(0);   opacity: 0.5; }
+  50%       { transform: scale(1.12) translateY(-4px); opacity: 0.75; }
 }
 .fish-panel-empty-text {
   font-size: 14px;
@@ -7128,4 +7133,23 @@ button:active, .btn:active, .action-btn:active {
 @keyframes new-badge-glow {
   0%, 100% { box-shadow: 0 0 6px rgba(255,120,0,0.45);  }
   50%       { box-shadow: 0 0 14px rgba(255,120,0,0.85); }
+}
+
+/* ── Fix 6: Value health delta ───────────────────────────── */
+.fp-value-delta {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ff6055;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+/* ── Fix 7: Log entry count ──────────────────────────────── */
+.log-entry-count {
+  font-size: 11px;
+  color: var(--text-dim, rgba(200,220,255,0.4));
+  padding: 0 4px;
+  white-space: nowrap;
+  align-self: center;
 }

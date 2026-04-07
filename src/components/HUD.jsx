@@ -125,7 +125,7 @@ export default function HUD({
         <StatPill icon="💧" value={`${wq}%`}  label="Water quality" color={wqCol}  alert={wqBad} />
         <StatPill icon="🌡" value={`${Math.round(temp)}°`} label="Temperature" color={tempCol} alert={tempBad} />
         <StatPill icon="🐟" value={`${fishCnt}/${tank.capacity ?? 12}`} label="Fish capacity" />
-        <StatPill icon="🍤" value={food}       label="Food supply"   alert={food < 3} />
+        <StatPill icon="🍤" value={food < 1 ? 'Empty' : `${food} feeds`} label={`Food supply (${food} remaining)`} alert={food < 3} />
       </div>
 
       {/* Divider */}

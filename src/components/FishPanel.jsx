@@ -11,6 +11,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
   useEffect(() => {
     if (fish?.id !== prevFishId.current) {
       setEntering(true);
+      setShowGenetics(false); // Fix 1: auto-close genetics when selecting a new fish
       prevFishId.current = fish?.id;
       const t = setTimeout(() => setEntering(false), 400);
       return () => clearTimeout(t);
@@ -31,7 +32,14 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
 
   const rarity = RARITY[fish.species.rarity];
   const salePrice = Math.round(fish.species.basePrice * (fish.health / 100));
+  // Fix 2: human-readable age
   const ageMin = Math.floor(fish.age / 60);
+  const ageLabel = ageMin < 60
+    ? `${ageMin} min`
+    : `${Math.floor(ageMin / 60)}h ${ageMin % 60}m`;
+  // Fix 6: value health delta
+  const healthDelta = Math.round((fish.health / 100 - 1) * 100);
+  const showDelta = fish.health < 98;
   const needsMedicine = fish.health < 60 || !!fish.disease;
   const disease = fish.disease ? DISEASES[fish.disease] : null;
   const healthPct = Math.round(fish.health);
@@ -87,7 +95,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
           </div>
           <h2 className="fp-name">{fish.species.name}</h2>
           <div className="fp-meta-row">
-            <span className="fp-meta-chip">⏱ {ageMin}m old</span>
+            <span className="fp-meta-chip">⏱ {ageLabel}</span>
           </div>
         </div>
       </div>
@@ -97,6 +105,11 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
         <span className="fp-value-coin">🪙</span>
         <span className="fp-value-number">{salePrice}</span>
         <span className="fp-value-label">sale value</span>
+        {showDelta && (
+          <span className="fp-value-delta" title={`Health penalty: ${healthDelta}%`}>
+            {healthDelta}% {disease ? 'sick' : 'health'}
+          </span>
+        )}
       </div>
 
       {disease && (
@@ -132,7 +145,8 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
 
       <div className="fp-actions">
         <ActionBtn icon="🍤" label={`Feed (${foodStock})`} onClick={() => onFeed(fish.id)}
-          disabled={fish.hunger < 20} variant="feed" highlight={bestAction === 'feed'} />
+          disabled={fish.hunger < 20} variant="feed" highlight={bestAction === 'feed'}
+          disabledTitle="Fish is full" />
         <ActionBtn icon="💊"
           label={disease ? `${disease.treatmentName} (${medicineStock})` : `Treat (${medicineStock})`}
           onClick={() => onMedicine(fish.id)}
@@ -222,12 +236,13 @@ function RichStatBar({ label, value, color, icon }) {
   );
 }
 
-function ActionBtn({ icon, label, onClick, disabled, variant, pulse, highlight }) {
+function ActionBtn({ icon, label, onClick, disabled, variant, pulse, highlight, disabledTitle }) {
   return (
     <button
       className={`fp-action-btn fp-action-btn--${variant}${pulse ? ' fp-action-btn--pulse' : ''}${highlight ? ' fp-action-btn--highlight' : ''}`}
       onClick={onClick}
       disabled={disabled}
+      title={disabled && disabledTitle ? disabledTitle : undefined}
     >
       <span className="fp-action-icon">{icon}</span>
       <span className="fp-action-label">{label}</span>

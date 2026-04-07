@@ -1,7 +1,7 @@
 // ============================================================
 // FISH TYCOON 2 — LOG PANEL with severity filtering
 // ============================================================
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 
 const SEVERITY_ORDER = { critical: 0, warn: 1, success: 2, info: 3 };
 
@@ -65,6 +65,7 @@ function formatTime(ts) {
 export default function LogPanel({ log = [] }) {
   const [filter, setFilter] = useState('all');
   const [collapsed, setCollapsed] = useState(false);
+  const entriesRef = useRef(null); // Fix 3
 
   const classified = useMemo(() =>
     log.map(entry => {
@@ -81,6 +82,13 @@ export default function LogPanel({ log = [] }) {
   const visible = filter === 'all'
     ? classified
     : classified.filter(e => e._sev === filter);
+
+  // Fix 3: auto-scroll when new entries arrive
+  useEffect(() => {
+    if (entriesRef.current) {
+      entriesRef.current.scrollTop = entriesRef.current.scrollHeight;
+    }
+  }, [visible.length]);
 
   return (
     <div className="log-panel">
@@ -107,13 +115,17 @@ export default function LogPanel({ log = [] }) {
             onClick={() => setFilter('critical')}
             title="Show critical alerts only"
           >🚨 Alerts</button>
+          {/* Fix 7: entry count */}
+          {filter !== 'all' && (
+            <span className="log-entry-count">{visible.length} of {classified.length}</span>
+          )}
           <button className="log-collapse-btn" onClick={() => setCollapsed(c => !c)}>
             {collapsed ? '▼' : '▲'}
           </button>
         </div>
       </div>
       {!collapsed && (
-        <div className="log-entries">
+        <div className="log-entries" ref={entriesRef}>
           {visible.length === 0 && (
             <div className="log-empty">No {filter !== 'all' ? filter + ' ' : ''}messages yet.</div>
           )}

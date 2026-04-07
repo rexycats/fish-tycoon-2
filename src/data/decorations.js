@@ -319,7 +319,6 @@ export const DECOR_CATALOG = [
       <rect x="${x-32*s}" y="${y-28*s}" width="${64*s}" height="${28*s}" rx="${4*s}" fill="none" stroke="#ff60a0" stroke-width="${1.5*s}" opacity="0.4"/>
     `,
   },
-];
 
   // ── Achievement-Exclusive Decorations ─────────────────────
   // These are NOT purchasable. They are granted only by specific achievements.
@@ -446,6 +445,7 @@ export const DECOR_CATALOG = [
       <rect x="${x-24*s}" y="${y-2*s}"  width="${48*s}" height="${3*s}" rx="${1*s}" fill="#e0b030" opacity="0.6"/>
     `,
   },
+];
 
 export function getDecorById(id) {
   return DECOR_CATALOG.find(d => d.id === id) || null;
