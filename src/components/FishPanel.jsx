@@ -3,7 +3,7 @@ import FishSprite from './FishSprite.jsx';
 import { RARITY, GENES } from '../data/genetics.js';
 import { DISEASES } from '../systems/gameTick.js';
 
-function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicineStock, tanks = [], onMoveFish }) {
+function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicineStock, foodStock = 0, tanks = [], onMoveFish }) {
   const prevFishId = useRef(null);
   const [entering, setEntering] = useState(false);
 
@@ -42,6 +42,28 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
   const isEpic      = fish.species.rarity === 'epic';
   const rarityShimmer = isLegendary ? 'fp-hero--legendary' : isEpic ? 'fp-hero--epic' : '';
 
+  // Recommended action logic
+  const isSick    = needsMedicine && medicineStock > 0;
+  const isHungry  = fish.hunger >= 40;
+  const isAdult   = fish.stage === 'adult';
+  const bestAction = isSick ? 'medicine' : isHungry ? 'feed' : isAdult ? 'sell' : null;
+  const recommendation = disease
+    ? `${disease.emoji} ${disease.name} — treat immediately`
+    : isHungry
+    ? '🍤 Hungry — feed now'
+    : isAdult && !isListed
+    ? '💰 Ready to sell'
+    : null;
+
+  // Status emoji label
+  const statusLabel = disease
+    ? `Sick 🦠`
+    : fish.hunger >= 60
+    ? 'Hungry 🍤'
+    : isAdult
+    ? 'Ready 💰'
+    : null;
+
   return (
     <div className={`fish-panel ${entering ? 'fish-panel--entering' : ''}`}>
       <div className={`fp-hero ${rarityShimmer}`} style={{ '--rarity-color': rarity.color, '--rarity-color-dim': rarity.color + '22' }}>
@@ -56,6 +78,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
             <span className={`fp-rarity-dot ${isLegendary ? 'fp-rarity-dot--pulse' : ''}`} style={{ background: rarity.color }} />
             <span className={`fp-rarity-label ${isLegendary ? 'fp-rarity-label--shimmer' : ''}`} style={{ color: rarity.color }}>{rarity.label}</span>
             <span className="fp-stage-pill">{fish.stage}</span>
+            {statusLabel && <span className="fp-status-label">{statusLabel}</span>}
           </div>
           <h2 className="fp-name">{fish.species.name}</h2>
           <div className="fp-meta-row">
@@ -78,6 +101,12 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
         </div>
       )}
 
+      {recommendation && (
+        <div className="fp-recommendation">
+          <span className="fp-rec-text">{recommendation}</span>
+        </div>
+      )}
+
       <div className="fp-vitals">
         <div className="fp-vitals-label">Vitals</div>
         <RichStatBar label="Health" value={healthPct} color={healthColor} icon="❤" />
@@ -85,18 +114,18 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
       </div>
 
       <div className="fp-actions">
-        <ActionBtn icon="🍤" label="Feed" onClick={() => onFeed(fish.id)}
-          disabled={fish.hunger < 20} variant="feed" />
+        <ActionBtn icon="🍤" label={`Feed (${foodStock})`} onClick={() => onFeed(fish.id)}
+          disabled={fish.hunger < 20} variant="feed" highlight={bestAction === 'feed'} />
         <ActionBtn icon="💊"
-          label={disease ? `Cure (${medicineStock})` : `Treat (${medicineStock})`}
+          label={disease ? `${disease.treatmentName} (${medicineStock})` : `Treat (${medicineStock})`}
           onClick={() => onMedicine(fish.id)}
           disabled={!needsMedicine || medicineStock <= 0}
-          variant="medicine" pulse={needsMedicine && medicineStock > 0} />
+          variant="medicine" pulse={needsMedicine && medicineStock > 0} highlight={bestAction === 'medicine'} />
         {isListed ? (
           <ActionBtn icon="🏪" label="Listed" onClick={() => onSell(fish.id)} variant="listed" />
         ) : (
           <ActionBtn icon="💰" label={`Sell · ${salePrice}🪙`}
-            onClick={() => onSell(fish.id)} disabled={fish.stage !== 'adult'} variant="sell" />
+            onClick={() => onSell(fish.id)} disabled={fish.stage !== 'adult'} variant="sell" highlight={bestAction === 'sell'} />
         )}
       </div>
 
@@ -169,10 +198,10 @@ function RichStatBar({ label, value, color, icon }) {
   );
 }
 
-function ActionBtn({ icon, label, onClick, disabled, variant, pulse }) {
+function ActionBtn({ icon, label, onClick, disabled, variant, pulse, highlight }) {
   return (
     <button
-      className={`fp-action-btn fp-action-btn--${variant}${pulse ? ' fp-action-btn--pulse' : ''}`}
+      className={`fp-action-btn fp-action-btn--${variant}${pulse ? ' fp-action-btn--pulse' : ''}${highlight ? ' fp-action-btn--highlight' : ''}`}
       onClick={onClick}
       disabled={disabled}
     >

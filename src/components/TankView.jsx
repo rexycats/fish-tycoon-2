@@ -64,7 +64,7 @@ const CORNER_BOLTS = [
   { corner: 'br', style: { bottom: 7, right: 7 } },
 ];
 
-export default function TankView({ fish, selectedFishId, onSelectFish, waterQuality, tank }) {
+export default function TankView({ fish, selectedFishId, onSelectFish, waterQuality, tank, listedFishIds = [] }) {
   // Keep a ref so the animation loop (which has no deps) can read behavior profiles
   const fishMapRef = useRef({});
 
@@ -487,9 +487,18 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
                 <FishSprite fish={f} size={spriteSize} flipped={pos.flipped} selected={isSelected}/>
               </div>
               {f.stage !== 'adult' && <div className="stage-badge">{f.stage}</div>}
-              {f.hunger > 75 && <div className="hunger-indicator">🍽️</div>}
-              {f.health < 30  && <div className="sick-indicator">💔</div>}
-              {f.disease && <div className="disease-indicator">🦠</div>}
+              {/* Floating status icons */}
+              <div className="fish-status-icons">
+                {f.disease && (
+                  <span className="fish-status-icon fish-status-icon--sick" title="Sick">🦠</span>
+                )}
+                {!f.disease && f.hunger > 60 && (
+                  <span className="fish-status-icon fish-status-icon--hungry" title="Hungry">🍤</span>
+                )}
+                {listedFishIds.includes(f.id) && (
+                  <span className="fish-status-icon fish-status-icon--listed" title="Listed for sale">💰</span>
+                )}
+              </div>
 
               {/* Hover tooltip */}
               {isHovered && (

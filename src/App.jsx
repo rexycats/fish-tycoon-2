@@ -23,7 +23,7 @@ import FishAutopsyPanel from './components/FishAutopsy.jsx';
 export default function App() {
   // Load once at startup — useRef ensures loadGame() is never called on re-renders
   const _initSaveRef = useRef(undefined);
-  if (_initSaveRef.current === undefined) _initSaveRef.current = loadGame();
+  if (_initSaveRef.current == null) _initSaveRef.current = loadGame();
   const _initSave = _initSaveRef.current;
 
   const [game, setGame] = useState(() => {
@@ -898,6 +898,31 @@ export default function App() {
   const selectedFish = game.fish.find(f => f.id === selectedFishId) || null;
   const isListed     = selectedFish ? game.shop.listedFish.includes(selectedFish.id) : false;
   const newAchCount  = (game.player.achievements || []).length;
+
+  // ── "NEW" badge tracking ────────────────────────────────────
+  const [seenFishdexCount, setSeenFishdexCount] = React.useState(() => {
+    try { return parseInt(localStorage.getItem('ft_seen_fishdex') || '0', 10); } catch { return 0; }
+  });
+  const [seenShopFishCount, setSeenShopFishCount] = React.useState(() => {
+    try { return parseInt(localStorage.getItem('ft_seen_shopfish') || '0', 10); } catch { return 0; }
+  });
+  const currentFishdexCount = (game.player.fishdex || []).length;
+  const currentShopFishCount = (game.fish || []).filter(f => f.stage === 'adult').length;
+  const newFishdexCount = Math.max(0, currentFishdexCount - seenFishdexCount);
+  const newShopFishCount = Math.max(0, currentShopFishCount - seenShopFishCount);
+
+  // Mark as seen when user switches to that tab
+  const handleTabChange = React.useCallback((tab) => {
+    setActiveTab(tab);
+    if (tab === 'fishdex') {
+      setSeenFishdexCount(currentFishdexCount);
+      try { localStorage.setItem('ft_seen_fishdex', String(currentFishdexCount)); } catch {}
+    }
+    if (tab === 'shop') {
+      setSeenShopFishCount(currentShopFishCount);
+      try { localStorage.setItem('ft_seen_shopfish', String(currentShopFishCount)); } catch {}
+    }
+  }, [currentFishdexCount, currentShopFishCount]);
   const TAB_LIST = [
     ['tank',       '🐠', 'Tank'],
     ['shop',       '🏪', 'Shop'],
@@ -967,7 +992,15 @@ export default function App() {
           const challengeDone = (game.dailyChallenges?.challenges || []).filter(c => c.completed).length;
           const challengeTotal = (game.dailyChallenges?.challenges || []).length;
           let badge = null;
-          if (tab === 'fishdex' && fishdexCount > 0) badge = <span className="tab-dot">{fishdexCount}</span>;
+          if (tab === 'fishdex') badge = (
+            <span className="tab-dot">
+              {fishdexCount}
+              {newFishdexCount > 0 && <span className="tab-new-badge">NEW</span>}
+            </span>
+          );
+          if (tab === 'shop' && newShopFishCount > 0) badge = (
+            <span className="tab-new-badge tab-new-badge--standalone">NEW</span>
+          );
           if (tab === 'magic')   badge = <span className="tab-dot tab-dot--magic">{magicCount}/7</span>;
           if (tab === 'autopsy' && autopsyCount > 0) badge = <span className="tab-dot tab-dot--warn">{autopsyCount}</span>;
           if (tab === 'achieve' && newAchCount > 0)  badge = <span className="tab-dot tab-dot--gold">{newAchCount}</span>;
@@ -976,7 +1009,7 @@ export default function App() {
             <button
               key={tab}
               className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => handleTabChange(tab)}
             >
               <span className="tab-btn-icon">{icon}</span>
               <span className="tab-btn-label">{label}</span>
@@ -999,6 +1032,7 @@ export default function App() {
                 onSelectFish={setSelectedFishId}
                 waterQuality={activeTank?.waterQuality ?? 100}
                 tank={activeTank}
+                listedFishIds={game.shop.listedFish || []}
               />
             </div>
             <div className="side-col">
@@ -1009,9 +1043,12 @@ export default function App() {
                 onMedicine={useMedicine}
                 isListed={isListed}
                 coins={game.player.coins}
-                antibioticStock={activeTank?.supplies?.antibiotic ?? 0}
-                antiparasiticStock={activeTank?.supplies?.antiparasitic ?? 0}
-                digestiveRemedyStock={activeTank?.supplies?.digestiveRemedy ?? 0}
+                foodStock={activeTank?.supplies?.food ?? 0}
+                medicineStock={
+                  selectedFish?.disease === 'bloat'  ? (activeTank?.supplies?.digestiveRemedy ?? 0) :
+                  selectedFish?.disease === 'velvet' ? (activeTank?.supplies?.antiparasitic   ?? 0) :
+                                                       (activeTank?.supplies?.antibiotic       ?? 0)
+                }
                 tanks={game.tanks}
                 onMoveFish={moveFishToTank}
               />

@@ -115,7 +115,7 @@ function maybeSpreadDisease(tankFish, wq, capacity) {
 }
 
 // ── Process one tank's fish for one tick ───────────────────
-function processOneTank(tank, allFish, messages, now) {
+function processOneTank(tank, allFish, messages, now, hatcheryLevel = 0) {
   const tankFish = allFish.filter(f => f.tankId === tank.id);
   const bonuses  = getTankBonuses(tank.type);
 
@@ -194,7 +194,6 @@ function processOneTank(tank, allFish, messages, now) {
     // Growth stage progression
     const stageDuration  = GROWTH_STAGES[f.stage]?.durationMs ?? Infinity;
     const timeInStage    = now - f.stageStartedAt;
-    const hatcheryLevel  = next.shop?.upgrades?.hatchery?.level || 0;
     const hatcheryMult   = 1 - hatcheryLevel * 0.15;           // -15 / -30 / -45% grow time
     const growMult       = (bonuses.growSpeedMult || 1) * hatcheryMult;
 
@@ -350,7 +349,7 @@ export function processTick(state) {
   const fishById = new Map(next.fish.map(f => [f.id, f]));
 
   for (const tank of next.tanks) {
-    const { updatedTank, updatedTankFish } = processOneTank(tank, [...fishById.values()], messages, now);
+    const { updatedTank, updatedTankFish } = processOneTank(tank, [...fishById.values()], messages, now, next.shop?.upgrades?.hatchery?.level || 0);
     updatedTanks.push(updatedTank);
     for (const f of updatedTankFish) fishById.set(f.id, f);
   }
