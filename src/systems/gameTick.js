@@ -308,8 +308,9 @@ export function updateChallengeProgress(state, eventType, payload = {}) {
       matches = true; progress += 1;
     } else if (c.type === 'happiness_timer' && eventType === 'happiness_tick') {
       // payload.tanks = array of happiness values
-      const allHigh = (payload.tanks || []).every(h => h >= 90);
-      if (allHigh) { matches = true; progress += 1; }
+      // Challenge says "tank happiness" (singular) — any one tank ≥ 90% counts
+      const anyHigh = (payload.tanks || []).some(h => h >= 90);
+      if (anyHigh) { matches = true; progress += 1; }
     }
 
     if (!matches) return c;
@@ -451,7 +452,7 @@ export function processTick(state) {
       tip += Math.floor((tank.happiness / 100) * decorMult * PASSIVE_INCOME_BASE);
     }
     if (tip > 0) {
-      next = { ...next, player: { ...next.player, coins: next.player.coins + tip } };
+      next = { ...next, player: { ...next.player, coins: next.player.coins + tip, totalCoinsEarned: (next.player.totalCoinsEarned || 0) + tip } };
       messages.push(`💰 Visitors left a ${tip}-coin tip!`);
     }
     next = { ...next, passiveTick: 0 };
@@ -469,6 +470,29 @@ export function processTick(state) {
       typeof m === 'string' ? { time: Date.now(), message: m } : { time: Date.now(), ...m }
     );
     next = { ...next, log: [...newEntries, ...next.log].slice(0, 60) };
+  }
+
+  // survived_night — checked every tick so it fires reliably during the
+  // 11 pm–6 am window, regardless of whether other achievement triggers fire.
+  // checkAchievements is not imported here to avoid a circular dep, so we
+  // inline the minimal award directly.
+  if (!next.player.achievements?.some(a => a.id === 'survived_night')) {
+    const hour = new Date().getHours();
+    if ((hour >= 23 || hour < 6) && next.fish.length > 0 && next.fish.every(f => (f.health || 0) > 0)) {
+      const NIGHT_REWARD = 500; // secret tier
+      next = {
+        ...next,
+        player: {
+          ...next.player,
+          coins: next.player.coins + NIGHT_REWARD,
+          achievements: [
+            ...(next.player.achievements || []),
+            { id: 'survived_night', unlockedAt: Date.now(), reward: NIGHT_REWARD },
+          ],
+        },
+      };
+      messages.push('🌙 Achievement unlocked: Night Watch! All fish survived the night. +🪙500');
+    }
   }
 
   return { ...next, lastTickAt: now };

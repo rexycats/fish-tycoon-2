@@ -58,10 +58,10 @@ export const GENES = {
   glow: {
     name: 'Glow',
     alleles: {
-      N: { name: 'Normal',     dominant: 4 },
-      G: { name: 'Luminous',   dominant: 1 },
-      R: { name: 'Radiant',    dominant: 2 },
-      U: { name: 'Ultraviolet',dominant: 3 },
+      N: { name: 'Normal',      dominant: 1 },
+      G: { name: 'Luminous',    dominant: 2 },
+      R: { name: 'Radiant',     dominant: 3 },
+      U: { name: 'Ultraviolet', dominant: 4 },
     },
   },
   size: {

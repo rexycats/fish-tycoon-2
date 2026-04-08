@@ -102,6 +102,10 @@ export function createDefaultState() {
       boosts: {},           // active booster flags, e.g. { rarityBoost: 1, luckyCharm: 1 }
       unlockedDecorations: [], // decoration IDs granted by achievements (not purchasable)
       legendFishUnlocked: false, // true after earning Legend of the Deep (magic_7)
+      // UI badge watermarks — how many entries the player had last time they
+      // visited each tab. Stored in save so import/export keeps them consistent.
+      seenFishdexCount:  0,
+      seenShopFishCount: 0,
     },
 
     rareMarket: {
@@ -246,6 +250,8 @@ function migrateSave(parsed) {
     }
   }
   if (!parsed.player.boosts)    parsed.player.boosts = {};
+  if (parsed.player.seenFishdexCount  == null) parsed.player.seenFishdexCount  = 0;
+  if (parsed.player.seenShopFishCount == null) parsed.player.seenShopFishCount = 0;
   if (!parsed.rareMarket) parsed.rareMarket = { lastRefreshDay: 0, purchased: [] };
   if (!parsed.dailyChallenges) parsed.dailyChallenges = { day: 0, challenges: [] };
   // Migrate medicine → distinct treatments on old saves
@@ -422,11 +428,9 @@ export function checkAchievements(state, messages) {
   const upgrades = shop.upgrades || {};
   if (Object.values(upgrades).some(u => u.level >= (u.maxLevel || 3))) award('upgrade_max');
 
-  // survived_night: all fish alive and it is currently between 11pm and 6am
-  if (fish.length > 0 && fish.every(f => (f.health || 0) > 0)) {
-    const hour = new Date().getHours();
-    if (hour >= 23 || hour < 6) award('survived_night');
-  }
+  // survived_night is checked every tick in processTick (gameTick.js), not here,
+  // because checkAchievements only fires on event triggers and would miss the
+  // nightly window entirely if no other achievement fires between 11pm–6am.
 
   if (newAchievements.length === 0) return state;
   return {
