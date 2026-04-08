@@ -280,7 +280,7 @@ export function basePriceFromScore(score, rarity) {
 
 export function getSpeciesFromPhenotype(phenotype) {
   const key = phenotypeKey(phenotype);
-  const name = NAMED_SPECIES[key] || generateFishName(phenotype);
+  const name = NAMED_SPECIES[key] || generateProceduralName(phenotype);
   const score = computeRarityScore(phenotype);
   const rarity = rarityFromScore(score);
   const basePrice = basePriceFromScore(score, rarity);
@@ -304,7 +304,7 @@ const NOUN = {
 };
 const GLOWPFX = { Luminous: 'Glowing ', Radiant: 'Radiant ', Ultraviolet: 'UV ' };
 
-function generateFishName(ph) {
+function generateProceduralName(ph) {
   const glow = GLOWPFX[ph.glow] || '';
   const adj = (ADJ[ph.primaryColor] || ['Mystery'])[Math.floor(Math.random() * 5) % 5];
   const noun = (NOUN[ph.bodyShape] || ['Fish'])[Math.floor(Math.random() * 4) % 4];

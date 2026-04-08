@@ -121,15 +121,23 @@ body {
 
 /* ── Tank tabs ────────────────────────────────────────────── */
 .tank-tab-bar {
+  display: flex;
+  align-items: stretch;
   background: linear-gradient(180deg, rgba(10,20,44,0.99) 0%, rgba(7,15,34,1) 100%);
   border-bottom: 2px solid rgba(20,50,120,0.7);
   box-shadow: 0 2px 16px rgba(0,0,0,0.5);
   gap: 4px; padding: 6px 10px 0;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
 }
+.tank-tab-bar::-webkit-scrollbar { display: none; }
 .tank-tab {
   background: linear-gradient(160deg, rgba(14,28,60,0.9) 0%, rgba(8,18,40,0.95) 100%);
   border: 1px solid rgba(30,60,130,0.5); border-bottom: none;
-  border-radius: 10px 10px 0 0; padding: 6px 14px 8px; min-width: 110px;
+  border-radius: 10px 10px 0 0; padding: 6px 14px 8px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
   transition: background 0.15s, border-color 0.15s, box-shadow 0.2s;
 }
 .tank-tab:hover { background: linear-gradient(160deg, rgba(20,40,88,0.95) 0%, rgba(12,24,56,1) 100%); border-color: rgba(50,100,200,0.6); }
@@ -199,7 +207,6 @@ body {
 /* ── Log ──────────────────────────────────────────────────── */
 .log-panel { background: rgba(4,10,22,0.95); border-top: 1px solid rgba(16,40,90,0.6); }
 .log-entry { font-family: 'Space Mono', monospace; font-size: 13px; line-height: 1.5; padding: 6px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text-dim); }
-.log-entry:first-child { color: var(--text-primary); }
 
 /* ── Shop ─────────────────────────────────────────────────── */
 .shop-panel { background: linear-gradient(180deg, rgba(6,14,28,0.98) 0%, rgba(4,10,22,1) 100%); }
@@ -495,6 +502,22 @@ body {
 .fish-container:hover { filter: brightness(1.25) drop-shadow(0 0 6px rgba(255,255,255,0.3)); }
 .fish-container.selected { z-index: 20; filter: drop-shadow(0 0 8px rgba(240,192,64,0.6)); }
 
+
+.fish-selection-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(240,192,64,0.9);
+  box-shadow: 0 0 0 3px rgba(240,192,64,0.25), inset 0 0 12px rgba(240,192,64,0.15);
+  pointer-events: none;
+  z-index: 5;
+  animation: fish-ring-pulse 1.4s ease-in-out infinite;
+}
+@keyframes fish-ring-pulse {
+  0%,100% { border-color: rgba(240,192,64,0.9); box-shadow: 0 0 0 3px rgba(240,192,64,0.25), inset 0 0 12px rgba(240,192,64,0.15); }
+  50%      { border-color: rgba(255,216,80,1);   box-shadow: 0 0 0 5px rgba(240,192,64,0.15), inset 0 0 18px rgba(255,216,80,0.22); }
+}
 
 .fish-container.fish-diseased .fish-anim-inner {
   border-radius: 50%;
@@ -1063,10 +1086,10 @@ body {
   opacity: 0.7;
 }
 .predict-chance {
-  width: 32px;
+  width: 38px;
   text-align: right;
-  font-size: 0.72rem;
-  color: #8a9ab0;
+  font-size: 0.75rem;
+  font-weight: 600;
   flex-shrink: 0;
 }
 .predict-price {
@@ -2823,7 +2846,10 @@ body {
   padding: 4px 8px 0;
   flex-shrink: 0;
   overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
 }
+.tank-tab-bar::-webkit-scrollbar { display: none; }
 
 .tank-tab-emoji {
   font-size: 16px;
@@ -6716,27 +6742,27 @@ button:active, .btn:active, .action-btn:active {
 .log-entry--critical {
   border-left-color: #f55;
   background: rgba(255,60,60,0.07);
-  color: #ffb3b3;
+  color: #ffb3b3 !important;
 }
 
 /* warning → amber/yellow */
 .log-entry--warn {
   border-left-color: #f0c040;
   background: rgba(240,192,64,0.05);
-  color: #f0d080;
+  color: #f0d080 !important;
 }
 
 /* success → green */
 .log-entry--success {
   border-left-color: #4caf82;
   background: rgba(76,175,130,0.06);
-  color: #7de8b0;
+  color: #7de8b0 !important;
 }
 
 /* info → muted blue-gray */
 .log-entry--info {
   border-left-color: rgba(100,140,200,0.25);
-  color: rgba(140,180,230,0.65);
+  color: rgba(140,180,230,0.65) !important;
 }
 
 .log-entry-icon {
@@ -6957,6 +6983,26 @@ button:active, .btn:active, .action-btn:active {
   border-radius: 4px;
   transition: width 0.4s ease;
 }
+
+/* ── Low-supply alert banner ──────────────────────────────── */
+.low-supply-banner {
+  background: linear-gradient(90deg, rgba(180,80,0,0.18), rgba(200,120,0,0.1));
+  border-bottom: 1px solid rgba(220,120,0,0.4);
+  color: #f4a840;
+  font-size: 12px;
+  padding: 6px 14px;
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.low-supply-banner__btn {
+  margin-left: auto;
+  background: rgba(220,120,0,0.25);
+  border: 1px solid rgba(220,140,0,0.5);
+  border-radius: 6px; padding: 3px 10px;
+  color: #f4a840; font-size: 11px; cursor: pointer;
+  transition: background 0.15s;
+}
+.low-supply-banner__btn:hover { background: rgba(220,120,0,0.45); }
 
 .challenges-complete-banner {
   margin-top: 20px;

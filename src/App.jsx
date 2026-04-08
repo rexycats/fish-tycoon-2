@@ -146,6 +146,15 @@ export default function App() {
         onRename={renameTank}
       />
 
+      {activeTank && (activeTank.supplies?.food ?? 0) <= 5 && (
+        <div className="low-supply-banner">
+          ⚠️ Low food supply in <strong>{activeTank.name}</strong> — only {activeTank.supplies?.food ?? 0} left!{' '}
+          <button className="low-supply-banner__btn" onClick={() => buySupply('food', 10, 10, activeTank.id)}>
+            Buy food (+10)
+          </button>
+        </div>
+      )}
+
       <nav className="tab-bar" style={{ '--tab-count': TAB_LIST.length }}>
         <div className="tab-pill" style={{ '--pill-idx': activeTabIdx, '--pill-total': TAB_LIST.length }} />
         {TAB_LIST.map(([tab, icon, label]) => {

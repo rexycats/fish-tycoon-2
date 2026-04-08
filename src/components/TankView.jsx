@@ -482,6 +482,9 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
               onMouseEnter={() => setHoveredFishId(f.id)}
               onMouseLeave={() => setHoveredFishId(null)}
               onClick={() => onSelectFish(f.id === selectedFishId ? null : f.id)}>
+              {isSelected && (
+                <div className="fish-selection-ring" style={{ width: spriteSize + 20, height: spriteSize + 20 }} />
+              )}
               <div className={`fish-anim-inner ${animClass}`}
                    data-species={f.species?.key || undefined}>
                 <FishSprite fish={f} size={spriteSize} flipped={pos.flipped} selected={isSelected}/>

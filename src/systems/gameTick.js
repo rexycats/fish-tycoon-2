@@ -454,6 +454,9 @@ export function processTick(state) {
     if (tip > 0) {
       next = { ...next, player: { ...next.player, coins: next.player.coins + tip, totalCoinsEarned: (next.player.totalCoinsEarned || 0) + tip } };
       messages.push(`💰 Visitors left a ${tip}-coin tip!`);
+      // Count passive tips toward the daily "earn coins" challenge
+      // (challenge desc says "from sales" but tips are visitor-driven income)
+      next = updateChallengeProgress(next, 'earn_coins', { amount: tip });
     }
     next = { ...next, passiveTick: 0 };
   } else {
@@ -465,17 +468,11 @@ export function processTick(state) {
   const happinessValues = next.tanks.map(t => t.happiness || 0);
   next = updateChallengeProgress(next, 'happiness_tick', { tanks: happinessValues });
 
-  if (messages.length > 0) {
-    const newEntries = messages.map(m =>
-      typeof m === 'string' ? { time: Date.now(), message: m } : { time: Date.now(), ...m }
-    );
-    next = { ...next, log: [...newEntries, ...next.log].slice(0, 60) };
-  }
-
   // survived_night — checked every tick so it fires reliably during the
   // 11 pm–6 am window, regardless of whether other achievement triggers fire.
   // checkAchievements is not imported here to avoid a circular dep, so we
   // inline the minimal award directly.
+  // IMPORTANT: must run before the messages flush below so the log entry lands.
   if (!next.player.achievements?.some(a => a.id === 'survived_night')) {
     const hour = new Date().getHours();
     if ((hour >= 23 || hour < 6) && next.fish.length > 0 && next.fish.every(f => (f.health || 0) > 0)) {
@@ -493,6 +490,13 @@ export function processTick(state) {
       };
       messages.push('🌙 Achievement unlocked: Night Watch! All fish survived the night. +🪙500');
     }
+  }
+
+  if (messages.length > 0) {
+    const newEntries = messages.map(m =>
+      typeof m === 'string' ? { time: Date.now(), message: m } : { time: Date.now(), ...m }
+    );
+    next = { ...next, log: [...newEntries, ...next.log].slice(0, 60) };
   }
 
   return { ...next, lastTickAt: now };
@@ -633,17 +637,14 @@ function processCustomerVisit(state, messages) {
       ].slice(0, 20),
     },
   };
-  // Update daily challenge progress for sell events
+  // Update daily challenge progress for sell events.
+  // 'sell' covers both sell_rarity and sell_any (see updateChallengeProgress).
   const afterSell = updateChallengeProgress(soldState, 'sell', { rarity: fish.species?.rarity || 'common' });
-  const afterEarn = updateChallengeProgress(afterSell, 'earn_coins', { amount: earnedCoins });
-  return updateChallengeProgress(afterEarn, 'sell_any');
+  return updateChallengeProgress(afterSell, 'earn_coins', { amount: earnedCoins });
 }
 
 // ============================================================
-// OFFLINE PROGRESS
-// ============================================================
-// ============================================================
-// OFFLINE DISCOVERY EVENTS
+// OFFLINE PROGRESS & DISCOVERY EVENTS
 // ============================================================
 const OFFLINE_FOUND_ITEMS = [
   { id: 'pearl_snail',   label: 'Pearl Snail Shell',  emoji: '🐚', desc: 'A lustrous spiral shell left behind by a passing snail.' },

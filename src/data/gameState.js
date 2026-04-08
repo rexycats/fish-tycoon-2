@@ -121,6 +121,7 @@ export function createDefaultState() {
 
     tanks: [tank0],
     fish: starterFish,
+    passiveTick: 0,
 
     shop: {
       level: 1,
@@ -254,6 +255,7 @@ function migrateSave(parsed) {
   if (parsed.player.seenFishdexCount  == null) parsed.player.seenFishdexCount  = 0;
   if (parsed.player.seenShopFishCount == null) parsed.player.seenShopFishCount = 0;
   if (parsed.player.seenAchCount      == null) parsed.player.seenAchCount      = 0;
+  if (parsed.passiveTick == null) parsed.passiveTick = 0;
   if (!parsed.rareMarket) parsed.rareMarket = { lastRefreshDay: 0, purchased: [] };
   if (!parsed.dailyChallenges) parsed.dailyChallenges = { day: 0, challenges: [] };
   // Migrate medicine → distinct treatments on old saves
