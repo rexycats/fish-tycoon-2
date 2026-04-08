@@ -52,14 +52,16 @@ export default function App() {
   } = useEconomy(game, setGame, activeTankId, setSelectedFishId, setActiveTankId);
 
   // ── Tab + "NEW" badge state ──────────────────────────────────
-  const [activeTab, setActiveTab]       = useState('tank');
-  const [showApiSetup, setShowApiSetup] = useState(false);
+  const [activeTab, setActiveTab]         = useState('tank');
+  const [showApiSetup, setShowApiSetup]   = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const currentFishdexCount  = (game.player.fishdex || []).length;
   const currentShopFishCount = (game.fish || []).filter(f => f.stage === 'adult').length;
   const newFishdexCount      = Math.max(0, currentFishdexCount  - (game.player.seenFishdexCount  || 0));
   const newShopFishCount     = Math.max(0, currentShopFishCount - (game.player.seenShopFishCount || 0));
-  const newAchCount          = (game.player.achievements || []).length;
+  const currentAchCount      = (game.player.achievements || []).length;
+  const newAchCount          = Math.max(0, currentAchCount - (game.player.seenAchCount || 0));
 
   const handleTabChange = useCallback((tab) => {
     setActiveTab(tab);
@@ -75,9 +77,13 @@ export default function App() {
         player: { ...prev.player, seenShopFishCount: (prev.fish || []).filter(f => f.stage === 'adult').length },
       }));
     }
-  }, []);
-
-  const TAB_LIST = [
+    if (tab === 'achieve') {
+      setGame(prev => ({
+        ...prev,
+        player: { ...prev.player, seenAchCount: (prev.player.achievements || []).length },
+      }));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps — setGame is stable
     ['tank',       '🐠', 'Tank'],
     ['shop',       '🏪', 'Shop'],
     ['breed',      '🧬', 'Breed'],
@@ -90,6 +96,14 @@ export default function App() {
   ];
   const PRIMARY_TABS = new Set(['tank', 'shop', 'breed', 'challenges']);
   const activeTabIdx = TAB_LIST.findIndex(([t]) => t === activeTab);
+
+  // Badge counts — hoisted here so they are computed once per render,
+  // not once per tab inside TAB_LIST.map.
+  const fishdexCount   = (game.player.fishdex       || []).length;
+  const magicCount     = (game.player.magicFishFound || []).length;
+  const autopsyCount   = (game.player.autopsies      || []).length;
+  const challengeDone  = (game.dailyChallenges?.challenges || []).filter(c => c.completed).length;
+  const challengeTotal = (game.dailyChallenges?.challenges || []).length;
 
   return (
     <div className="app">
@@ -135,11 +149,6 @@ export default function App() {
       <nav className="tab-bar" style={{ '--tab-count': TAB_LIST.length }}>
         <div className="tab-pill" style={{ '--pill-idx': activeTabIdx, '--pill-total': TAB_LIST.length }} />
         {TAB_LIST.map(([tab, icon, label]) => {
-          const fishdexCount   = (game.player.fishdex       || []).length;
-          const magicCount     = (game.player.magicFishFound || []).length;
-          const autopsyCount   = (game.player.autopsies      || []).length;
-          const challengeDone  = (game.dailyChallenges?.challenges || []).filter(c => c.completed).length;
-          const challengeTotal = (game.dailyChallenges?.challenges || []).length;
           let badge = null;
           if (tab === 'fishdex') badge = (
             <span className="tab-dot">
@@ -266,6 +275,13 @@ export default function App() {
 
       {showApiSetup && <ApiKeyModal onClose={() => setShowApiSetup(false)} />}
 
+      {showResetConfirm && (
+        <ResetConfirmModal
+          onConfirm={() => { setShowResetConfirm(false); resetGame(); }}
+          onCancel={() => setShowResetConfirm(false)}
+        />
+      )}
+
       {(game.player.magicFishFound || []).length === 7 && showWinModal && (
         <MagicWinModal
           totalReward={MAGIC_FISH.reduce((s, m) => s + m.reward, 0)}
@@ -274,7 +290,7 @@ export default function App() {
       )}
 
       <footer className="app-footer">
-        <button className="btn btn-sm btn-danger" onClick={resetGame}>🔄 Reset</button>
+        <button className="btn btn-sm btn-danger" onClick={() => setShowResetConfirm(true)}>🔄 Reset</button>
         <button className="btn btn-sm" onClick={handleExportSave} title="Download your save as a JSON file">💾 Export</button>
         <label className="btn btn-sm" title="Load a previously exported save file" style={{ cursor: 'pointer' }}>
           📂 Import
@@ -473,6 +489,24 @@ function TankTabs({ tanks, activeTankId, onSelectTank, onUnlockTank, canUnlock, 
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Reset Confirmation Modal ──────────────────────────────────
+function ResetConfirmModal({ onConfirm, onCancel }) {
+  return (
+    <div className="win-modal-overlay" onClick={onCancel}>
+      <div className="win-modal" style={{ maxWidth: 360 }} onClick={e => e.stopPropagation()}>
+        <div className="win-modal-title" style={{ fontSize: '1.3rem' }}>🔄 Reset Game?</div>
+        <p style={{ color: 'var(--text-dim)', fontSize: '0.88rem', margin: '8px 0 20px' }}>
+          All progress will be permanently lost. This cannot be undone.
+        </p>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button className="btn btn-sm" onClick={onCancel}>Cancel</button>
+          <button className="btn btn-sm btn-danger" onClick={onConfirm}>Yes, Reset Everything</button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -89,18 +89,17 @@ export function useEconomy(game, setGame, activeTankId, setSelectedFishId, setAc
   // ── Buy supplies ─────────────────────────────────────────────
   const buySupply = useCallback((supplyKey, cost, amount, tankId) => {
     setGame(prev => {
-      const tid = tankId || activeTankId;
       if (prev.player.coins < cost) { playWarning(); return addLog(prev, `⚠️ Not enough coins!`); }
       playCoin();
       return addLog({
         ...prev,
         player: { ...prev.player, coins: prev.player.coins - cost },
-        tanks: prev.tanks.map(t => t.id === tid
+        tanks: prev.tanks.map(t => t.id === tankId
           ? { ...t, supplies: { ...t.supplies, [supplyKey]: (t.supplies[supplyKey] || 0) + amount } }
           : t),
-      }, `🛒 Bought ${amount}x ${supplyKey} for 🪙${cost} (${prev.tanks.find(t => t.id === tid)?.name || ''}).`);
+      }, `🛒 Bought ${amount}x ${supplyKey} for 🪙${cost} (${prev.tanks.find(t => t.id === tankId)?.name || ''}).`);
     });
-  }, [activeTankId]);
+  }, []);
 
   // ── Treat water ──────────────────────────────────────────────
   const treatWater = useCallback(() => {
@@ -594,13 +593,11 @@ export function useEconomy(game, setGame, activeTankId, setSelectedFishId, setAc
 
   // ── Save management ───────────────────────────────────────────
   const resetGame = useCallback(() => {
-    if (confirm('Reset your game? All progress will be lost!')) {
-      const fresh = createDefaultState();
-      setGame(fresh);
-      saveGame(fresh);
-      setSelectedFishId(null);
-      setActiveTankId('tank_0');
-    }
+    const fresh = createDefaultState();
+    setGame(fresh);
+    saveGame(fresh);
+    setSelectedFishId(null);
+    setActiveTankId('tank_0');
   }, [setSelectedFishId, setActiveTankId]);
 
   const handleExportSave = useCallback(() => {

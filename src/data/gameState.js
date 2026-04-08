@@ -106,6 +106,7 @@ export function createDefaultState() {
       // visited each tab. Stored in save so import/export keeps them consistent.
       seenFishdexCount:  0,
       seenShopFishCount: 0,
+      seenAchCount:      0,
     },
 
     rareMarket: {
@@ -252,6 +253,7 @@ function migrateSave(parsed) {
   if (!parsed.player.boosts)    parsed.player.boosts = {};
   if (parsed.player.seenFishdexCount  == null) parsed.player.seenFishdexCount  = 0;
   if (parsed.player.seenShopFishCount == null) parsed.player.seenShopFishCount = 0;
+  if (parsed.player.seenAchCount      == null) parsed.player.seenAchCount      = 0;
   if (!parsed.rareMarket) parsed.rareMarket = { lastRefreshDay: 0, purchased: [] };
   if (!parsed.dailyChallenges) parsed.dailyChallenges = { day: 0, challenges: [] };
   // Migrate medicine → distinct treatments on old saves

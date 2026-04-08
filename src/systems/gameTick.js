@@ -673,7 +673,14 @@ function generateOfflineEvent(state, secondsAway) {
   if (roll > eventChance) return null;
 
   const eventRoll = Math.random();
-  const tankId = state.tanks[0]?.id || 'tank_0';
+  // Pick the tank with the most available space so the visitor has room.
+  const tankId = (state.tanks.reduce((best, t) => {
+    const used = state.fish.filter(f => f.tankId === t.id).length;
+    const free = (t.capacity || 12) - used;
+    const bestUsed = state.fish.filter(f => f.tankId === best.id).length;
+    const bestFree = (best.capacity || 12) - bestUsed;
+    return free > bestFree ? t : best;
+  }, state.tanks[0]))?.id || 'tank_0';
 
   // Visitor fish: rare stranger appears in your tank (30% of events)
   if (eventRoll < 0.30) {
@@ -732,9 +739,9 @@ export function applyOfflineProgress(state) {
   const elapsed         = now - (state.lastTickAt || now);
   const tankSitterLevel = state.shop?.upgrades?.tankSitter?.level || 0;
   const maxOfflineSecs  = BASE_OFFLINE_SECONDS + tankSitterLevel * TANK_SITTER_BONUS_SECONDS;
-  const ticks           = Math.min(Math.floor(elapsed / 1000), maxOfflineSecs);
+  const secondsElapsed  = Math.min(Math.floor(elapsed / 1000), maxOfflineSecs);
 
-  if (ticks < 5) return state;
+  if (secondsElapsed < 5) return state;
 
   let next = { ...state };
   let eggsHatched = 0, fishedGrown = 0, coinsEarned = 0, fishSold = 0;
@@ -744,24 +751,28 @@ export function applyOfflineProgress(state) {
     ...next,
     tanks: next.tanks.map(t => ({
       ...t,
-      waterQuality: Math.max(0, t.waterQuality - WATER_DECAY_RATE * ticks),
+      waterQuality: Math.max(0, t.waterQuality - WATER_DECAY_RATE * secondsElapsed),
     })),
   };
 
-  // Bulk fish update per tank
+  // Bulk fish update per tank.
+  // NOTE: `{ ...fish }` is a shallow copy — fish.genome, fish.species, and
+  // fish.phenotype are still shared references. Only mutate top-level scalar
+  // fields (age, hunger, health, stage, stageStartedAt) on `f`; never mutate
+  // nested objects in place or you'll corrupt the original state.
   const updatedFish = next.fish.map(fish => {
     let f   = { ...fish };
-    f.age   = (f.age || 0) + ticks;
+    f.age   = (f.age || 0) + secondsElapsed;
     const tank = next.tanks.find(t => t.id === f.tankId);
     const bonuses = getTankBonuses(tank?.type);
 
     if (f.stage !== 'egg') {
-      f.hunger = Math.min(100, (f.hunger || 0) + HUNGER_RATE * ticks);
-      if (f.hunger >= 90) f.health = Math.max(0, f.health - HEALTH_HUNGER_DMG * ticks * 0.5);
+      f.hunger = Math.min(100, (f.hunger || 0) + HUNGER_RATE * secondsElapsed);
+      if (f.hunger >= 90) f.health = Math.max(0, f.health - HEALTH_HUNGER_DMG * secondsElapsed * 0.5);
     }
 
     // Stage progression
-    let remaining = ticks * 1000;
+    let remaining = secondsElapsed * 1000;
     let stageStart = f.stageStartedAt;
     const lastTick = state.lastTickAt || now;
     const hatcheryLevel = next.shop?.upgrades?.hatchery?.level || 0;
@@ -830,7 +841,7 @@ export function applyOfflineProgress(state) {
   // Offline customer visits
   const customerInterval = getCustomerInterval(next);
   const actualVisits = Math.min(
-    Math.floor((ticks * 1000) / customerInterval),
+    Math.floor((secondsElapsed * 1000) / customerInterval),
     next.shop.listedFish.length * 3,
     15,
   );
@@ -849,7 +860,7 @@ export function applyOfflineProgress(state) {
   }
 
   // Generate a discovery event
-  const offlineEvent = generateOfflineEvent(state, ticks);
+  const offlineEvent = generateOfflineEvent(state, secondsElapsed);
   if (offlineEvent) {
     if (offlineEvent.type === 'visitor' && offlineEvent.fish) {
       const tank = next.tanks.find(t => t.id === offlineEvent.fish.tankId);
@@ -874,13 +885,13 @@ export function applyOfflineProgress(state) {
 
   // Summary
   next = { ...next, lastTickAt: now };
-  const minutes = Math.round(ticks / 60);
+  const minutes = Math.round(secondsElapsed / 60);
   const timeLabel = minutes < 60 ? `${minutes}m` : `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
   const ambientMsg = OFFLINE_MESSAGES[Math.floor(Math.random() * OFFLINE_MESSAGES.length)];
   const offlineSummary = {
-    timeAway: timeLabel, secondsAway: ticks,
+    timeAway: timeLabel, secondsAway: secondsElapsed,
     eggsHatched, fishedGrown, coinsEarned, fishSold,
-    waterQualityLost: Math.round(WATER_DECAY_RATE * ticks),
+    waterQualityLost: Math.round(WATER_DECAY_RATE * secondsElapsed),
     fishDied: offlineDeadFish.length,
     offlineEvent,
     ambientMessage: ambientMsg,

@@ -44,6 +44,22 @@ export function useFishSelection(game, setGame) {
     }
   }, [game.tanks, activeTankId]);
 
+  // ── Fishdex entry updater (used by AI naming + lore) ────────
+  // Declared before the speciesNameKey effect so the async .then()
+  // closure inside that effect can reference it without fragile hoisting.
+  // setGame is stable (guaranteed by React), so dep array is [].
+  const updateFishdexEntry = useCallback((speciesName, updates) => {
+    setGame(prev => ({
+      ...prev,
+      player: {
+        ...prev.player,
+        fishdex: (prev.player.fishdex || []).map(e =>
+          e.name === speciesName ? { ...e, ...updates } : e,
+        ),
+      },
+    }));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Fishdex discovery ────────────────────────────────────────
   // Dependency: sorted set of unique species names currently alive.
   // This fires only when a genuinely new species appears — not every tick.
@@ -137,19 +153,6 @@ export function useFishSelection(game, setGame) {
       });
     }
   }, [speciesNameKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Fishdex entry updater (used by AI naming + lore) ────────
-  const updateFishdexEntry = useCallback((speciesName, updates) => {
-    setGame(prev => ({
-      ...prev,
-      player: {
-        ...prev.player,
-        fishdex: (prev.player.fishdex || []).map(e =>
-          e.name === speciesName ? { ...e, ...updates } : e,
-        ),
-      },
-    }));
-  }, [setGame]);
 
   // ── On-demand AI lore generation ────────────────────────────
   const handleGenerateLore = useCallback(async (speciesName) => {
