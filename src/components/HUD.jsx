@@ -90,10 +90,14 @@ function HappinessBar({ value }) {
 /* ── Main HUD ──────────────────────────────────────────────── */
 export default function HUD({
   player, shop, tanks, activeTank, fish,
+  selectedFishTankId,
   onBuyFood, onTreatWater, onToggleAutoFeed, onUseHeater,
   soundOn, onToggleSound,
 }) {
-  const tank    = activeTank || tanks?.[0] || {};
+  // When a fish from a different tank is selected, show that tank's stats so
+  // the HUD matches the fish the player is actually looking at.
+  const displayTank = (selectedFishTankId && tanks?.find(t => t.id === selectedFishTankId)) || activeTank || tanks?.[0] || {};
+  const tank    = displayTank;
   const wq      = Math.round(tank.waterQuality ?? 100);
   const temp    = tank.temperature ?? 74;
   const wqCol   = wq  > 70 ? '#3ddba0' : wq  > 40 ? '#f5c542' : '#ff5566';

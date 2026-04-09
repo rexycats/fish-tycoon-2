@@ -2,7 +2,7 @@
 // FISH TYCOON 2 — SHOP (Phase 7: Customer Walking Animation)
 // ============================================================
 
-import React, { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { RARITY } from '../data/genetics.js';
 import RareMarket from './RareMarket.jsx';
 
@@ -239,7 +239,20 @@ const TAB_LABELS = {
 };
 
 // ── Main Shop component ────────────────────────────────────
+// Tiny debounce helper — avoids importing a full library for one use
+function useDebounced(fn, delayMs) {
+  const timerRef = useRef(null);
+  return useCallback((...args) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => fn(...args), delayMs);
+  }, [fn]); // eslint-disable-line react-hooks/exhaustive-deps
+}
+
 function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuySupply, onBuyFish, onBuyRareItem }) {
+  // Debounce +/− button clicks so rapid clicking doesn't fire dozens of setGame
+  // calls per second. PriceInput text entry still commits on every valid keystroke
+  // (intentional — felt snappy in testing), but button presses are batched.
+  const debouncedSetPrice = useDebounced(onSetPrice, 80);
   const [shopTab, setShopTab] = useState('sell');
   const [showShopMore, setShowShopMore] = useState(false);
   const [activeCustomer, setActiveCustomer] = useState(null);
@@ -374,7 +387,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                       <div className="listing-price-row">
                         <button
                           className="price-adj-btn"
-                          onClick={() => onSetPrice(f.id, Math.max(1, Math.round(askPrice - Math.max(1, Math.round(askPrice * 0.05)))))}
+                          onClick={() => debouncedSetPrice(f.id, Math.max(1, Math.round(askPrice - Math.max(1, Math.round(askPrice * 0.05)))))}
                           title="Lower price by 5%">−</button>
                         <div className="listing-price-input-wrap">
                           <span className="price-coin">🪙</span>
@@ -391,7 +404,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                         </div>
                         <button
                           className="price-adj-btn"
-                          onClick={() => onSetPrice(f.id, Math.round(askPrice + Math.max(1, Math.round(askPrice * 0.05))))}
+                          onClick={() => debouncedSetPrice(f.id, Math.round(askPrice + Math.max(1, Math.round(askPrice * 0.05))))}
                           title="Raise price by 5%">+</button>
                       </div>
                       <div className="listing-price-meta">

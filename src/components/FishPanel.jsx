@@ -3,7 +3,7 @@ import FishSprite from './FishSprite.jsx';
 import { RARITY, GENES } from '../data/genetics.js';
 import { DISEASES } from '../systems/gameTick.js';
 
-function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicineStock, foodStock = 0, tanks = [], onMoveFish }) {
+function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicineStock, foodStock = 0, tanks = [], onMoveFish, isFirstRun }) {
   const prevFishId = useRef(null);
   const [entering, setEntering] = useState(false);
   const [showGenetics, setShowGenetics] = useState(false);
@@ -27,6 +27,15 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
           <div className="fish-panel-empty-icon">🐠</div>
           <p className="fish-panel-empty-text">Select a fish</p>
           <p className="fish-panel-empty-sub">Click any fish in the tank</p>
+          {isFirstRun && (
+            <div className="fish-panel-onboarding">
+              <p className="fish-panel-onboarding-title">🎮 How to play</p>
+              <p className="fish-panel-onboarding-step">🍤 Feed fish to keep them healthy</p>
+              <p className="fish-panel-onboarding-step">📈 Juveniles grow into adults over time</p>
+              <p className="fish-panel-onboarding-step">💰 Sell adults in the Shop to earn coins</p>
+              <p className="fish-panel-onboarding-step">⬆️ Use coins to upgrade your aquarium</p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -159,7 +168,8 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
           <ActionBtn icon="🏪" label="Listed" onClick={() => onSell(fish.id)} variant="listed" />
         ) : (
           <ActionBtn icon="💰" label={`Sell · ${salePrice}🪙`}
-            onClick={() => onSell(fish.id)} disabled={fish.stage !== 'adult'} variant="sell" highlight={bestAction === 'sell'} />
+            onClick={() => onSell(fish.id)} disabled={fish.stage !== 'adult'} variant="sell" highlight={bestAction === 'sell'}
+            disabledTitle={`Can't sell yet — fish is still a ${fish.stage}`} />
         )}
       </div>
 
@@ -267,7 +277,8 @@ export default memo(FishPanel, (prev, next) =>
   prev.fish?.disease   === next.fish?.disease    &&
   prev.isListed        === next.isListed         &&
   prev.coins           === next.coins            &&
-  prev.foodStock       === next.foodStock        &&  // Bug 5: was missing; feed button label went stale
+  prev.foodStock       === next.foodStock        &&
   prev.medicineStock   === next.medicineStock    &&
-  prev.tanks           === next.tanks
+  prev.tanks           === next.tanks            &&
+  prev.isFirstRun      === next.isFirstRun
 );

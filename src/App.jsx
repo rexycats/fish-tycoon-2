@@ -136,6 +136,7 @@ export default function App() {
         shop={game.shop}
         tanks={game.tanks}
         activeTank={activeTank}
+        selectedFishTankId={selectedFish?.tankId}
         fish={game.fish}
         onBuyFood={() => buySupply('food', 10, 10, activeTank?.id)}
         onTreatWater={treatWater}
@@ -239,9 +240,16 @@ export default function App() {
       <main className="main-layout">
         {activeTab === 'tank' && (
           <>
-            {game.tanks.length > 1 && (
-              <AquariumOverview tanks={game.tanks} fish={game.fish} activeTankId={activeTank?.id} onSelectTank={setActiveTankId} />
-            )}
+            {game.tanks.length > 1
+              ? <AquariumOverview tanks={game.tanks} fish={game.fish} activeTankId={activeTank?.id} onSelectTank={setActiveTankId} />
+              : <div className="aquarium-overview aquarium-overview--teaser">
+                  <div className="aquarium-overview-title">🌊 Aquarium Overview</div>
+                  <div className="overview-unlock-cta">
+                    <span>🔓 Unlock a second tank to manage multiple habitats</span>
+                    <button className="btn btn-sm" onClick={() => setActiveTab('shop')}>Tank Expansion →</button>
+                  </div>
+                </div>
+            }
             <div className="tank-col">
               <TankView
                 fish={tankFish}
@@ -260,6 +268,7 @@ export default function App() {
                 onMedicine={useMedicine}
                 isListed={isListed}
                 coins={game.player.coins}
+                isFirstRun={(game.player.fishdex || []).length === 0}
                 foodStock={
                   // Use the fish's own tank — not activeTank — so counts are correct
                   // when a fish from a non-active tank is selected.
@@ -279,7 +288,7 @@ export default function App() {
           </>
         )}
         {activeTab === 'challenges' && (
-          <DailyChallengesPanel dailyChallenges={game.dailyChallenges} />
+          <DailyChallengesPanel dailyChallenges={game.dailyChallenges} streak={game.player.challengeStreak || 0} />
         )}
         {activeTab === 'shop' && (
           <Shop
@@ -418,7 +427,7 @@ function AquariumOverview({ tanks, fish, activeTankId, onSelectTank }) {
 }
 
 // ── Daily Challenges Panel ────────────────────────────────────
-function DailyChallengesPanel({ dailyChallenges }) {
+function DailyChallengesPanel({ dailyChallenges, streak = 0 }) {
   const challenges = dailyChallenges?.challenges || [];
   const msUntilReset = (() => {
     const now = Date.now();
@@ -430,8 +439,22 @@ function DailyChallengesPanel({ dailyChallenges }) {
       <div className="challenges-header">
         <div>
           <h2 className="challenges-title">🎯 Daily Challenges</h2>
-          <p className="challenges-subtitle">Complete all 3 for bonus coins. Resets in {msUntilReset}.</p>
+          <p className="challenges-subtitle">
+            Complete all 3 for bonus coins. Resets in {msUntilReset}.
+            {streak > 0 && (
+              <span className="challenges-mult">
+                {' '}×{Math.min(2, 1 + streak * 0.1).toFixed(1)} streak bonus active
+              </span>
+            )}
+          </p>
         </div>
+        {streak > 0 && (
+          <div className="challenges-streak" title={`${streak} day streak — keep it going!`}>
+            <span className="challenges-streak-fire">🔥</span>
+            <span className="challenges-streak-count">{streak}</span>
+            <span className="challenges-streak-label">day{streak !== 1 ? 's' : ''}</span>
+          </div>
+        )}
       </div>
       <div className="challenges-list">
         {challenges.map((c, i) => {
@@ -444,7 +467,10 @@ function DailyChallengesPanel({ dailyChallenges }) {
                   <div className="challenge-desc">{c.desc}</div>
                   <div className="challenge-progress-text">{c.completed ? '✅ Complete!' : `${c.progress} / ${c.goal}`}</div>
                 </div>
-                <div className="challenge-reward">+🪙{c.reward}</div>
+                <div className="challenge-reward">
+                  +🪹{streak > 0 ? Math.round(c.reward * Math.min(2, 1 + streak * 0.1)) : c.reward}
+                  {streak > 0 && <span className="challenge-reward-base"> (base 🪹{c.reward})</span>}
+                </div>
               </div>
               <div className="challenge-bar-track">
                 <div className="challenge-bar-fill" style={{ width: `${pct}%`, background: c.completed ? '#7ec8a0' : '#6ab0de' }} />

@@ -32,10 +32,10 @@ function EventCard({ event }) {
 export default function OfflineSummary({ summary, onDismiss }) {
   const [revealed, setRevealed] = useState(false);
 
-  if (!summary || !summary.hasEvents) return null;
+  if (!summary) return null;
 
   const { timeAway, eggsHatched, fishedGrown, fishSold, coinsEarned,
-          waterQualityLost, fishDied, offlineEvent, ambientMessage } = summary;
+          waterQualityLost, fishDied, offlineEvent, ambientMessage, hasEvents } = summary;
 
   const hasActivity = eggsHatched > 0 || fishedGrown > 0 || fishSold > 0 || fishDied > 0;
 
@@ -54,7 +54,7 @@ export default function OfflineSummary({ summary, onDismiss }) {
         <div className="offline-header">
           <div className="offline-away-badge">⏰ {timeAway}</div>
           <div className="offline-title-v2">While you were away…</div>
-          {ambientMessage && !hasActivity && (
+          {ambientMessage && (
             <div className="offline-ambient">
               <span>{ambientMessage.emoji}</span>
               <span>{ambientMessage.text}</span>
@@ -62,7 +62,7 @@ export default function OfflineSummary({ summary, onDismiss }) {
           )}
         </div>
 
-        {hasActivity && (
+        {hasEvents && hasActivity && (
           <div className="offline-activity">
             {eggsHatched > 0 && (
               <div className="offline-row">

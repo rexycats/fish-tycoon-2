@@ -141,9 +141,15 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
   }, [fishA?.id, fishB?.id, canPredict]);
 
   let progress = 0;
+  let timeRemainingLabel = null;
   if (breedingTank.breedingStartedAt && !breedingTank.eggReady) {
     const elapsed = Date.now() - breedingTank.breedingStartedAt;
     progress = Math.min(100, (elapsed / breedingTank.breedingDurationMs) * 100);
+    const msLeft = Math.max(0, breedingTank.breedingDurationMs - elapsed);
+    const secsLeft = Math.ceil(msLeft / 1000);
+    timeRemainingLabel = secsLeft < 60
+      ? `${secsLeft}s left`
+      : `~${Math.ceil(secsLeft / 60)}m left`;
   } else if (breedingTank.eggReady) {
     progress = 100;
   }
@@ -190,7 +196,12 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
             </button>
           ) : breedingTank.breedingStartedAt ? (
             <div className="breed-progress-wrap">
-              <div className="breed-progress-label">Breeding…</div>
+              <div className="breed-progress-header">
+                <div className="breed-progress-label">Breeding…</div>
+                {timeRemainingLabel && (
+                  <div className="breed-progress-time">{timeRemainingLabel}</div>
+                )}
+              </div>
               <div className="breed-progress-bar">
                 <div className="breed-progress-fill" style={{ width: `${progress}%` }} />
               </div>

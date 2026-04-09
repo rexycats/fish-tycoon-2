@@ -108,6 +108,7 @@ export function createDefaultState() {
       seenFishdexCount:  0,
       seenShopFishCount: 0,
       seenAchCount:      0,
+      challengeStreak:   0,  // consecutive days all 3 challenges completed
     },
 
     rareMarket: {
@@ -415,7 +416,10 @@ export function checkAchievements(state, messages) {
   if ((player.totalCoinsEarned || 0) >= 5000)  award('coins_5000');
   if ((player.totalCoinsEarned || 0) >= 50000) award('coins_50000');
 
-  const anyFull = tanks.some(t => fish.filter(f => f.tankId === t.id).length >= t.capacity && t.capacity > 0);
+  // Precompute fish count per tank (O(n)) to avoid O(n×t) filter inside some()
+  const fishCountByTank = new Map();
+  for (const f of fish) fishCountByTank.set(f.tankId, (fishCountByTank.get(f.tankId) || 0) + 1);
+  const anyFull = tanks.some(t => t.capacity > 0 && (fishCountByTank.get(t.id) || 0) >= t.capacity);
   if (anyFull) award('full_tank');
   if (tanks.some(t => (t.happiness || 0) >= 100)) award('tank_happy');
   if (tanks.length >= 2) award('two_tanks');

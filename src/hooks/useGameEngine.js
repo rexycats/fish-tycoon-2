@@ -16,21 +16,24 @@ import { playDiscover, playSale, setSoundEnabled } from '../services/soundServic
  *   - sound / toast side-effects (sales, achievements, disease alerts)
  *   - floating coin delta animations
  */
+// Module-level sentinel — loadGame() is called exactly once per page load,
+// even under React Strict Mode which double-invokes lazy initialisers.
+let _moduleInitSave = undefined;
+function getInitSave() {
+  if (_moduleInitSave === undefined) _moduleInitSave = loadGame();
+  return _moduleInitSave;
+}
+
 export function useGameEngine() {
-  // Load once — both useState lazy initialisers share a single loadGame() call
-  // via a ref seeded inside the first lazy init, so loadGame() is never called
-  // more than once even under React Strict Mode's double-invocation.
-  const initSaveRef = useRef(null);
   const [game, setGame] = useState(() => {
-    const saved = loadGame();
-    initSaveRef.current = saved;
+    const saved = getInitSave();
     let g = saved ? applyOfflineProgress(saved) : createDefaultState();
     g = refreshDailyChallenges(g);
     return g;
   });
 
   const [showOffline, setShowOffline] = useState(() => {
-    const saved = initSaveRef.current;
+    const saved = getInitSave();
     return saved ? Date.now() - (saved.lastTickAt || Date.now()) > 30_000 : false;
   });
 
@@ -86,15 +89,33 @@ export function useGameEngine() {
       maxHappiness,
       maxUpgLevel,
     ].join(',');
-  }, [game.fish, game.tanks, game.player.fishdex, game.player.totalCoinsEarned,
-      game.player.magicFishFound, game.player.stats, game.shop.salesHistory,
-      game.shop.upgrades]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Deps are the specific scalar/array-length values the memo body reads.
+  // Avoid depending on game.fish directly — it's a new array ref every tick.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    game.fish.length,
+    game.tanks.length,
+    game.tanks,                           // needed for happiness + capacity checks
+    (game.player.fishdex || []).length,
+    game.player.totalCoinsEarned,
+    (game.player.magicFishFound || []).length,
+    game.player.stats?.eggsCollected,
+    game.player.stats?.medicineUsed,
+    game.player.stats?.waterTreated,
+    (game.shop.salesHistory || []).length,
+    game.shop.upgrades,
+  ]);
 
   useEffect(() => {
     setGame(prev => {
       const msgs = [];
       const next = checkAchievements(prev, msgs);
-      return next === prev ? prev : next;
+      if (next === prev) return prev;
+      // msgs contains achievement + decoration unlock strings — write them to the log
+      // so players can scroll back and see what they earned. Previously these were silently dropped.
+      if (msgs.length === 0) return next;
+      const entries = msgs.map(m => ({ time: Date.now(), message: m, severity: 'warn' }));
+      return { ...next, log: [...entries, ...(next.log || [])].slice(0, 60) };
     });
   }, [achTriggerKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -157,7 +178,9 @@ export function useGameEngine() {
   // diseaseStateKey: only sick fish contribute. Early-exit when none are sick
   // (the common case) to skip the filter/map/sort allocation entirely.
   // Sorted for stability so React's dep comparison is order-independent.
-  const diseaseStateKey = (() => {
+  // useMemo: recomputes only when game.fish reference changes (i.e. each tick),
+  // but the early-exit keeps it near-zero cost on healthy ticks.
+  const diseaseStateKey = useMemo(() => {
     const fish = game.fish || [];
     if (!fish.some(f => f.disease)) return '';
     return fish
@@ -165,7 +188,7 @@ export function useGameEngine() {
       .map(f => `${f.id}:${f.disease}`)
       .sort()
       .join(',');
-  })();
+  }, [game.fish]);
 
   useEffect(() => {
     for (const f of game.fish) {

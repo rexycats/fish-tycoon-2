@@ -277,7 +277,24 @@ export function refreshDailyChallenges(state) {
   const today = todayUTCDay();
   const dc = state.dailyChallenges;
   if (!dc || dc.day !== today) {
-    return { ...state, dailyChallenges: generateDailyChallenges(today) };
+    // Check if the previous day had all challenges completed before resetting.
+    // Only treat it as consecutive if dc.day was exactly yesterday — a multi-day
+    // absence correctly resets the streak to 0 rather than continuing it.
+    const prevCompleted = dc?.challenges?.length > 0 && dc.challenges.every(c => c.completed);
+    const isConsecutive = (dc?.day ?? -1) === today - 1;
+    const currentStreak = state.player?.challengeStreak || 0;
+    const newStreak = isConsecutive && prevCompleted ? currentStreak + 1 : 0;
+
+    let next = { ...state, dailyChallenges: generateDailyChallenges(today) };
+    if (newStreak !== currentStreak) {
+      next = { ...next, player: { ...next.player, challengeStreak: newStreak } };
+      if (newStreak > 1) {
+        const mult = Math.min(2, 1 + newStreak * 0.1).toFixed(1);
+        const msg = `${fire_emoji} Challenge streak: ${newStreak} days in a row! Today's rewards ×${mult}`;
+        next = { ...next, log: [{ time: Date.now(), message: msg, severity: 'warn' }, ...next.log].slice(0, 60) };
+      }
+    }
+    return next;
   }
   return state;
 }
@@ -320,8 +337,13 @@ export function updateChallengeProgress(state, eventType, payload = {}) {
     if (!matches) return c;
     const completed = progress >= c.goal;
     if (completed && !c.completed) {
-      coinsAwarded += c.reward;
-      messages.push(`🎯 Daily challenge complete: ${c.emoji} ${c.desc}! +🪙${c.reward}`);
+      // Apply streak multiplier: +10% per consecutive day, capped at ×2
+      const streak = state.player?.challengeStreak || 0;
+      const mult = Math.min(2, 1 + streak * 0.1);
+      const reward = Math.round(c.reward * mult);
+      coinsAwarded += reward;
+      const multLabel = mult > 1 ? ` (×${mult.toFixed(1)} streak bonus)` : '';
+      messages.push(`🎯 Daily challenge complete: ${c.emoji} ${c.desc}! +🪹${reward}${multLabel}`);
     }
     return { ...c, progress: Math.min(progress, c.goal), completed };
   });
@@ -468,11 +490,16 @@ export function processTick(state) {
   // Passive income: once per minute, happy tanks with adult fish earn visitor tips
   const passiveTick = (next.passiveTick || 0) + 1;
   if (passiveTick >= PASSIVE_INCOME_INTERVAL) {
-    // Count adults per tank using the fishByTank map already built above (O(1) per tank)
+    // Build a fresh count map from next.fish (post-tick, dead fish already removed)
+    // — fishByTank was built pre-tick and is stale here.
+    const passiveFishByTank = new Map();
+    for (const f of next.fish) {
+      if (f.stage !== 'adult') continue;
+      passiveFishByTank.set(f.tankId, (passiveFishByTank.get(f.tankId) || 0) + 1);
+    }
     let tip = 0;
     for (const tank of next.tanks) {
-      const tankFishNow = fishByTank.get(tank.id) || [];
-      const adultCount = tankFishNow.filter(f => f.stage === 'adult').length;
+      const adultCount = passiveFishByTank.get(tank.id) || 0;
       if (adultCount === 0) continue;
       const placed = tank.decorations?.placed?.length || 0;
       const decorMult = 1 + Math.min(10, placed) * PASSIVE_DECOR_BONUS;
