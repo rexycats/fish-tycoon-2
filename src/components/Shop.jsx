@@ -102,18 +102,7 @@ function ReputationBar({ rep }) {
   );
 }
 
-function ComingSoonCard({ name, emoji, rarity, teaser }) {
-  const rc = { common: '#7ec8a0', uncommon: '#6ab0de', rare: '#b07ee8', epic: '#f0c040' };
-  return (
-    <div className="supply-card supply-card--locked" title="Coming in a future update">
-      <div className="sc-emoji" style={{ filter: 'grayscale(0.8)', opacity: 0.55 }}>{emoji}</div>
-      <div className="sc-name" style={{ color: rc[rarity] || '#888' }}>{name}</div>
-      <div className="sc-rarity" style={{ color: rc[rarity] || '#888', opacity: 0.7 }}>{rarity}</div>
-      <div className="sc-desc" style={{ fontStyle: 'italic', opacity: 0.55 }}>{teaser}</div>
-      <div className="sc-coming-soon-badge">Coming Soon</div>
-    </div>
-  );
-}
+// ComingSoonCard was removed (Bug 9: defined but never used anywhere in the tree)
 
 const UPGRADE_ICONS = {
   slot:       '🪟',
@@ -155,9 +144,19 @@ function UpgradeCard({ id, upgrade, coins, onBuy }) {
 
 function SaleEvent({ event }) {
   const rc = RC[event.fishRarity] || '#888';
-  const ago = Math.round((Date.now() - event.time) / 1000);
-  const agoLabel = ago < 60 ? `${ago}s ago` : `${Math.floor(ago / 60)}m ago`;
   const isRejected = event.type === 'rejected';
+
+  // Bug 6: compute ago at render time AND keep it live with a 10-second interval
+  // so the label doesn't freeze at the value from when the History tab was opened.
+  const getAgo = () => {
+    const secs = Math.round((Date.now() - event.time) / 1000);
+    return secs < 60 ? `${secs}s ago` : `${Math.floor(secs / 60)}m ago`;
+  };
+  const [agoLabel, setAgoLabel] = useState(getAgo);
+  useEffect(() => {
+    const id = setInterval(() => setAgoLabel(getAgo()), 10_000);
+    return () => clearInterval(id);
+  }, [event.time]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className={`sale-event ${isRejected ? 'sale-rejected' : ''}`}>
       <span className="sale-emoji">{event.customerEmoji}</span>
@@ -190,15 +189,65 @@ function SupplyCard({ name, emoji, stock, cost, amount, coins, desc, onBuy }) {
   );
 }
 
+// Bug 10: local draft-string input so the user can clear the field and retype
+// without it snapping back. Game state is committed on blur or on any keystroke
+// that already produces a valid integer ≥ 1 (so +/- buttons still feel instant).
+function PriceInput({ value, max, onCommit }) {
+  const [draft, setDraft] = useState(String(value));
+
+  // Keep draft in sync when the external value changes (e.g. Reset to market).
+  useEffect(() => { setDraft(String(value)); }, [value]);
+
+  const commit = (raw) => {
+    const v = parseInt(raw, 10);
+    if (!isNaN(v) && v >= 1) onCommit(Math.min(v, max));
+    else setDraft(String(value)); // revert on empty / invalid on blur
+  };
+
+  return (
+    <input
+      type="number"
+      className="listing-price-input"
+      value={draft}
+      min={1}
+      max={max}
+      onClick={e => e.stopPropagation()}
+      onChange={e => {
+        setDraft(e.target.value);
+        const v = parseInt(e.target.value, 10);
+        if (!isNaN(v) && v >= 1) onCommit(Math.min(v, max));
+      }}
+      onBlur={e => commit(e.target.value)}
+    />
+  );
+}
+
+// Bug 8: these were declared inside Shop() and re-created on every render.
+// Hoisting to module scope makes them true constants — zero allocation cost.
+const PRIMARY_TABS   = ['sell', 'fish', 'upgrades', 'supplies'];
+const SECONDARY_TABS = ['market', 'history'];
+const TAB_LABELS = {
+  sell: '📋 Listings', fish: '🐠 Buy Fish', upgrades: '⬆️ Upgrades',
+  supplies: '🛒 Supplies', market: '🌟 Market', history: '📜 Sales Log',
+};
+
 // ── Main Shop component ────────────────────────────────────
 function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuySupply, onBuyFish, onBuyRareItem }) {
   const [shopTab, setShopTab] = useState('sell');
+  const [showShopMore, setShowShopMore] = useState(false);
   const [activeCustomer, setActiveCustomer] = useState(null);
   const [selectedToList, setSelectedToList] = useState(new Set());
-  const prevSalesLen = useRef((game.shop.salesHistory || []).length);
+  // Bug 2: initialise to current length so re-mounting the Shop tab (after switching
+  // away and back) doesn't replay the last historical sale as a new animation.
+  const prevSalesLen  = useRef((game.shop.salesHistory || []).length);
   const customerTimer = useRef(null);
 
-  // Detect new sale → trigger customer walk animation
+  // Unmount-only cleanup so the 5-second display window isn't cancelled mid-animation.
+  // Bug 2: previously the cleanup ran on every salesHistory change, killing the timer
+  // immediately after it was set.
+  useEffect(() => () => clearTimeout(customerTimer.current), []);
+
+  // Detect new sale and trigger the customer walk animation.
   useEffect(() => {
     const history = game.shop.salesHistory || [];
     if (history.length > prevSalesLen.current) {
@@ -210,7 +259,6 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
     } else {
       prevSalesLen.current = history.length;
     }
-    return () => clearTimeout(customerTimer.current);
   }, [game.shop.salesHistory?.length]);
 
   const { shop, fish, player, tanks } = game;
@@ -243,12 +291,36 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
 
       {/* Sub-tabs */}
       <div className="shop-tabs">
-        {['sell', 'fish', 'upgrades', 'supplies', 'market', 'history'].map(t => (
+        {PRIMARY_TABS.map(t => (
           <button key={t} className={`shop-tab-btn ${shopTab === t ? 'active' : ''}`}
                   onClick={() => setShopTab(t)}>
-            {{ sell: '📋 Listings', fish: '🐠 Buy Fish', upgrades: '⬆️ Upgrades', supplies: '🛒 Supplies', market: '🌟 Market', history: '📜 Sales Log' }[t]}
+            {TAB_LABELS[t]}
           </button>
         ))}
+
+        {/* ⋯ More wrapper (Market + Sales Log) */}
+        <div className="shop-tab-more-wrapper">
+          <button
+            className={`shop-tab-btn ${SECONDARY_TABS.includes(shopTab) ? 'active' : ''}`}
+            onClick={() => setShowShopMore(v => !v)}
+          >
+            {SECONDARY_TABS.includes(shopTab) ? TAB_LABELS[shopTab] : '⋯ More'}
+          </button>
+
+          {showShopMore && (
+            <>
+              <div className="shop-tab-more-backdrop" onClick={() => setShowShopMore(false)} />
+              <div className="shop-tab-more-dropdown">
+                {SECONDARY_TABS.map(t => (
+                  <button key={t} className={`shop-tab-more-item ${shopTab === t ? 'active' : ''}`}
+                          onClick={() => { setShopTab(t); setShowShopMore(false); }}>
+                    {TAB_LABELS[t]}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Sell tab */}
@@ -299,17 +371,15 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                           title="Lower price by 5%">−</button>
                         <div className="listing-price-input-wrap">
                           <span className="price-coin">🪙</span>
-                          <input
-                            type="number"
-                            className="listing-price-input"
+                          {/* Bug 10: was a fully controlled input — parseInt('') = NaN caused
+                              the guard to skip the update, snapping the field back to the old
+                              value and making it impossible to clear and retype from scratch.
+                              Now uses a local draft string; game state is only updated on blur
+                              (or when the typed value is already a valid integer ≥ 1). */}
+                          <PriceInput
                             value={askPrice}
-                            min={1}
                             max={autoPrice * 10}
-                            onClick={e => e.stopPropagation()}
-                            onChange={e => {
-                              const v = parseInt(e.target.value);
-                              if (!isNaN(v) && v >= 1) onSetPrice(f.id, v);
-                            }}
+                            onCommit={v => onSetPrice(f.id, v)}
                           />
                         </div>
                         <button
@@ -406,7 +476,13 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                     {f.phenotype.mutation !== 'None' ? ` · ${f.phenotype.mutation}` : ''}
                   </span>
                   <span className="fli-price">🪙{autoPrice}</span>
-                  <button className="btn btn-sm" onClick={e => { e.stopPropagation(); onToggleSell(f.id); }}>List</button>
+                  <button className="btn btn-sm" onClick={e => {
+                    e.stopPropagation();
+                    onToggleSell(f.id);
+                    // Bug 4: clear this fish from the selection set so the
+                    // "List Selected (N)" badge count stays accurate.
+                    setSelectedToList(prev => { const s = new Set(prev); s.delete(f.id); return s; });
+                  }}>List</button>
                 </div>
               );
             })}
@@ -490,8 +566,11 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
             <p className="fish-list-empty">No sales yet. List some fish!</p>
           ) : (
             <div className="sales-list">
-              {(shop.salesHistory || []).map((evt, i) => (
-                <SaleEvent key={i} event={evt} />
+              {(shop.salesHistory || []).map((evt) => (
+                // Bug 7: was key={i} — when salesHistory is trimmed to 20 entries
+                // every existing key shifts by one, causing React to reuse wrong nodes.
+                // Composite of time + fishName is stable and unique in practice.
+                <SaleEvent key={`${evt.time}-${evt.fishName}`} event={evt} />
               ))}
             </div>
           )}

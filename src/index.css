@@ -279,14 +279,7 @@ body {
 
 /* ── Shop ─────────────────────────────────────────────────── */
 .shop-panel { background: linear-gradient(180deg, rgba(6,14,28,0.98) 0%, rgba(4,10,22,1) 100%); }
-.shop-tabs { background: rgba(4,10,24,0.95); border-bottom: 1px solid rgba(20,50,120,0.5); padding: 0 12px; gap: 2px; }
-.shop-tab-btn {
-  font-family: 'Space Mono', monospace; font-size: var(--text-xs); letter-spacing: 0.07em;
-  text-transform: uppercase; padding: 9px 14px; border-radius: 8px 8px 0 0;
-  color: var(--text-dim); border: 1px solid transparent; border-bottom: none; background: transparent; transition: all 0.15s;
-}
-.shop-tab-btn:hover { color: rgba(180,210,255,0.8); background: rgba(255,255,255,0.025); }
-.shop-tab-btn.active { color: var(--gold-light); background: linear-gradient(180deg, rgba(20,44,100,0.6) 0%, transparent 100%); border-color: rgba(40,80,160,0.4); border-bottom-color: transparent; }
+/* .shop-tabs and .shop-tab-btn are defined below at the authoritative block */
 
 /* Cards shared ──────────────────────────────────────────── */
 .listing-card, .supply-card, .upgrade-card, .fdex-card {
@@ -1532,8 +1525,9 @@ body {
   gap: 0;
   border-bottom: 1px solid var(--panel-border);
   flex-shrink: 0;
-  overflow-x: auto;
+  overflow-x: visible;
   scrollbar-width: none;
+  position: relative;
 }
 .shop-tabs::-webkit-scrollbar { display: none; }
 .shop-tab-btn {
@@ -1556,6 +1550,47 @@ body {
   border-bottom-color: #1e8fc8;
   background: rgba(30,143,200,0.07);
 }
+
+/* ── More dropdown ── */
+.shop-tab-more-wrapper {
+  position: relative;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.shop-tab-more-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+}
+.shop-tab-more-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  background: rgba(4,10,24,0.97);
+  border: 1px solid rgba(20,50,120,0.55);
+  border-radius: 8px;
+  padding: 4px 0;
+  min-width: 130px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  animation: drawerSlideIn 0.16s cubic-bezier(0.2,0,0,1);
+}
+.shop-tab-more-item {
+  display: block;
+  width: 100%;
+  padding: 9px 16px;
+  background: transparent;
+  border: none;
+  color: #5a8ab0;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.12s, background 0.12s;
+}
+.shop-tab-more-item:hover { color: #a0c8e8; background: rgba(255,255,255,0.04); }
+.shop-tab-more-item.active { color: #60c0ff; }
 
 /* Scrollable tab body */
 .shop-sell,
@@ -5059,19 +5094,34 @@ button:active, .btn:active, .action-btn:active {
   padding: 10px 14px 12px;
 }
 
-.fp-move-label {
+.fp-move-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: var(--text-xs);
   font-weight: 700;
-  letter-spacing: 0.10em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-dim);
-  margin-bottom: 8px;
-  opacity: 0.7;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 7px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+}
+.fp-move-toggle:hover,
+.fp-move-toggle--open {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(168,216,240,0.25);
+  color: var(--text-primary);
 }
 .fp-move-btns {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  margin-top: 8px;
 }
 .fp-move-btn {
   font-family: inherit;
@@ -5440,12 +5490,7 @@ button:active, .btn:active, .action-btn:active {
 .tab-btn--secondary:hover  { opacity: 0.8; color: var(--text-primary); }
 .tab-btn--secondary.active { opacity: 1; color: var(--gold); }
 
-/* Divider between primary and secondary groups */
-.tab-btn--secondary:first-of-type {
-  border-left: 1px solid rgba(255,255,255,0.08);
-  margin-left: 2px;
-  padding-left: 6px;
-}
+/* Secondary tab divider rule removed — secondary tabs now live in the More dropdown */
 
 .tab-btn-icon  { font-size: 15px; line-height: 1; }
 .tab-btn-label { font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
@@ -7129,21 +7174,7 @@ button:active, .btn:active, .action-btn:active {
   letter-spacing: 0.02em;
 }
 
-/* #3 – Bump tiny text sizes */
-.tab-btn-label           { font-size: var(--text-xs) !important; }
-.tank-tab-name           { font-size: var(--text-xs) !important; }
-.log-entry               { font-size: 13px !important; }
-.fp-vitals-label,
-.fp-genetics-label       { font-size: var(--text-xs) !important; }
-.fp-action-label         { font-size: var(--text-xs) !important; }
-.fp-rarity-label         { font-size: var(--text-xs) !important; }
-.fp-stage-pill           { font-size: var(--text-xs) !important; }
-.fp-gene-name            { font-size: var(--text-xs) !important; }
-.fp-gene-raw             { font-size: var(--text-xs) !important; }
-.fp-move-label           { font-size: var(--text-xs) !important; }
-.hud2-rep-tier           { font-size: var(--text-xs) !important; }
-.footer-tip              { font-size: var(--text-xs) !important; }
-.fp-genetics-label       { font-size: var(--text-xs) !important; }
+/* font-size patch block removed — all --text-xs values set at source declarations */
 
 /* #4 – Status emoji label */
 .fp-status-label {

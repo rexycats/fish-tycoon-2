@@ -260,12 +260,17 @@ export default function App() {
                 onMedicine={useMedicine}
                 isListed={isListed}
                 coins={game.player.coins}
-                foodStock={activeTank?.supplies?.food ?? 0}
-                medicineStock={
-                  selectedFish?.disease === 'bloat'  ? (activeTank?.supplies?.digestiveRemedy ?? 0) :
-                  selectedFish?.disease === 'velvet' ? (activeTank?.supplies?.antiparasitic   ?? 0) :
-                                                       (activeTank?.supplies?.antibiotic       ?? 0)
+                foodStock={
+                  // Use the fish's own tank — not activeTank — so counts are correct
+                  // when a fish from a non-active tank is selected.
+                  (game.tanks.find(t => t.id === selectedFish?.tankId) ?? activeTank)?.supplies?.food ?? 0
                 }
+                medicineStock={(() => {
+                  const fishTank = game.tanks.find(t => t.id === selectedFish?.tankId) ?? activeTank;
+                  return selectedFish?.disease === 'bloat'  ? (fishTank?.supplies?.digestiveRemedy ?? 0)
+                       : selectedFish?.disease === 'velvet' ? (fishTank?.supplies?.antiparasitic   ?? 0)
+                       :                                      (fishTank?.supplies?.antibiotic       ?? 0);
+                })()}
                 tanks={game.tanks}
                 onMoveFish={moveFishToTank}
               />

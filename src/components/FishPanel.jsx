@@ -7,11 +7,13 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
   const prevFishId = useRef(null);
   const [entering, setEntering] = useState(false);
   const [showGenetics, setShowGenetics] = useState(false);
+  const [showMove, setShowMove] = useState(false);
 
   useEffect(() => {
     if (fish?.id !== prevFishId.current) {
       setEntering(true);
       setShowGenetics(false); // Fix 1: auto-close genetics when selecting a new fish
+      setShowMove(false);     // Fix 4: collapse move section on fish change
       prevFishId.current = fish?.id;
       const t = setTimeout(() => setEntering(false), 400);
       return () => clearTimeout(t);
@@ -184,14 +186,21 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
 
       {tanks.length > 1 && onMoveFish && (
         <div className="fp-move">
-          <div className="fp-move-label">Move to tank</div>
-          <div className="fp-move-btns">
-            {tanks.filter(t => t.id !== fish.tankId).map(t => (
-              <button key={t.id} className="fp-move-btn" onClick={() => onMoveFish(fish.id, t.id)}>
-                {t.name}
-              </button>
-            ))}
-          </div>
+          <button
+            className={`fp-move-toggle${showMove ? ' fp-move-toggle--open' : ''}`}
+            onClick={() => setShowMove(v => !v)}
+          >
+            ↔ Move to tank {showMove ? '▲' : '▼'}
+          </button>
+          {showMove && (
+            <div className="fp-move-btns">
+              {tanks.filter(t => t.id !== fish.tankId).map(t => (
+                <button key={t.id} className="fp-move-btn" onClick={() => { onMoveFish(fish.id, t.id); setShowMove(false); }}>
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -257,6 +266,7 @@ export default memo(FishPanel, (prev, next) =>
   prev.fish?.disease   === next.fish?.disease    &&
   prev.isListed        === next.isListed         &&
   prev.coins           === next.coins            &&
+  prev.foodStock       === next.foodStock        &&  // Bug 5: was missing; feed button label went stale
   prev.medicineStock   === next.medicineStock    &&
   prev.tanks           === next.tanks
 );

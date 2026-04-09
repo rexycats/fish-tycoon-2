@@ -89,15 +89,20 @@ export function useEconomy(game, setGame, activeTankId, setSelectedFishId, setAc
   // ── Buy supplies ─────────────────────────────────────────────
   const buySupply = useCallback((supplyKey, cost, amount, tankId) => {
     setGame(prev => {
+      // Bug 3: if tankId is missing (e.g. activeTank was undefined when the lambda
+      // was captured) bail out with a warning rather than silently deducting coins
+      // and adding the supply to no tank.
+      const resolvedTankId = tankId ?? prev.tanks[0]?.id;
+      if (!resolvedTankId) { playWarning(); return addLog(prev, '⚠️ No tank available!'); }
       if (prev.player.coins < cost) { playWarning(); return addLog(prev, `⚠️ Not enough coins!`); }
       playCoin();
       return addLog({
         ...prev,
         player: { ...prev.player, coins: prev.player.coins - cost },
-        tanks: prev.tanks.map(t => t.id === tankId
+        tanks: prev.tanks.map(t => t.id === resolvedTankId
           ? { ...t, supplies: { ...t.supplies, [supplyKey]: (t.supplies[supplyKey] || 0) + amount } }
           : t),
-      }, `🛒 Bought ${amount}x ${supplyKey} for 🪙${cost} (${prev.tanks.find(t => t.id === tankId)?.name || ''}).`);
+      }, `🛒 Bought ${amount}x ${supplyKey} for 🪙${cost} (${prev.tanks.find(t => t.id === resolvedTankId)?.name || ''}).`);
     });
   }, []);
 
