@@ -120,6 +120,8 @@ function UpgradeCard({ id, upgrade, coins, onBuy }) {
   const canAfford = coins >= upgrade.cost;
   const maxed     = upgrade.level >= maxLevel;
   const icon      = UPGRADE_ICONS[id] || '⬆️';
+  const nextLevelCost = Math.round(upgrade.cost * 2.8);
+  const showNextCost  = !maxed && upgrade.level + 1 < maxLevel;
   return (
     <div className={`upgrade-card ${maxed ? 'maxed' : ''}`}>
       <div className="upgrade-title">{icon} {upgrade.label}</div>
@@ -133,10 +135,15 @@ function UpgradeCard({ id, upgrade, coins, onBuy }) {
       {maxed ? (
         <div className="upgrade-maxed">MAXED</div>
       ) : (
-        <button className="btn btn-sm" disabled={!canAfford} onClick={() => onBuy(id)}
-                title={canAfford ? '' : `Need ${upgrade.cost - coins} more coins`}>
-          🪙 {upgrade.cost}
-        </button>
+        <>
+          <button className="btn btn-sm" disabled={!canAfford} onClick={() => onBuy(id)}
+                  title={canAfford ? '' : `Need ${upgrade.cost - coins} more coins`}>
+            🪙 {upgrade.cost}
+          </button>
+          {showNextCost && (
+            <div className="upgrade-next-cost">Next: 🪙{nextLevelCost}</div>
+          )}
+        </>
       )}
     </div>
   );

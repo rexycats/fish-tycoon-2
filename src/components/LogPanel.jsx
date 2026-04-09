@@ -131,7 +131,7 @@ export default function LogPanel({ log = [] }) {
           )}
           {visible.map((entry, i) => (
             <div
-              key={i}
+              key={entry.time + '-' + i}
               className={`log-entry log-entry--${entry._sev}${entry._hl ? ` log-entry--${entry._hl}` : ''}`}
             >
               <span className="log-entry-icon" aria-hidden="true">{entry._icon}</span>

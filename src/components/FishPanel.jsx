@@ -153,6 +153,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
           label={disease ? `${disease.treatmentName} (${medicineStock})` : `Treat (${medicineStock})`}
           onClick={() => onMedicine(fish.id)}
           disabled={!needsMedicine || medicineStock <= 0}
+          disabledTitle={medicineStock <= 0 ? 'No medicine in stock' : 'Fish is healthy — no treatment needed'}
           variant="medicine" pulse={needsMedicine && medicineStock > 0} highlight={bestAction === 'medicine'} />
         {isListed ? (
           <ActionBtn icon="🏪" label="Listed" onClick={() => onSell(fish.id)} variant="listed" />

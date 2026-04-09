@@ -8,6 +8,16 @@ import { breedGenomes, createFish } from '../data/genetics.js';
 import { REAL_SPECIES_MAP } from '../data/realSpecies.js';
 import { DECOR_CATALOG } from '../data/decorations.js';
 import { fireToast } from '../components/ToastManager.jsx';
+
+// Static lookup — hoisted to module scope so it isn't re-created on every buyFish call
+const SPECIES_PHENOTYPES = {
+  angelfish:         { bodyShape: 'Delta',   finType: 'Flowing', pattern: 'Lined',  primaryColor: 'White',   secondaryColor: 'Silver', glow: 'Normal',   size: 'Medium', mutation: 'None' },
+  clownfish:         { bodyShape: 'Round',   finType: 'Broad',   pattern: 'Lined',  primaryColor: 'Crimson', secondaryColor: 'Orange', glow: 'Normal',   size: 'Tiny',   mutation: 'None' },
+  bluetang:          { bodyShape: 'Delta',   finType: 'Angular', pattern: 'Plain',  primaryColor: 'Azure',   secondaryColor: 'Indigo', glow: 'Normal',   size: 'Medium', mutation: 'None' },
+  betta:             { bodyShape: 'Slender', finType: 'Veil',    pattern: 'Marble', primaryColor: 'Violet',  secondaryColor: 'Teal',   glow: 'Luminous', size: 'Tiny',   mutation: 'None' },
+  goldfish:          { bodyShape: 'Round',   finType: 'Veil',    pattern: 'Plain',  primaryColor: 'Gold',    secondaryColor: 'Orange', glow: 'Normal',   size: 'Medium', mutation: 'None' },
+  mandarin_dragonet: { bodyShape: 'Slender', finType: 'Broad',   pattern: 'Marble', primaryColor: 'Azure',   secondaryColor: 'Teal',   glow: 'Luminous', size: 'Tiny',   mutation: 'None' },
+};
 import {
   playCoin, playBubble, playFeed, playBreed, playWarning,
 } from '../services/soundService.js';
@@ -224,14 +234,6 @@ export function useEconomy(game, setGame, activeTankId, setSelectedFishId, setAc
       let newFish;
       if (speciesKey && REAL_SPECIES_MAP[speciesKey]) {
         const spec = REAL_SPECIES_MAP[speciesKey];
-        const SPECIES_PHENOTYPES = {
-          angelfish:         { bodyShape: 'Delta',   finType: 'Flowing', pattern: 'Lined',  primaryColor: 'White',   secondaryColor: 'Silver', glow: 'Normal',   size: 'Medium', mutation: 'None' },
-          clownfish:         { bodyShape: 'Round',   finType: 'Broad',   pattern: 'Lined',  primaryColor: 'Crimson', secondaryColor: 'Orange', glow: 'Normal',   size: 'Tiny',   mutation: 'None' },
-          bluetang:          { bodyShape: 'Delta',   finType: 'Angular', pattern: 'Plain',  primaryColor: 'Azure',   secondaryColor: 'Indigo', glow: 'Normal',   size: 'Medium', mutation: 'None' },
-          betta:             { bodyShape: 'Slender', finType: 'Veil',    pattern: 'Marble', primaryColor: 'Violet',  secondaryColor: 'Teal',   glow: 'Luminous', size: 'Tiny',   mutation: 'None' },
-          goldfish:          { bodyShape: 'Round',   finType: 'Veil',    pattern: 'Plain',  primaryColor: 'Gold',    secondaryColor: 'Orange', glow: 'Normal',   size: 'Medium', mutation: 'None' },
-          mandarin_dragonet: { bodyShape: 'Slender', finType: 'Broad',   pattern: 'Marble', primaryColor: 'Azure',   secondaryColor: 'Teal',   glow: 'Luminous', size: 'Tiny',   mutation: 'None' },
-        };
         const canonicalPhenotype = SPECIES_PHENOTYPES[speciesKey] || { bodyShape: 'Round', finType: 'Broad', pattern: 'Plain', primaryColor: 'White', secondaryColor: 'Silver', glow: 'Normal', size: 'Medium', mutation: 'None' };
         let colorVariant = null;
         if (spec.colorVariants?.length > 1) {

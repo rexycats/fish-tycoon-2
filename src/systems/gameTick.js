@@ -115,8 +115,8 @@ function maybeSpreadDisease(tankFish, wq, capacity) {
 }
 
 // ── Process one tank's fish for one tick ───────────────────
-function processOneTank(tank, allFish, messages, now, hatcheryLevel = 0) {
-  const tankFish = allFish.filter(f => f.tankId === tank.id);
+function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0) {
+  // tankFish is pre-filtered to this tank's fish by the caller — no filter needed here
   const bonuses  = getTankBonuses(tank.type);
 
   const wq        = Math.max(0, tank.waterQuality - WATER_DECAY_RATE * 1); // per-tick decay (1 tick = 1 second)
@@ -250,8 +250,12 @@ function todayUTCDay() {
 }
 
 function generateDailyChallenges(day) {
-  // Shuffle and pick 3 diverse challenges
-  const shuffled = [...CHALLENGE_TEMPLATES].sort(() => Math.random() - 0.5);
+  // Shuffle with proper Fisher-Yates (sort-based shuffle is statistically biased)
+  const shuffled = [...CHALLENGE_TEMPLATES];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
   const picked = [];
   const types = new Set();
   for (const t of shuffled) {
@@ -344,13 +348,22 @@ export function processTick(state) {
   const now = Date.now();
 
   // Process each tank independently.
-  // Build a Map of fishId → fish for O(1) replacement instead of
-  // repeatedly filter+spread the whole array for each tank.
+  // Pre-group fish by tankId once (O(n)) so each processOneTank call only
+  // receives its own fish instead of filtering all fish per tank (O(n×t)).
   const updatedTanks = [];
   const fishById = new Map(next.fish.map(f => [f.id, f]));
+  const hatcheryLevel = next.shop?.upgrades?.hatchery?.level || 0;
+
+  // Build tankId → fish[] map once before the loop
+  const fishByTank = new Map();
+  for (const f of next.fish) {
+    if (!fishByTank.has(f.tankId)) fishByTank.set(f.tankId, []);
+    fishByTank.get(f.tankId).push(f);
+  }
 
   for (const tank of next.tanks) {
-    const { updatedTank, updatedTankFish } = processOneTank(tank, [...fishById.values()], messages, now, next.shop?.upgrades?.hatchery?.level || 0);
+    const tankFishList = fishByTank.get(tank.id) || [];
+    const { updatedTank, updatedTankFish } = processOneTank(tank, tankFishList, messages, now, hatcheryLevel);
     updatedTanks.push(updatedTank);
     for (const f of updatedTankFish) fishById.set(f.id, f);
   }
@@ -415,7 +428,8 @@ export function processTick(state) {
         autopsies: [...(next.player.autopsies || []), ...newAutopsies].slice(0, 50),
       },
     };
-    for (const f of deadFish) messages.push(`💀 ${f.species?.name || 'A fish'} has died. (Cause: ${newAutopsies.find(a => a._fishId === f.id)?.cause || 'Unknown'})`);
+    // Index-based lookup avoids O(n²) .find() per death message
+    deadFish.forEach((f, i) => messages.push(`💀 ${f.species?.name || 'A fish'} has died. (Cause: ${newAutopsies[i]?.cause || 'Unknown'})`));
   }
 
   // Breeding tank timer
@@ -454,10 +468,12 @@ export function processTick(state) {
   // Passive income: once per minute, happy tanks with adult fish earn visitor tips
   const passiveTick = (next.passiveTick || 0) + 1;
   if (passiveTick >= PASSIVE_INCOME_INTERVAL) {
+    // Count adults per tank using the fishByTank map already built above (O(1) per tank)
     let tip = 0;
     for (const tank of next.tanks) {
-      const adults = next.fish.filter(f => f.tankId === tank.id && f.stage === 'adult');
-      if (adults.length === 0) continue;
+      const tankFishNow = fishByTank.get(tank.id) || [];
+      const adultCount = tankFishNow.filter(f => f.stage === 'adult').length;
+      if (adultCount === 0) continue;
       const placed = tank.decorations?.placed?.length || 0;
       const decorMult = 1 + Math.min(10, placed) * PASSIVE_DECOR_BONUS;
       tip += Math.floor((tank.happiness / 100) * decorMult * PASSIVE_INCOME_BASE);
@@ -475,7 +491,10 @@ export function processTick(state) {
 
   // Refresh daily challenges at UTC midnight and track happiness timer challenge
   next = refreshDailyChallenges(next);
-  const happinessValues = next.tanks.map(t => t.happiness || 0);
+  // Only count tanks that actually have adult fish (empty tanks sit at 100% trivially)
+  const happinessValues = next.tanks
+    .filter(t => next.fish.some(f => f.tankId === t.id && f.stage === 'adult'))
+    .map(t => t.happiness || 0);
   next = updateChallengeProgress(next, 'happiness_tick', { tanks: happinessValues });
 
   // survived_night — only evaluated during the 11 pm–6 am window AND only
@@ -686,14 +705,15 @@ function generateOfflineEvent(state, secondsAway) {
   if (roll > eventChance) return null;
 
   const eventRoll = Math.random();
-  // Pick the tank with the most available space so the visitor has room.
-  const tankId = (state.tanks.reduce((best, t) => {
-    const used = state.fish.filter(f => f.tankId === t.id).length;
-    const free = (t.capacity || 12) - used;
-    const bestUsed = state.fish.filter(f => f.tankId === best.id).length;
-    const bestFree = (best.capacity || 12) - bestUsed;
+  // Pick the tank with the most available space. Precompute counts once (O(n))
+  // to avoid O(tanks² × fish) repeated filter calls inside the reduce.
+  const fishCountByTank = new Map();
+  for (const f of state.fish) fishCountByTank.set(f.tankId, (fishCountByTank.get(f.tankId) || 0) + 1);
+  const tankId = state.tanks.reduce((best, t) => {
+    const free     = (t.capacity    || 12) - (fishCountByTank.get(t.id)    || 0);
+    const bestFree = (best.capacity || 12) - (fishCountByTank.get(best.id) || 0);
     return free > bestFree ? t : best;
-  }, state.tanks[0]))?.id || 'tank_0';
+  }, state.tanks[0])?.id || 'tank_0';
 
   // Visitor fish: rare stranger appears in your tank (30% of events)
   if (eventRoll < 0.30) {
@@ -852,10 +872,14 @@ export function applyOfflineProgress(state) {
   }
 
   // Offline customer visits
+  // Snapshot the listed count BEFORE the loop — each sale mutates listedFish, so
+  // reading listedFish.length inside the cap would allow more visits than were
+  // possible when the player went offline.
   const customerInterval = getCustomerInterval(next);
+  const startingListedCount = next.shop.listedFish.length;
   const actualVisits = Math.min(
     Math.floor((secondsElapsed * 1000) / customerInterval),
-    next.shop.listedFish.length * 3,
+    startingListedCount * 3,
     15,
   );
   for (let i = 0; i < actualVisits && next.shop.listedFish.length > 0; i++) {

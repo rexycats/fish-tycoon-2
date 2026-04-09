@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { addLog } from '../data/gameState.js';
 import { updateChallengeProgress } from '../systems/gameTick.js';
 import { MAGIC_FISH, checkMagicFishMatch } from '../data/genetics.js';
@@ -170,11 +170,23 @@ export function useFishSelection(game, setGame) {
     }
   }, [updateFishdexEntry]);
 
-  // ── Derived selection helpers ────────────────────────────────
-  const activeTank  = game.tanks.find(t => t.id === activeTankId) || game.tanks[0];
-  const tankFish    = game.fish.filter(f => f.tankId === activeTank?.id);
-  const selectedFish = game.fish.find(f => f.id === selectedFishId) || null;
-  const isListed    = selectedFish ? game.shop.listedFish.includes(selectedFish.id) : false;
+  // ── Derived selection helpers (memoized to avoid .find()/.filter() on every tick render) ──
+  const activeTank = useMemo(
+    () => game.tanks.find(t => t.id === activeTankId) || game.tanks[0],
+    [game.tanks, activeTankId],
+  );
+  const tankFish = useMemo(
+    () => game.fish.filter(f => f.tankId === activeTank?.id),
+    [game.fish, activeTank?.id],
+  );
+  const selectedFish = useMemo(
+    () => game.fish.find(f => f.id === selectedFishId) || null,
+    [game.fish, selectedFishId],
+  );
+  const isListed = useMemo(
+    () => selectedFish ? game.shop.listedFish.includes(selectedFish.id) : false,
+    [selectedFish, game.shop.listedFish],
+  );
 
   return {
     selectedFishId,  setSelectedFishId,

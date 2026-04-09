@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createDefaultState, saveGame, loadGame, checkAchievements, ACHIEVEMENT_DEFS } from '../data/gameState.js';
 import { processTick, applyOfflineProgress, TICK_INTERVAL_MS, refreshDailyChallenges } from '../systems/gameTick.js';
 import { fireToast } from '../components/ToastManager.jsx';
@@ -17,20 +17,22 @@ import { playDiscover, playSale, setSoundEnabled } from '../services/soundServic
  *   - floating coin delta animations
  */
 export function useGameEngine() {
-  // Load once — useRef prevents loadGame() being called on re-renders
-  const _initSaveRef = useRef(undefined);
-  if (_initSaveRef.current == null) _initSaveRef.current = loadGame();
-  const _initSave = _initSaveRef.current;
-
+  // Load once — both useState lazy initialisers share a single loadGame() call
+  // via a ref seeded inside the first lazy init, so loadGame() is never called
+  // more than once even under React Strict Mode's double-invocation.
+  const initSaveRef = useRef(null);
   const [game, setGame] = useState(() => {
-    let g = _initSave ? applyOfflineProgress(_initSave) : createDefaultState();
+    const saved = loadGame();
+    initSaveRef.current = saved;
+    let g = saved ? applyOfflineProgress(saved) : createDefaultState();
     g = refreshDailyChallenges(g);
     return g;
   });
 
-  const [showOffline, setShowOffline] = useState(
-    _initSave ? Date.now() - (_initSave.lastTickAt || Date.now()) > 30_000 : false,
-  );
+  const [showOffline, setShowOffline] = useState(() => {
+    const saved = initSaveRef.current;
+    return saved ? Date.now() - (saved.lastTickAt || Date.now()) > 30_000 : false;
+  });
 
   const [soundOn, setSoundOn] = useState(true);
 
@@ -59,26 +61,34 @@ export function useGameEngine() {
   const prevAchCountRef = useRef((game.player.achievements || []).length);
 
   // ── Achievement trigger ─────────────────────────────────────
-  // Build a cheap scalar key from every value achievements actually test.
-  // This effect only runs when at least one of those values changes —
-  // never on ordinary ticks where nothing achievement-relevant happened.
-  const achTriggerKey = [
-    (game.player.fishdex     || []).length,
-    (game.player.fishdex     || []).filter(e => e.rarity === 'rare').length,
-    (game.player.fishdex     || []).filter(e => e.rarity === 'epic').length,
-    (game.shop.salesHistory  || []).length,
-    game.player.totalCoinsEarned   || 0,
-    game.tanks.length,
-    (game.player.magicFishFound || []).length,
-    game.player.stats?.eggsCollected || 0,
-    game.player.stats?.medicineUsed  || 0,
-    game.player.stats?.waterTreated  || 0,
-    Math.max(0, ...game.tanks.map(t =>
-      game.fish.filter(f => f.tankId === t.id).length >= t.capacity ? 1 : 0,
-    ), 0),
-    Math.max(0, ...game.tanks.map(t => Math.round(t.happiness || 0)), 0),
-    Math.max(0, ...Object.values(game.shop.upgrades || {}).map(u => u.level || 0), 0),
-  ].join(',');
+  // useMemo so the Map build + filter passes only run when a primitive dep
+  // actually changes — not on every tick. The key is a joined string so React
+  // can compare it with ===; the effect below only fires when it changes.
+  const achTriggerKey = useMemo(() => {
+    const fishdex = game.player.fishdex || [];
+    const fishCountByTank = new Map();
+    for (const f of game.fish) fishCountByTank.set(f.tankId, (fishCountByTank.get(f.tankId) || 0) + 1);
+    const anyFull      = game.tanks.some(t => (fishCountByTank.get(t.id) || 0) >= (t.capacity || 12)) ? 1 : 0;
+    const maxHappiness = game.tanks.reduce((m, t) => Math.max(m, Math.round(t.happiness || 0)), 0);
+    const maxUpgLevel  = Object.values(game.shop.upgrades || {}).reduce((m, u) => Math.max(m, u.level || 0), 0);
+    return [
+      fishdex.length,
+      fishdex.filter(e => e.rarity === 'rare').length,
+      fishdex.filter(e => e.rarity === 'epic').length,
+      (game.shop.salesHistory  || []).length,
+      game.player.totalCoinsEarned   || 0,
+      game.tanks.length,
+      (game.player.magicFishFound || []).length,
+      game.player.stats?.eggsCollected || 0,
+      game.player.stats?.medicineUsed  || 0,
+      game.player.stats?.waterTreated  || 0,
+      anyFull,
+      maxHappiness,
+      maxUpgLevel,
+    ].join(',');
+  }, [game.fish, game.tanks, game.player.fishdex, game.player.totalCoinsEarned,
+      game.player.magicFishFound, game.player.stats, game.shop.salesHistory,
+      game.shop.upgrades]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setGame(prev => {
@@ -144,10 +154,18 @@ export function useGameEngine() {
   // ── Toast: disease alerts ───────────────────────────────────
   // Fire at most once per fish per disease to avoid toast spam
   const diseasedRef    = useRef(new Set());
-  const diseaseStateKey = (game.fish || [])
-    .filter(f => f.disease)
-    .map(f => `${f.id}:${f.disease}`)
-    .sort().join(',');
+  // diseaseStateKey: only sick fish contribute. Early-exit when none are sick
+  // (the common case) to skip the filter/map/sort allocation entirely.
+  // Sorted for stability so React's dep comparison is order-independent.
+  const diseaseStateKey = (() => {
+    const fish = game.fish || [];
+    if (!fish.some(f => f.disease)) return '';
+    return fish
+      .filter(f => f.disease)
+      .map(f => `${f.id}:${f.disease}`)
+      .sort()
+      .join(',');
+  })();
 
   useEffect(() => {
     for (const f of game.fish) {

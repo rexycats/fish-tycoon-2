@@ -1861,6 +1861,10 @@ body {
   letter-spacing: 0.12em; text-transform: uppercase;
 }
 
+.upgrade-next-cost {
+  font-size: var(--text-xs); color: var(--text-muted);
+  margin-top: 4px; text-align: center;
+}
 
 .supplies-panel { display: flex; flex-direction: column; gap: 12px; }
 .supplies-grid {
