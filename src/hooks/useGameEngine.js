@@ -151,7 +151,7 @@ export function useGameEngine() {
     const len = history.length;
     if (len > prevSalesLenRef.current) {
       playSale();
-      const sale = history[len - 1];
+      const sale = history[0];
       if (sale) fireToast(`Sold ${sale.fishName} for 🪙${sale.coins}!`, 'sale', '💰');
       prevSalesLenRef.current = len;
     }

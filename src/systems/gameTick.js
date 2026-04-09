@@ -16,8 +16,9 @@ const HEALTH_REGEN       = 0.01;
 
 // --- PASSIVE INCOME ---
 // Once per minute, tanks with adult fish trickle a small coin bonus
-// based on happiness + placed decoration count. Max ~3 coins/min/tank —
-// meaningful during fish-dry spells, negligible vs active selling.
+// based on happiness + placed decoration count.
+// Max = floor(1.0 × (1 + 10×0.25) × 4) = 14 coins/min/tank at 100% happiness + 10 decor.
+// Meaningful during fish-dry spells, negligible vs active selling.
 const PASSIVE_INCOME_INTERVAL = 60;   // ticks (= 1 real minute)
 const PASSIVE_INCOME_BASE     = 4;    // coins/min at 100% happiness, 0 decor
 const PASSIVE_DECOR_BONUS     = 0.25; // +25% per placed decoration, capped at 10
@@ -290,7 +291,7 @@ export function refreshDailyChallenges(state) {
       next = { ...next, player: { ...next.player, challengeStreak: newStreak } };
       if (newStreak > 1) {
         const mult = Math.min(2, 1 + newStreak * 0.1).toFixed(1);
-        const msg = `${fire_emoji} Challenge streak: ${newStreak} days in a row! Today's rewards ×${mult}`;
+        const msg = `🔥 Challenge streak: ${newStreak} days in a row! Today's rewards ×${mult}`;
         next = { ...next, log: [{ time: Date.now(), message: msg, severity: 'warn' }, ...next.log].slice(0, 60) };
       }
     }
@@ -468,10 +469,13 @@ export function processTick(state) {
 
     const bothSlotsEmpty = !btCurrent.slots[0] && !btCurrent.slots[1];
     const hasGenomes = btCurrent.storedGenomeA && btCurrent.storedGenomeB;
-    if (bothSlotsEmpty && !hasGenomes) {
-      // Parents died AND no stored genomes — cancel breeding
-      next = { ...next, breedingTank: { ...btCurrent, breedingStartedAt: null, slots: [null, null] } };
-      messages.push('💔 Breeding cancelled — both parents are gone.');
+    // Also cancel when one parent died before its genome was captured —
+    // the egg can never form and the slot would be stuck forever otherwise.
+    const oneGenomeMissing = !btCurrent.storedGenomeA || !btCurrent.storedGenomeB;
+    if ((bothSlotsEmpty && !hasGenomes) || oneGenomeMissing) {
+      // Parent(s) lost before genome capture — cancel to unblock the slot
+      next = { ...next, breedingTank: { ...btCurrent, breedingStartedAt: null, slots: [null, null], storedGenomeA: null, storedGenomeB: null } };
+      messages.push('💔 Breeding cancelled — a parent was lost.');
     } else if (now - btCurrent.breedingStartedAt >= btCurrent.breedingDurationMs) {
       next = { ...next, breedingTank: { ...btCurrent, eggReady: true } };
       messages.push('🥚 A breeding egg is ready to collect!');
@@ -804,7 +808,7 @@ export function applyOfflineProgress(state) {
   if (secondsElapsed < 5) return state;
 
   let next = { ...state };
-  let eggsHatched = 0, fishedGrown = 0, coinsEarned = 0, fishSold = 0;
+  let eggsHatched = 0, fishGrown = 0, coinsEarned = 0, fishSold = 0;
 
   // Update each tank's water quality
   next = {
@@ -856,7 +860,7 @@ export function applyOfflineProgress(state) {
       const timeAlready = now - stageStart;
       const timeToGrow  = Math.max(0, GROWTH_STAGES.juvenile.durationMs * growMult - timeAlready);
       if (timeToGrow === 0) {
-        f.stage = 'adult'; stageStart = now; fishedGrown++;
+        f.stage = 'adult'; stageStart = now; fishGrown++;
       }
     }
     f.stageStartedAt = stageStart;
@@ -954,19 +958,19 @@ export function applyOfflineProgress(state) {
   const ambientMsg = OFFLINE_MESSAGES[Math.floor(Math.random() * OFFLINE_MESSAGES.length)];
   const offlineSummary = {
     timeAway: timeLabel, secondsAway: secondsElapsed,
-    eggsHatched, fishedGrown, coinsEarned, fishSold,
+    eggsHatched, fishGrown, coinsEarned, fishSold,
     waterQualityLost: Math.round(WATER_DECAY_RATE * secondsElapsed),
     fishDied: offlineDeadFish.length,
     offlineEvent,
     ambientMessage: ambientMsg,
-    hasEvents: eggsHatched > 0 || fishedGrown > 0 || coinsEarned > 0 || offlineDeadFish.length > 0 || !!offlineEvent,
+    hasEvents: eggsHatched > 0 || fishGrown > 0 || coinsEarned > 0 || offlineDeadFish.length > 0 || !!offlineEvent,
   };
   next = { ...next, offlineSummary };
 
   if (offlineSummary.hasEvents) {
     const parts = [];
     if (eggsHatched) parts.push(`${eggsHatched} egg${eggsHatched > 1 ? 's' : ''} hatched`);
-    if (fishedGrown) parts.push(`${fishedGrown} fish grew up`);
+    if (fishGrown) parts.push(`${fishGrown} fish grew up`);
     if (fishSold)    parts.push(`sold ${fishSold} fish for 🪙${coinsEarned}`);
     next = addLog(next, `⏰ Back after ${timeLabel}! ${parts.join(', ')}.`);
   } else {

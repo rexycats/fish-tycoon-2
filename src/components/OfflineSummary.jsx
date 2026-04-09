@@ -34,10 +34,10 @@ export default function OfflineSummary({ summary, onDismiss }) {
 
   if (!summary) return null;
 
-  const { timeAway, eggsHatched, fishedGrown, fishSold, coinsEarned,
+  const { timeAway, eggsHatched, fishGrown, fishSold, coinsEarned,
           waterQualityLost, fishDied, offlineEvent, ambientMessage, hasEvents } = summary;
 
-  const hasActivity = eggsHatched > 0 || fishedGrown > 0 || fishSold > 0 || fishDied > 0;
+  const hasActivity = eggsHatched > 0 || fishGrown > 0 || fishSold > 0 || fishDied > 0;
 
   const handleReveal = () => {
     if (offlineEvent && !revealed) {
@@ -72,11 +72,11 @@ export default function OfflineSummary({ summary, onDismiss }) {
                 </span>
               </div>
             )}
-            {fishedGrown > 0 && (
+            {fishGrown > 0 && (
               <div className="offline-row">
                 <span className="offline-row-icon">🐟</span>
                 <span className="offline-row-text">
-                  {fishedGrown === 1 ? '1 juvenile grew into an adult' : `${fishedGrown} juveniles grew into adults`}
+                  {fishGrown === 1 ? '1 juvenile grew into an adult' : `${fishGrown} juveniles grew into adults`}
                 </span>
               </div>
             )}
