@@ -102,6 +102,7 @@ export function createDefaultState() {
       boosts: {},           // active booster flags, e.g. { rarityBoost: 1, luckyCharm: 1 }
       unlockedDecorations: [], // decoration IDs granted by achievements (not purchasable)
       legendFishUnlocked: false, // true after earning Legend of the Deep (magic_7)
+      nightWatchEarned: false,  // fast flag — avoids scanning achievements[] every tick
       // UI badge watermarks — how many entries the player had last time they
       // visited each tab. Stored in save so import/export keeps them consistent.
       seenFishdexCount:  0,
@@ -252,6 +253,7 @@ function migrateSave(parsed) {
     }
   }
   if (!parsed.player.boosts)    parsed.player.boosts = {};
+  if (!parsed.player.nightWatchEarned) parsed.player.nightWatchEarned = (parsed.player.achievements || []).some(a => a.id === 'survived_night');
   if (parsed.player.seenFishdexCount  == null) parsed.player.seenFishdexCount  = 0;
   if (parsed.player.seenShopFishCount == null) parsed.player.seenShopFishCount = 0;
   if (parsed.player.seenAchCount      == null) parsed.player.seenAchCount      = 0;

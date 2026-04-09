@@ -282,13 +282,21 @@ export function useEconomy(game, setGame, activeTankId, setSelectedFishId, setAc
       };
       if (upgradeId === 'slot')     next = { ...next, shop: { ...next.shop, slots: next.shop.slots + 1 } };
       if (upgradeId === 'capacity') {
+        // Bug fix: capture the tank name from prev (pre-mutation) state so the log
+        // message always names the tank the player was viewing when they clicked Buy.
         const tid = activeTankId;
+        const expandedTankName = prev.tanks.find(t => t.id === tid)?.name || 'active tank';
         next = { ...next, tanks: next.tanks.map(t => t.id === tid ? { ...t, capacity: t.capacity + 4 } : t) };
+        next = addLog(next, `📐 Tank Expansion Lv${upg.level + 1}: ${expandedTankName} now holds +4 more fish!`);
       }
       if (upgradeId === 'breeding') next = { ...next, breedingTank: { ...next.breedingTank, breedingDurationMs: Math.max(30_000, Math.round(next.breedingTank.breedingDurationMs * 0.80)) } };
       if (upgradeId === 'hatchery' && upg.level === 0) {
         const bt = next.breedingTank;
-        next = { ...next, breedingTank: { ...bt, slots: [...bt.slots, null], storedGenomeC: null } };
+        // Bug fix: guard against double-expansion if buyUpgrade fires twice before
+        // React re-renders settle (e.g. rapid double-click or concurrent state updates).
+        if (bt.slots.length < 3) {
+          next = { ...next, breedingTank: { ...bt, slots: [...bt.slots, null], storedGenomeC: null } };
+        }
       }
       const newLevel = upg.level + 1;
       const logMessages = {
@@ -296,9 +304,13 @@ export function useEconomy(game, setGame, activeTankId, setSelectedFishId, setAc
         vip:        `💎 VIP Membership Lv${newLevel}: Wealthy Patrons will visit ${newLevel === 1 ? 'sooner' : newLevel === 2 ? 'more often' : 'much more often'}!`,
         hatchery:   `🥚 Hatchery Lv${newLevel}: eggs & juveniles grow ${newLevel * 15}% faster!`,
         tankSitter: `🐟 Tank Sitter Lv${newLevel}: offline cap extended to ${48 + newLevel * 24}h!`,
+        capacity:   null, // logged above with tank name; suppress generic fallback
       };
       playCoin();
-      return addLog(next, logMessages[upgradeId] || `⬆️ Upgraded: ${upg.label} to level ${newLevel}!`);
+      const upgradeMsg = logMessages[upgradeId];
+      return upgradeMsg !== null
+        ? addLog(next, upgradeMsg || `⬆️ Upgraded: ${upg.label} to level ${newLevel}!`)
+        : next;
     });
   }, [activeTankId]);
 

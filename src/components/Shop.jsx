@@ -213,7 +213,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
     return () => clearTimeout(customerTimer.current);
   }, [game.shop.salesHistory?.length]);
 
-  const { shop, fish, player } = game;
+  const { shop, fish, player, tanks } = game;
   const tank = activeTank || game.tanks?.[0];
   const listedFish    = (shop.listedFish || []).map(id => fish.find(f => f.id === id)).filter(Boolean);
   const availableFish = (fish || []).filter(f => f.stage === 'adult' && !(shop.listedFish || []).includes(f.id));
@@ -266,7 +266,10 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
             <div className="listings-grid">
               {listedFish.map(f => {
                 const lightingBonus = 1 + (shop.upgrades?.lighting?.level || 0) * 0.10;
-                const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * lightingBonus);
+                const fishTank1  = tanks?.find(t => t.id === f.tankId);
+                const tankBonus1 = fishTank1?.type === 'display' ? 1.1 : 1;
+                const happBonus1 = 1 + ((fishTank1?.happiness ?? 100) / 100) * 0.2;
+                const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * happBonus1 * tankBonus1 * lightingBonus);
                 const askPrice  = shop.fishPrices?.[f.id] ?? autoPrice;
                 const rc        = RC[f.species?.rarity] || '#888';
                 const ratio     = askPrice / autoPrice;
@@ -378,7 +381,10 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
           <div className="fish-list">
             {availableFish.map(f => {
               const lightingBonus = 1 + (shop.upgrades?.lighting?.level || 0) * 0.10;
-              const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * lightingBonus);
+              const fishTank2  = tanks?.find(t => t.id === f.tankId);
+              const tankBonus2 = fishTank2?.type === 'display' ? 1.1 : 1;
+              const happBonus2 = 1 + ((fishTank2?.happiness ?? 100) / 100) * 0.2;
+              const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * happBonus2 * tankBonus2 * lightingBonus);
               const rc = RC[f.species?.rarity] || '#888';
               const isChecked = selectedToList.has(f.id);
               return (
@@ -462,7 +468,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
           ) : (
             <div className="supplies-grid">
               <SupplyCard name="Fish Food"          emoji="🍤" stock={tank.supplies?.food ?? 0}               cost={10} amount={10} coins={player.coins} desc="Reduces hunger for all fish"                          onBuy={() => onBuySupply('food',             10, 10)} />
-              <SupplyCard name="Water Treatment"    emoji="🧪" stock={tank.supplies?.waterTreatment ?? 0}     cost={25} amount={3}  coins={player.coins} desc="Restore water quality by 35%"                       onBuy={() => onBuySupply('waterTreatment',   25,  3)} />
+              <SupplyCard name="Water Treatment"    emoji="🧪" stock={tank.supplies?.waterTreatment ?? 0}     cost={25} amount={3}  coins={player.coins} desc="Restore water quality by 35 pts (~5h of decay)"                       onBuy={() => onBuySupply('waterTreatment',   25,  3)} />
               <SupplyCard name="Antibiotic"         emoji="💊" stock={tank.supplies?.antibiotic ?? 0}         cost={35} amount={2}  coins={player.coins} desc="Cures Ich and Fin Rot (bacterial infections)"        onBuy={() => onBuySupply('antibiotic',       35,  2)} />
               <SupplyCard name="Antiparasitic"      emoji="🔬" stock={tank.supplies?.antiparasitic ?? 0}      cost={50} amount={2}  coins={player.coins} desc="Cures Velvet (parasitic infection)"                  onBuy={() => onBuySupply('antiparasitic',    50,  2)} />
               <SupplyCard name="Digestive Remedy"   emoji="🟡" stock={tank.supplies?.digestiveRemedy ?? 0}    cost={30} amount={2}  coins={player.coins} desc="Cures Bloat (digestive illness)"                    onBuy={() => onBuySupply('digestiveRemedy',  30,  2)} />
@@ -500,6 +506,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
 export default memo(Shop, (prev, next) =>
   prev.game?.shop          === next.game?.shop          &&
   prev.game?.fish          === next.game?.fish          &&
+  prev.game?.tanks         === next.game?.tanks         &&
   prev.game?.player?.coins  === next.game?.player?.coins  &&
   prev.game?.player?.boosts === next.game?.player?.boosts &&
   prev.game?.rareMarket    === next.game?.rareMarket    &&

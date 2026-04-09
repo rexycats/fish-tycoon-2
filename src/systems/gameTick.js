@@ -9,7 +9,7 @@ export const TICK_INTERVAL_MS = 1000;
 
 // --- RATES (per real second) ---
 const HUNGER_RATE        = 0.025;
-const WATER_DECAY_RATE   = 0.004;
+const WATER_DECAY_RATE   = 0.002; // 0.004 was ~14.4 pts/hr — too fast for casual sessions; 0.002 = ~7.2 pts/hr, full tank lasts ~13.9 h
 const HEALTH_HUNGER_DMG  = 0.06;
 const HEALTH_WATER_DMG   = 0.03;
 const HEALTH_REGEN       = 0.01;
@@ -236,7 +236,7 @@ const CHALLENGE_TEMPLATES = [
   { id: 'sell_common',    emoji: '🐟', desc: 'Sell 3 common fish today',          type: 'sell_rarity',   rarity: 'common',   goal: 3,  reward: 40  },
   { id: 'sell_uncommon',  emoji: '✨', desc: 'Sell 2 uncommon fish today',         type: 'sell_rarity',   rarity: 'uncommon', goal: 2,  reward: 80  },
   { id: 'sell_rare',      emoji: '💎', desc: 'Sell 1 rare fish today',             type: 'sell_rarity',   rarity: 'rare',     goal: 1,  reward: 150 },
-  { id: 'earn_coins',     emoji: '🪙', desc: 'Earn 200 coins from sales today',    type: 'earn_coins',    goal: 200,          reward: 60  },
+  { id: 'earn_coins',     emoji: '🪙', desc: 'Earn 200 coins today',               type: 'earn_coins',    goal: 200,          reward: 60  },
   { id: 'breed_eggs',     emoji: '🥚', desc: 'Collect 2 eggs from breeding today', type: 'breed_eggs',    goal: 2,            reward: 70  },
   { id: 'treat_water',    emoji: '🧪', desc: 'Treat water quality 2 times today',  type: 'treat_water',   goal: 2,            reward: 35  },
   { id: 'cure_fish',      emoji: '💊', desc: 'Cure a sick fish today',             type: 'cure_fish',     goal: 1,            reward: 50  },
@@ -421,15 +421,26 @@ export function processTick(state) {
   // Breeding tank timer
   const bt = next.breedingTank;
   if (bt.breedingStartedAt && !bt.eggReady) {
-    const bothSlotsEmpty = !bt.slots[0] && !bt.slots[1];
-    const hasGenomes = bt.storedGenomeA && bt.storedGenomeB;
+    // Clear stored genome for any parent that died this tick so collectEgg()
+    // cannot silently produce offspring from a dead fish's DNA.
+    const deadIdSet = new Set(deadFish.map(f => f.id));
+    const genomeA = deadIdSet.has(bt.slots[0]) ? null : bt.storedGenomeA;
+    const genomeB = deadIdSet.has(bt.slots[1]) ? null : bt.storedGenomeB;
+    const btCurrent = (genomeA !== bt.storedGenomeA || genomeB !== bt.storedGenomeB)
+      ? { ...bt, storedGenomeA: genomeA, storedGenomeB: genomeB }
+      : bt;
+
+    const bothSlotsEmpty = !btCurrent.slots[0] && !btCurrent.slots[1];
+    const hasGenomes = btCurrent.storedGenomeA && btCurrent.storedGenomeB;
     if (bothSlotsEmpty && !hasGenomes) {
       // Parents died AND no stored genomes — cancel breeding
-      next = { ...next, breedingTank: { ...bt, breedingStartedAt: null, slots: [null, null] } };
+      next = { ...next, breedingTank: { ...btCurrent, breedingStartedAt: null, slots: [null, null] } };
       messages.push('💔 Breeding cancelled — both parents are gone.');
-    } else if (now - bt.breedingStartedAt >= bt.breedingDurationMs) {
-      next = { ...next, breedingTank: { ...bt, eggReady: true } };
+    } else if (now - btCurrent.breedingStartedAt >= btCurrent.breedingDurationMs) {
+      next = { ...next, breedingTank: { ...btCurrent, eggReady: true } };
       messages.push('🥚 A breeding egg is ready to collect!');
+    } else {
+      next = { ...next, breedingTank: btCurrent };
     }
   }
 
@@ -454,8 +465,7 @@ export function processTick(state) {
     if (tip > 0) {
       next = { ...next, player: { ...next.player, coins: next.player.coins + tip, totalCoinsEarned: (next.player.totalCoinsEarned || 0) + tip } };
       messages.push(`💰 Visitors left a ${tip}-coin tip!`);
-      // Count passive tips toward the daily "earn coins" challenge
-      // (challenge desc says "from sales" but tips are visitor-driven income)
+      // Passive tips count toward the daily earn coins challenge alongside sales.
       next = updateChallengeProgress(next, 'earn_coins', { amount: tip });
     }
     next = { ...next, passiveTick: 0 };
@@ -468,27 +478,29 @@ export function processTick(state) {
   const happinessValues = next.tanks.map(t => t.happiness || 0);
   next = updateChallengeProgress(next, 'happiness_tick', { tanks: happinessValues });
 
-  // survived_night — checked every tick so it fires reliably during the
-  // 11 pm–6 am window, regardless of whether other achievement triggers fire.
-  // checkAchievements is not imported here to avoid a circular dep, so we
-  // inline the minimal award directly.
-  // IMPORTANT: must run before the messages flush below so the log entry lands.
-  if (!next.player.achievements?.some(a => a.id === 'survived_night')) {
+  // survived_night — only evaluated during the 11 pm–6 am window AND only
+  // when the achievement hasn't been earned yet.  We use player.nightWatchEarned
+  // as a fast boolean flag so we avoid scanning the full achievements array
+  // (and doing the fish loop) on every tick outside that window or after it fires.
+  if (!next.player.nightWatchEarned) {
     const hour = new Date().getHours();
-    if ((hour >= 23 || hour < 6) && next.fish.length > 0 && next.fish.every(f => (f.health || 0) > 0)) {
-      const NIGHT_REWARD = 500; // secret tier
-      next = {
-        ...next,
-        player: {
-          ...next.player,
-          coins: next.player.coins + NIGHT_REWARD,
-          achievements: [
-            ...(next.player.achievements || []),
-            { id: 'survived_night', unlockedAt: Date.now(), reward: NIGHT_REWARD },
-          ],
-        },
-      };
-      messages.push('🌙 Achievement unlocked: Night Watch! All fish survived the night. +🪙500');
+    if (hour >= 23 || hour < 6) {
+      if (next.fish.length > 0 && next.fish.every(f => (f.health || 0) > 0)) {
+        const NIGHT_REWARD = 500; // secret tier
+        next = {
+          ...next,
+          player: {
+            ...next.player,
+            coins: next.player.coins + NIGHT_REWARD,
+            nightWatchEarned: true,
+            achievements: [
+              ...(next.player.achievements || []),
+              { id: 'survived_night', unlockedAt: Date.now(), reward: NIGHT_REWARD },
+            ],
+          },
+        };
+        messages.push('🌙 Achievement unlocked: Night Watch! All fish survived the night. +🪙500');
+      }
     }
   }
 
