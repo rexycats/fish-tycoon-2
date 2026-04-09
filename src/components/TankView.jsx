@@ -348,6 +348,18 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
             <path d="M28,400 Q43,358 33,318 Q48,288 38,258 Q53,278 48,318 Q58,358 73,400 Z"/>
             <path d="M348,400 Q368,378 358,348 Q378,323 363,298 Q383,318 373,353 Q388,373 398,400 Z"/>
           </g>
+          {/* Layered sand/substrate gradient strip — sandy beige → deep brown */}
+          <defs>
+            <linearGradient id="sandSubstrateGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stopColor="#c8a862" stopOpacity="0.00"/>
+              <stop offset="18%"  stopColor="#b89050" stopOpacity="0.18"/>
+              <stop offset="42%"  stopColor="#a07838" stopOpacity="0.32"/>
+              <stop offset="68%"  stopColor="#886030" stopOpacity="0.50"/>
+              <stop offset="85%"  stopColor="#6a4420" stopOpacity="0.70"/>
+              <stop offset="100%" stopColor="#3c2408" stopOpacity="0.88"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="330" width="800" height="70" fill="url(#sandSubstrateGrad)"/>
         </svg>
 
         {/* Foreground SVG */}
@@ -460,7 +472,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           const depthLayer = pos.depthLayer ?? 1;
           // Build depth filter inline so it overrides nothing and composes cleanly
           let depthFilter = '';
-          if (depthLayer === 0) depthFilter = 'saturate(0.72) brightness(0.88) blur(0.7px) ';
+          if (depthLayer === 0) depthFilter = 'saturate(0.72) brightness(0.88) blur(1.2px) ';
           else if (layer.blur > 0) depthFilter = `blur(${layer.blur}px) `;
           const glowStr = isSelected ? 'drop-shadow(0 0 8px rgba(240,192,64,0.6))' : '';
           const isHovered = f.id === hoveredFishId;

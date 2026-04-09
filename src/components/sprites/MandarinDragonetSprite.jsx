@@ -439,6 +439,8 @@ function MandarinDragonetSprite({
       <circle cx="78" cy="34" r="3.5" fill={V.eyeColor}/>
       <circle cx="78" cy="34" r="2.2" fill="#0a0808"/>
       <circle cx="79.2" cy="32.8" r="1.0" fill="#ffffff" opacity="0.90"/>
+      {/* Secondary glint */}
+      <circle cx="76.8" cy="35.2" r="0.5" fill="#ffffff" opacity="0.42"/>
 
       {/* ── Mouth (downturned froggy mouth) ── */}
       <path d="M 81 37 Q 82.5 38 82 36.5" fill="none"

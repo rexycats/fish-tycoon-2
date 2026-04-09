@@ -402,6 +402,8 @@ function GoldfishSprite({
       <circle cx="79" cy="38" r="4.5" fill="#f8ece0"/>
       <circle cx="79" cy="38" r="3.2" fill="#2a1000"/>
       <circle cx="80.5" cy="36.5" r="1.0" fill="#ffffff" opacity="0.85"/>
+      {/* Secondary glint */}
+      <circle cx="77.5" cy="39.5" r="0.5" fill="#ffffff" opacity="0.42"/>
 
       {/* ── Mouth ── */}
       <path d="M 83 41 Q 84 40.5 84 42" fill="none"
