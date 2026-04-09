@@ -4474,6 +4474,14 @@ body {
   80%     { transform: rotate(-3deg);  }
 }
 
+/* ── Idle tail: realistic wag with foreshortening illusion ─── */
+@keyframes tailWag {
+  0%,100% { transform: rotate( 0deg) scaleX(1.00); }
+  25%     { transform: rotate( 4deg) scaleX(0.82); }
+  50%     { transform: rotate( 0deg) scaleX(1.00); }
+  75%     { transform: rotate(-4deg) scaleX(0.82); }
+}
+
 /* ── Pectoral / paired fin wiggle ──────────────────────────── */
 @keyframes finWiggle {
   0%,100% { transform: rotate( 0deg) scaleX(1.00) skewY(0deg);  }
@@ -4532,7 +4540,7 @@ body {
 }
 .fish-anim-inner.fish-idle .fish-tail {
   transform-origin: 8% center;
-  animation: tailIdleDrift 3.0s ease-in-out infinite;
+  animation: tailWag 0.9s ease-in-out infinite;
 }
 
 /* ── Paired / pectoral fins ────────────────────────────────── */
@@ -4589,7 +4597,7 @@ body {
 
 /* Betta idle — fins drift extra slowly (veil tails) */
 .fish-anim-inner[data-species="betta"].fish-idle .fish-fin    { animation-duration: 4.0s; }
-.fish-anim-inner[data-species="betta"].fish-idle .fish-tail   { animation-duration: 4.8s; }
+.fish-anim-inner[data-species="betta"].fish-idle .fish-tail   { animation-duration: 1.8s; } /* slower wag for veil tail */
 .fish-anim-inner[data-species="betta"].fish-idle .fish-dorsal { animation-duration: 5.5s; }
 
 /* Angelfish — stately vertical undulation */
@@ -4626,6 +4634,14 @@ body {
 .fish-container:nth-child(4n)   .fish-tail   { animation-delay: -0.62s; }
 .fish-container:nth-child(odd)  .fish-dorsal { animation-delay: -0.29s; }
 .fish-container:nth-child(3n+1) .fish-dorsal { animation-delay: -0.44s; }
+
+/* ── Per-species idle tail phase offsets (0.15s steps) ─────── */
+.fish-anim-inner[data-species="clownfish"].fish-idle   .fish-tail { animation-delay:  0.00s; }
+.fish-anim-inner[data-species="bluetang"].fish-idle    .fish-tail { animation-delay: -0.15s; }
+.fish-anim-inner[data-species="betta"].fish-idle       .fish-tail { animation-delay: -0.30s; }
+.fish-anim-inner[data-species="angelfish"].fish-idle   .fish-tail { animation-delay: -0.45s; }
+.fish-anim-inner[data-species="goldfish"].fish-idle    .fish-tail { animation-delay: -0.60s; }
+.fish-anim-inner[data-species="mandarin_dragonet"].fish-idle .fish-tail { animation-delay: -0.75s; }
 .fish-container:nth-child(2n)   .fish-anim-inner { animation-delay: -0.33s; }
 .fish-container:nth-child(3n)   .fish-anim-inner { animation-delay: -0.71s; }
 .fish-container:nth-child(4n)   .fish-anim-inner { animation-delay: -0.55s; }
@@ -5961,6 +5977,19 @@ button:active, .btn:active, .action-btn:active {
   align-items: flex-start;
   gap: 2px;
 }
+@keyframes coinDeltaArcUp {
+  0%   { transform: translate(0, 0) rotate(0deg)   scale(1);    opacity: 1; }
+  40%  { transform: translate(calc(var(--arc-dir, 1) * 28px), -32px) rotate(calc(var(--arc-dir, 1) * 8deg)) scale(1.12); opacity: 1; }
+  70%  { transform: translate(calc(var(--arc-dir, 1) * 48px), -22px) rotate(calc(var(--arc-dir, 1) * 12deg)) scale(1.05); opacity: 0.8; }
+  100% { transform: translate(calc(var(--arc-dir, 1) * 58px), -8px)  rotate(calc(var(--arc-dir, 1) * 8deg))  scale(0.85); opacity: 0; }
+}
+@keyframes coinDeltaArcDown {
+  0%   { transform: translate(0, 0) rotate(0deg)   scale(1);    opacity: 1; }
+  40%  { transform: translate(calc(var(--arc-dir, -1) * 28px), -20px) rotate(calc(var(--arc-dir, -1) * 8deg)) scale(1.05); opacity: 1; }
+  70%  { transform: translate(calc(var(--arc-dir, -1) * 44px), -12px) rotate(calc(var(--arc-dir, -1) * 10deg)) scale(1.0); opacity: 0.8; }
+  100% { transform: translate(calc(var(--arc-dir, -1) * 52px), -2px)  rotate(calc(var(--arc-dir, -1) * 6deg))  scale(0.85); opacity: 0; }
+}
+/* Legacy keyframes kept for any remaining references */
 @keyframes coinDeltaUp {
   0%   { transform: translateY(0)   scale(1);    opacity: 1; }
   60%  { transform: translateY(-28px) scale(1.1); opacity: 1; }
@@ -5987,6 +6016,26 @@ button:active, .btn:active, .action-btn:active {
   color: #ff7788;
   animation: coinDeltaDown 1.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+/* Arc override — replaces straight animation when .coin-delta--arc present */
+.coin-delta--arc.coin-delta--up {
+  animation: coinDeltaArcUp 1.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.coin-delta--arc.coin-delta--down {
+  animation: coinDeltaArcDown 1.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ── Phase 4: Critical bar glow pulse ────────────────────── */
+@keyframes bar-critical-pulse {
+  0%, 100% { box-shadow: 0 0 3px currentColor;  }
+  50%       { box-shadow: 0 0 10px currentColor; }
+}
+
+/* ── Phase 4: Shimmering selection ring (marching ants) ────── */
+@keyframes shimmer-ring-march {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -18; }
+}
+
 
 /* ============================================================
    #15 MOBILE RESPONSIVE LAYOUT — full restructure
@@ -6250,28 +6299,28 @@ button:active, .btn:active, .action-btn:active {
 }
 
 @keyframes causticA {
-  0%   { transform: translate(  0px,   0px) scale(1.00); opacity: 0.70; }
-  30%  { transform: translate( 12px,  -4px) scale(1.04); opacity: 0.95; }
-  60%  { transform: translate( -8px,   6px) scale(0.97); opacity: 0.80; }
-  100% { transform: translate(  0px,   0px) scale(1.00); opacity: 0.70; }
+  0%   { transform: translate(  0px,   0px) scale(1.00) rotate(  0deg); opacity: 0.70; }
+  30%  { transform: translate( 12px,  -4px) scale(1.04) rotate(  4deg); opacity: 0.95; }
+  60%  { transform: translate( -8px,   6px) scale(0.97) rotate( -4deg); opacity: 0.80; }
+  100% { transform: translate(  0px,   0px) scale(1.00) rotate(  0deg); opacity: 0.70; }
 }
 @keyframes causticB {
-  0%   { transform: translate(  0px,  0px) scaleX(1.00); opacity: 0.65; }
-  40%  { transform: translate(-14px,  5px) scaleX(1.05); opacity: 0.90; }
-  70%  { transform: translate( 10px, -3px) scaleX(0.96); opacity: 0.75; }
-  100% { transform: translate(  0px,  0px) scaleX(1.00); opacity: 0.65; }
+  0%   { transform: translate(  0px,  0px) scaleX(1.00) rotate(  0deg); opacity: 0.65; }
+  40%  { transform: translate(-14px,  5px) scaleX(1.05) rotate(  8deg); opacity: 0.90; }
+  70%  { transform: translate( 10px, -3px) scaleX(0.96) rotate( -6deg); opacity: 0.75; }
+  100% { transform: translate(  0px,  0px) scaleX(1.00) rotate(  0deg); opacity: 0.65; }
 }
 @keyframes causticC {
-  0%   { transform: translate(0px,   0px); opacity: 0.55; }
-  50%  { transform: translate(18px, -7px); opacity: 0.85; }
-  100% { transform: translate(0px,   0px); opacity: 0.55; }
+  0%   { transform: translate(0px,   0px) rotate(  0deg); opacity: 0.55; }
+  50%  { transform: translate(18px, -7px) rotate( 12deg); opacity: 0.85; }
+  100% { transform: translate(0px,   0px) rotate(  0deg); opacity: 0.55; }
 }
 @keyframes causticD {
-  0%   { opacity: 0.50; transform: translate(  0px,  0px); }
-  20%  { opacity: 0.95; transform: translate(  6px, -3px); }
-  50%  { opacity: 0.60; transform: translate( -9px,  4px); }
-  80%  { opacity: 0.90; transform: translate(  4px, -2px); }
-  100% { opacity: 0.50; transform: translate(  0px,  0px); }
+  0%   { opacity: 0.50; transform: translate(  0px,  0px) rotate(  0deg); }
+  20%  { opacity: 0.95; transform: translate(  6px, -3px) rotate( 10deg); }
+  50%  { opacity: 0.60; transform: translate( -9px,  4px) rotate( -8deg); }
+  80%  { opacity: 0.90; transform: translate(  4px, -2px) rotate(  6deg); }
+  100% { opacity: 0.50; transform: translate(  0px,  0px) rotate(  0deg); }
 }
 
 /* ── Ambient particles — floating motes of dust/spores ───────── */
@@ -6442,25 +6491,25 @@ button:active, .btn:active, .action-btn:active {
 
 /* Horizontal wobble overlays — add gentle side-sway to each size class */
 @keyframes bubbleWobbleLg {
-  0%   { margin-left:  0px; }
-  25%  { margin-left:  5px; }
-  50%  { margin-left:  0px; }
-  75%  { margin-left: -5px; }
-  100% { margin-left:  0px; }
+  0%   { transform: translateX(  0px); }
+  25%  { transform: translateX(  5px); }
+  50%  { transform: translateX(  0px); }
+  75%  { transform: translateX( -5px); }
+  100% { transform: translateX(  0px); }
 }
 @keyframes bubbleWobbleMd {
-  0%   { margin-left:  0px; }
-  25%  { margin-left:  3px; }
-  50%  { margin-left:  0px; }
-  75%  { margin-left: -3px; }
-  100% { margin-left:  0px; }
+  0%   { transform: translateX(  0px); }
+  25%  { transform: translateX(  3px); }
+  50%  { transform: translateX(  0px); }
+  75%  { transform: translateX( -3px); }
+  100% { transform: translateX(  0px); }
 }
 @keyframes bubbleWobbleSm {
-  0%   { margin-left:  0px; }
-  25%  { margin-left:  2px; }
-  50%  { margin-left:  0px; }
-  75%  { margin-left: -2px; }
-  100% { margin-left:  0px; }
+  0%   { transform: translateX(  0px); }
+  25%  { transform: translateX(  2px); }
+  50%  { transform: translateX(  0px); }
+  75%  { transform: translateX( -2px); }
+  100% { transform: translateX(  0px); }
 }
 
 /* Cluster bubbles — tight groups that rise together */

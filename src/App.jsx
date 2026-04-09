@@ -121,7 +121,11 @@ export default function App() {
 
       <div className="coin-delta-portal">
         {coinDeltas.map(({ id, diff }) => (
-          <span key={id} className={`coin-delta coin-delta--${diff > 0 ? 'up' : 'down'}`}>
+          <span
+            key={id}
+            className={`coin-delta coin-delta--${diff > 0 ? 'up' : 'down'} coin-delta--arc`}
+            style={{ '--arc-dir': diff > 0 ? '1' : '-1' }}
+          >
             {diff > 0 ? '+' : ''}{diff.toLocaleString()}
           </span>
         ))}

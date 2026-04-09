@@ -256,6 +256,33 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
         {CORNER_BOLTS.map(({ corner, style }) => (
           <div key={corner} className={`tank-bolt tank-bolt-${corner}`} style={style}/>
         ))}
+        {/* Corner glints — tiny SVG arc highlights at each bolt position */}
+        {CORNER_BOLTS.map(({ corner, style }) => {
+          // Arc sweep direction varies by corner to catch the light naturally
+          const isRight  = corner === 'tr' || corner === 'br';
+          const isBottom = corner === 'bl' || corner === 'br';
+          const cx = 6, cy = 6;
+          // 45° arc tangent point offsets
+          const dx = isRight  ?  4 : -4;
+          const dy = isBottom ?  4 : -4;
+          const sweep = (isRight !== isBottom) ? 1 : 0;
+          return (
+            <svg
+              key={`glint-${corner}`}
+              className={`tank-corner-glint tank-corner-glint-${corner}`}
+              style={{ ...style, position: 'absolute', width: 16, height: 16, pointerEvents: 'none' }}
+              viewBox="0 0 16 16"
+              overflow="visible">
+              <path
+                d={`M${cx + dx},${cy} A6,6,45,0,${sweep},${cx},${cy + dy}`}
+                stroke="rgba(255,255,255,0.55)"
+                strokeWidth="1.4"
+                fill="none"
+                strokeLinecap="round"
+              />
+            </svg>
+          );
+        })}
         <div className="tank-bevel-top"/>
         <div className="tank-bevel-bottom"/>
         <div className="tank-bevel-left"/>
@@ -524,7 +551,10 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
                     <div className="fish-tooltip-bar">
                       <div className="fish-tooltip-fill" style={{
                         width: `${healthPct}%`,
-                        background: healthPct > 60 ? '#3ddba0' : healthPct > 30 ? '#f5c542' : '#ff5566'
+                        background: healthPct > 60 ? '#3ddba0' : healthPct > 30 ? '#f5c542' : '#ff5566',
+                        color: healthPct < 30 ? '#ff5566' : 'transparent',
+                        boxShadow: healthPct < 30 ? '0 0 6px currentColor' : 'none',
+                        animation: healthPct < 30 ? 'bar-critical-pulse 1.1s ease-in-out infinite' : 'none',
                       }}/>
                     </div>
                     <span className="fish-tooltip-val">{healthPct}%</span>
@@ -534,7 +564,10 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
                     <div className="fish-tooltip-bar">
                       <div className="fish-tooltip-fill" style={{
                         width: `${satiety}%`,
-                        background: satiety > 60 ? '#5db8e8' : satiety > 30 ? '#f5a742' : '#ff6055'
+                        background: satiety > 60 ? '#5db8e8' : satiety > 30 ? '#f5a742' : '#ff6055',
+                        color: satiety < 20 ? '#ff6055' : 'transparent',
+                        boxShadow: satiety < 20 ? '0 0 6px currentColor' : 'none',
+                        animation: satiety < 20 ? 'bar-critical-pulse 1.1s ease-in-out infinite' : 'none',
                       }}/>
                     </div>
                     <span className="fish-tooltip-val">{satiety}%</span>
