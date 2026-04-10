@@ -135,8 +135,8 @@ body {
   background: transparent;
 }
 .more-drawer {
-  position: absolute;
-  top: calc(100% + 2px);
+  position: fixed;
+  top: var(--more-drawer-top, auto);
   right: 0;
   z-index: 91;
   background: linear-gradient(160deg, rgba(10,22,48,0.99) 0%, rgba(6,14,30,1) 100%);

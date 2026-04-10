@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import ToastManager from './components/ToastManager.jsx';
 import { MAGIC_FISH } from './data/genetics.js';
 import { TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
@@ -87,6 +87,7 @@ export default function App() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps — setGame is stable
 
   const [showMoreDrawer, setShowMoreDrawer] = useState(false);
+  const tabBarRef = useRef(null);
 
   const PRIMARY_TAB_LIST = [
     ['tank',       '🐠', 'Tank'],
@@ -171,7 +172,7 @@ export default function App() {
         </div>
       )}
 
-      <nav className="tab-bar" style={{ '--tab-count': VISIBLE_TAB_COUNT }}>
+      <nav ref={tabBarRef} className="tab-bar" style={{ '--tab-count': VISIBLE_TAB_COUNT }}>
         <div className="tab-pill" style={{ '--pill-idx': pillIdx, '--pill-total': VISIBLE_TAB_COUNT }} />
         {PRIMARY_TAB_LIST.map(([tab, icon, label]) => {
           let badge = null;
@@ -212,7 +213,14 @@ export default function App() {
             <>
               {/* full-screen backdrop to close on outside tap */}
               <div className="more-drawer-backdrop" onClick={() => setShowMoreDrawer(false)} />
-              <div className="more-drawer">
+              <div
+                className="more-drawer"
+                style={{
+                  '--more-drawer-top': tabBarRef.current
+                    ? `${tabBarRef.current.getBoundingClientRect().bottom + 2}px`
+                    : '100px',
+                }}
+              >
                 {SECONDARY_TAB_LIST.map(([tab, icon, label]) => {
                   let badge = null;
                   if (tab === 'fishdex') badge = (
