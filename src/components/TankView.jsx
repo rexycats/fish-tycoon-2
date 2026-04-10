@@ -306,6 +306,30 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
 
       <div className="tank" style={{ background: waterBg }}>
 
+        {/* ── SVG water distortion filter (applied to entire tank content) ── */}
+        <svg className="tank-distortion-defs" width="0" height="0" style={{ position: 'absolute' }}>
+          <defs>
+            <filter id="waterDistortion" x="-5%" y="-5%" width="110%" height="110%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018"
+                numOctaves="3" seed="42" result="noise">
+                <animate attributeName="baseFrequency" values="0.012 0.018;0.015 0.022;0.012 0.018"
+                  dur="8s" repeatCount="indefinite"/>
+              </feTurbulence>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="6"
+                xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            {/* Volumetric light cone */}
+            <linearGradient id="godRayGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="rgba(255,255,255,0.18)"/>
+              <stop offset="40%" stopColor="rgba(255,255,255,0.06)"/>
+              <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
+            </linearGradient>
+          </defs>
+        </svg>
+
+        {/* Distortion wrapper — wraps fish + decorations for underwater shimmer */}
+        <div className="tank-distortion-layer">
+
         <div className="tank-depth-far"/>
         <div className="tank-depth-mid"/>
         <div className="tank-depth-vignette"/>
@@ -603,6 +627,30 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
         {wq < 40 && (
           <div className="dirty-water" style={{ opacity: (40 - wq) / 40 * 0.45 }}/>
         )}
+
+        </div>{/* close tank-distortion-layer */}
+
+        {/* Volumetric god rays — SVG cones with animated opacity */}
+        <svg className="god-rays-svg" viewBox="0 0 800 400" preserveAspectRatio="none">
+          <polygon points="180,0 120,400 240,400" fill="url(#godRayGrad)" className="god-ray-cone god-ray-1"/>
+          <polygon points="350,0 300,400 400,400" fill="url(#godRayGrad)" className="god-ray-cone god-ray-2"/>
+          <polygon points="520,0 470,400 570,400" fill="url(#godRayGrad)" className="god-ray-cone god-ray-3"/>
+          <polygon points="650,0 610,400 700,400" fill="url(#godRayGrad)" className="god-ray-cone god-ray-4"/>
+        </svg>
+
+        {/* Floating plankton — tiny glowing dots */}
+        <div className="plankton-layer">
+          {Array.from({ length: 20 }, (_, i) => (
+            <div key={i} className={`plankton plankton-${i % 5}`}
+              style={{
+                left: `${(i * 37 + 13) % 95}%`,
+                top: `${(i * 53 + 7) % 85 + 5}%`,
+                animationDelay: `${(i * 1.3) % 8}s`,
+                animationDuration: `${12 + (i % 7) * 3}s`,
+              }}
+            />
+          ))}
+        </div>
 
         {/* Step 4: Glass reflections */}
         <div className="tank-glass-left"/>

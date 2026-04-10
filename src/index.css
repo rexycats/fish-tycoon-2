@@ -8007,3 +8007,126 @@ button:active, .btn:active, .action-btn:active {
   pointer-events: none;
   z-index: 4;
 }
+
+/* ============================================================
+   NEXT-LEVEL GRAPHICS
+   ============================================================ */
+
+/* ── 1. Water distortion layer ───────────────────────────── */
+.tank-distortion-layer {
+  position: absolute;
+  inset: 0;
+  filter: url(#waterDistortion);
+  z-index: 1;
+}
+/* Disable distortion on low-end devices / reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .tank-distortion-layer { filter: none; }
+}
+
+/* ── 2. Volumetric god rays ──────────────────────────────── */
+.god-rays-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 16;
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+.god-ray-cone {
+  opacity: 0;
+  animation: godRayPulse 12s ease-in-out infinite;
+}
+.god-ray-1 { animation-delay: 0s; }
+.god-ray-2 { animation-delay: 3s; }
+.god-ray-3 { animation-delay: 6s; }
+.god-ray-4 { animation-delay: 9s; }
+@keyframes godRayPulse {
+  0%, 100% { opacity: 0; }
+  15%      { opacity: 0.6; }
+  35%      { opacity: 0.25; }
+  50%      { opacity: 0.45; }
+  65%      { opacity: 0.1; }
+  85%      { opacity: 0; }
+}
+
+/* ── 3. Floating plankton ────────────────────────────────── */
+.plankton-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+}
+.plankton {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(180,220,255,0.5);
+  box-shadow: 0 0 3px rgba(180,220,255,0.3);
+  animation: planktonDrift 15s ease-in-out infinite;
+}
+.plankton-0 { width: 1px; height: 1px; background: rgba(200,240,255,0.4); }
+.plankton-1 { width: 3px; height: 3px; background: rgba(160,255,200,0.35); box-shadow: 0 0 4px rgba(160,255,200,0.25); }
+.plankton-2 { width: 1.5px; height: 1.5px; background: rgba(255,220,160,0.4); }
+.plankton-3 { width: 2px; height: 2px; background: rgba(200,180,255,0.35); }
+.plankton-4 { width: 1px; height: 1px; background: rgba(255,255,200,0.5); box-shadow: 0 0 2px rgba(255,255,200,0.3); }
+
+@keyframes planktonDrift {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0; }
+  10%  { opacity: 0.7; }
+  25%  { transform: translate(12px, -8px) scale(1.2); }
+  50%  { transform: translate(-6px, 15px) scale(0.8); opacity: 0.5; }
+  75%  { transform: translate(8px, -12px) scale(1.1); opacity: 0.8; }
+  90%  { opacity: 0.3; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0; }
+}
+
+/* ── 4. Enhanced tank edge vignette ──────────────────────── */
+.tank::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(5,10,30,0.4) 100%);
+  pointer-events: none;
+  z-index: 17;
+}
+
+/* ── 5. Fish motion trail ────────────────────────────────── */
+.fish-anim-inner.fish-swimming::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 30%;
+  width: 20px;
+  height: 40%;
+  background: linear-gradient(to right, rgba(150,200,255,0.08), transparent);
+  border-radius: 0 50% 50% 0;
+  pointer-events: none;
+  animation: trailFade 0.8s ease-out infinite;
+}
+@keyframes trailFade {
+  0%   { opacity: 0.5; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1.5); }
+}
+
+/* ── 6. Improved fish shadow on sand ─────────────────────── */
+.fish-container::before {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 8px;
+  background: radial-gradient(ellipse, rgba(0,0,0,0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+}
+.fish-container.selected::before {
+  /* Override: selected fish uses the pulse ring instead */
+  background: none;
+}
