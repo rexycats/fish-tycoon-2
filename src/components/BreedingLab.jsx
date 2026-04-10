@@ -3,7 +3,67 @@
 // ============================================================
 
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { predictOffspringPhenotypes, RARITY } from '../data/genetics.js';
+import { predictOffspringPhenotypes, RARITY, GENES, expressGene } from '../data/genetics.js';
+
+// ── Per-gene Punnett square probabilities ──────────────────
+function computeTraitOdds(genomeA, genomeB) {
+  if (!genomeA || !genomeB) return [];
+  const results = [];
+  for (const [gene, geneDef] of Object.entries(GENES)) {
+    if (!genomeA[gene] || !genomeB[gene]) continue;
+    const [a1, a2] = genomeA[gene];
+    const [b1, b2] = genomeB[gene];
+    // 4 equally probable combinations
+    const combos = [
+      expressGene(gene, a1, b1),
+      expressGene(gene, a1, b2),
+      expressGene(gene, a2, b1),
+      expressGene(gene, a2, b2),
+    ];
+    const counts = {};
+    for (const trait of combos) counts[trait] = (counts[trait] || 0) + 1;
+    const outcomes = Object.entries(counts)
+      .map(([trait, count]) => ({ trait, chance: Math.round((count / 4) * 100) }))
+      .sort((a, b) => b.chance - a.chance);
+    results.push({ gene, label: geneDef.name, outcomes });
+  }
+  return results;
+}
+
+// ── Trait odds grid ────────────────────────────────────────
+function TraitOddsGrid({ genomeA, genomeB }) {
+  const odds = useMemo(() => computeTraitOdds(genomeA, genomeB), [genomeA, genomeB]);
+  if (odds.length === 0) return null;
+  return (
+    <div className="trait-odds-grid">
+      <div className="trait-odds-title">🧬 Trait Inheritance</div>
+      <div className="trait-odds-rows">
+        {odds.map(({ gene, label, outcomes }) => (
+          <div key={gene} className="trait-odds-row">
+            <div className="trait-odds-label">{label}</div>
+            <div className="trait-odds-bars">
+              {outcomes.map(({ trait, chance }) => (
+                <div key={trait} className="trait-odds-bar-wrap" title={`${trait}: ${chance}%`}>
+                  <div className="trait-odds-bar"
+                    style={{
+                      width: `${chance}%`,
+                      background: chance === 100 ? '#7ec8a0'
+                        : chance >= 50 ? '#6ab0de'
+                        : chance >= 25 ? '#b07ee8' : '#f0c040',
+                    }}
+                  />
+                  <span className="trait-odds-text">
+                    {trait} <span className="trait-odds-pct">{chance}%</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function TraitTag({ label, value }) {
   return (
@@ -244,6 +304,11 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
               <div className="predict-more">+{predictions.length - 6} more possibilities</div>
             )}
           </div>
+        )}
+
+        {/* Per-gene trait inheritance breakdown */}
+        {canPredict && bothSelected && (
+          <TraitOddsGrid genomeA={fishA.genome} genomeB={fishB.genome} />
         )}
       </div>
 

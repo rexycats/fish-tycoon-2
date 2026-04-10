@@ -7589,3 +7589,122 @@ button:active, .btn:active, .action-btn:active {
   white-space: nowrap;
   align-self: center;
 }
+
+/* ============================================================
+   MARKET TICKER
+   ============================================================ */
+.market-ticker {
+  background: linear-gradient(135deg, rgba(20,35,60,0.95), rgba(15,25,50,0.95));
+  border: 1px solid rgba(100,160,220,0.25);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 0 0 12px;
+}
+.market-ticker-headline {
+  font-size: 0.88rem;
+  color: var(--text-primary, #d0e0ff);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.market-ticker-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.market-tag {
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  text-transform: capitalize;
+}
+.market-tag--hot {
+  background: rgba(255,160,40,0.15);
+  color: #f0c040 !important;
+  animation: hot-pulse 2s ease-in-out infinite;
+}
+@keyframes hot-pulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(240,192,64,0.2); }
+  50%      { box-shadow: 0 0 12px rgba(240,192,64,0.5); }
+}
+
+/* ============================================================
+   TRAIT ODDS GRID (Breeding Lab)
+   ============================================================ */
+.trait-odds-grid {
+  background: rgba(15,25,50,0.5);
+  border: 1px solid rgba(100,160,220,0.15);
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 12px;
+}
+.trait-odds-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary, #d0e0ff);
+  margin-bottom: 10px;
+}
+.trait-odds-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.trait-odds-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.trait-odds-label {
+  flex: 0 0 90px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(200,220,255,0.6);
+  padding-top: 2px;
+  text-align: right;
+}
+.trait-odds-bars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.trait-odds-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+}
+.trait-odds-bar {
+  height: 14px;
+  border-radius: 3px;
+  min-width: 4px;
+  transition: width 0.3s ease;
+}
+.trait-odds-text {
+  font-size: 0.75rem;
+  color: var(--text-primary, #d0e0ff);
+  white-space: nowrap;
+}
+.trait-odds-pct {
+  color: rgba(200,220,255,0.5);
+  font-size: 0.7rem;
+}
+
+@media (max-width: 600px) {
+  .trait-odds-label {
+    flex: 0 0 60px;
+    font-size: 0.7rem;
+  }
+  .trait-odds-text {
+    font-size: 0.68rem;
+  }
+}
+
+/* ── Hot trait badge on listings ──────────────────────────── */
+.listing-hot-badge {
+  font-size: 0.72rem;
+  color: #f0c040;
+  font-weight: 600;
+  margin-left: 4px;
+}

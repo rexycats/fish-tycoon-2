@@ -290,6 +290,29 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
       {/* Animated storefront */}
       <StorefrontSVG activeCustomer={activeCustomer} />
 
+      {/* Daily market ticker */}
+      {game.market?.headline && (
+        <div className="market-ticker">
+          <div className="market-ticker-headline">{game.market.headline}</div>
+          <div className="market-ticker-tags">
+            {Object.entries(game.market.modifiers || {}).map(([rarity, mult]) => {
+              const pct = Math.round((mult - 1) * 100);
+              const color = pct > 0 ? '#7ec8a0' : pct < 0 ? '#ff7070' : '#888';
+              return (
+                <span key={rarity} className="market-tag" style={{ color }}>
+                  {rarity}: {pct > 0 ? '+' : ''}{pct}%
+                </span>
+              );
+            })}
+            {game.market.hotTrait && (
+              <span className="market-tag market-tag--hot">
+                🔥 {game.market.hotTrait.label} +{Math.round((game.market.hotTrait.bonus - 1) * 100)}%
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Shop header */}
       <div className="shop-header">
         <div className="shop-header-left">
@@ -360,7 +383,13 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                 const fishTank1  = tanks?.find(t => t.id === f.tankId);
                 const tankBonus1 = fishTank1?.type === 'display' ? 1.1 : 1;
                 const happBonus1 = 1 + ((fishTank1?.happiness ?? 100) / 100) * 0.2;
-                const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * happBonus1 * tankBonus1 * lightingBonus);
+                // Market multiplier: daily fluctuation + hot trait bonus
+                const mkt = game.market || {};
+                let marketMult = mkt.modifiers?.[f.species?.rarity || 'common'] || 1.0;
+                if (mkt.hotTrait && f.phenotype?.[mkt.hotTrait.gene] === mkt.hotTrait.value) {
+                  marketMult *= mkt.hotTrait.bonus;
+                }
+                const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * happBonus1 * tankBonus1 * lightingBonus * marketMult);
                 const askPrice  = shop.fishPrices?.[f.id] ?? autoPrice;
                 const rc        = RC[f.species?.rarity] || '#888';
                 const ratio     = askPrice / autoPrice;
@@ -372,7 +401,10 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                 return (
                   <div key={f.id} className="listing-card" style={{ '--rc': rc }}>
                     <div className="listing-name">{f.species?.name || 'Unknown'}</div>
-                    <div className="listing-rarity" style={{ color: rc }}>{f.species?.rarity || 'common'}</div>
+                    <div className="listing-rarity" style={{ color: rc }}>
+                      {f.species?.rarity || 'common'}
+                      {marketMult > 1.1 && <span className="listing-hot-badge"> 🔥 +{Math.round((marketMult - 1) * 100)}%</span>}
+                    </div>
                     <div className="listing-health">
                       <div className="listing-health-bar">
                         <div style={{ width: `${f.health}%`, height: '100%', background: '#5dbe8a', borderRadius: 2 }} />

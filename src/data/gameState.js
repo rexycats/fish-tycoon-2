@@ -110,11 +110,21 @@ export function createDefaultState() {
       seenShopFishCount: 0,
       seenAchCount:      0,
       challengeStreak:   0,  // consecutive days all 3 challenges completed
+      firstPlayedAt: Date.now(),  // when the game was first started
+      tutorialFlags: {},          // { firstCustomer, giftEgg, breedHint, ... }
     },
 
     rareMarket: {
       lastRefreshDay: 0,    // UTC day number of last seen rotation
       purchased: [],        // [{ day, itemId }]
+    },
+
+    // ── Daily market price fluctuation ─────────────────────
+    market: {
+      day: 0,              // UTC day when modifiers were last generated
+      modifiers: {},       // { rarity: multiplier } e.g. { common: 0.8, rare: 1.4 }
+      hotTrait: null,      // e.g. { gene: 'primaryColor', value: 'Gold', bonus: 1.5 }
+      headline: '',        // flavour text for today's market
     },
 
     dailyChallenges: {
@@ -275,6 +285,11 @@ function migrateSave(parsed, fromVersion) {
   if (parsed.passiveTick == null) parsed.passiveTick = 0;
   if (!parsed.rareMarket) parsed.rareMarket = { lastRefreshDay: 0, purchased: [] };
   if (!parsed.dailyChallenges) parsed.dailyChallenges = { day: 0, challenges: [] };
+  // New: market price fluctuation
+  if (!parsed.market) parsed.market = { day: 0, modifiers: {}, hotTrait: null, headline: '' };
+  // New: early game / tutorial tracking
+  if (!parsed.player.firstPlayedAt) parsed.player.firstPlayedAt = parsed.lastTickAt || Date.now();
+  if (!parsed.player.tutorialFlags) parsed.player.tutorialFlags = {};
   // Migrate medicine → distinct treatments on old saves
   parsed.tanks = (parsed.tanks || []).map(t => {
     const s = t.supplies || {};

@@ -2,10 +2,136 @@
 // FISH TYCOON 2 — GAME TICK SYSTEM v7 (multi-tank)
 // ============================================================
 
-import { GROWTH_STAGES, createFish } from '../data/genetics.js';
+import { GROWTH_STAGES, createFish, GENES, computePhenotype, getSpeciesFromPhenotype } from '../data/genetics.js';
 import { addLog } from '../data/gameState.js';
 
 export const TICK_INTERVAL_MS = 1000;
+
+// ============================================================
+// MARKET PRICE FLUCTUATION SYSTEM
+// Each UTC day generates new market conditions that affect all
+// sale prices. Gives players a reason to time their sales.
+// ============================================================
+const MARKET_HEADLINES = [
+  { mod: { common: 0.7, uncommon: 1.0, rare: 1.3, epic: 1.5 },  text: '📈 Rare fish market booming! Collectors paying top coin.' },
+  { mod: { common: 1.4, uncommon: 1.1, rare: 0.9, epic: 0.8 },  text: '🐟 Common fish craze! Everyone wants an easy starter pet.' },
+  { mod: { common: 0.9, uncommon: 1.3, rare: 1.1, epic: 1.0 },  text: '🌊 Mid-tier demand is high. Hobbyists are browsing.' },
+  { mod: { common: 1.0, uncommon: 0.8, rare: 1.0, epic: 1.8 },  text: '💎 High-end buyers in town. Epic fish fetch premium prices.' },
+  { mod: { common: 1.1, uncommon: 1.1, rare: 1.1, epic: 1.1 },  text: '☀️ Good weather brings steady foot traffic. Prices are fair.' },
+  { mod: { common: 0.8, uncommon: 0.9, rare: 0.8, epic: 0.9 },  text: '📉 Slow day at the market. Buyers are cautious with coin.' },
+  { mod: { common: 1.2, uncommon: 1.2, rare: 0.7, epic: 0.7 },  text: '🎪 Fish fair in town! Budget shoppers flooding in.' },
+  { mod: { common: 0.9, uncommon: 1.0, rare: 1.4, epic: 1.2 },  text: '🧐 Collector convention nearby. Rare finds sell fast.' },
+];
+
+const HOT_TRAITS = [
+  { gene: 'primaryColor', value: 'Crimson', label: '🔴 Crimson fish', bonus: 1.4 },
+  { gene: 'primaryColor', value: 'Gold',    label: '🟡 Gold fish',    bonus: 1.4 },
+  { gene: 'primaryColor', value: 'Azure',   label: '🔵 Azure fish',   bonus: 1.4 },
+  { gene: 'primaryColor', value: 'Violet',  label: '🟣 Violet fish',  bonus: 1.5 },
+  { gene: 'primaryColor', value: 'Emerald', label: '🟢 Emerald fish', bonus: 1.5 },
+  { gene: 'glow',         value: 'Luminous', label: '✨ Glowing fish', bonus: 1.6 },
+  { gene: 'glow',         value: 'Radiant',  label: '🌟 Radiant fish', bonus: 1.3 },
+  { gene: 'mutation',     value: 'Albino',    label: '🤍 Albino fish',  bonus: 1.5 },
+  { gene: 'mutation',     value: 'Twin-tail', label: '🐟 Twin-tail fish', bonus: 1.4 },
+  { gene: 'bodyShape',    value: 'Eel',      label: '🐍 Eel-shaped fish', bonus: 1.3 },
+  { gene: 'size',         value: 'Leviathan', label: '🐋 Leviathan fish',  bonus: 1.5 },
+  { gene: 'pattern',      value: 'Tiger',    label: '🐯 Tiger-pattern fish', bonus: 1.3 },
+];
+
+export function refreshMarket(state) {
+  const today = todayUTCDay();
+  if (state.market?.day === today) return state;
+
+  const rng = seededRandom(today * 1337);
+  const headline = MARKET_HEADLINES[Math.floor(rng() * MARKET_HEADLINES.length)];
+  const hotTrait = rng() < 0.7
+    ? HOT_TRAITS[Math.floor(rng() * HOT_TRAITS.length)]
+    : null;
+
+  // Add small random noise ±10% to base modifiers for variety
+  const modifiers = {};
+  for (const [rarity, base] of Object.entries(headline.mod)) {
+    modifiers[rarity] = Math.round((base + (rng() - 0.5) * 0.2) * 100) / 100;
+  }
+
+  const hotLabel = hotTrait ? ` ${hotTrait.label} are in demand today!` : '';
+  const market = {
+    day: today,
+    modifiers,
+    hotTrait: hotTrait ? { gene: hotTrait.gene, value: hotTrait.value, bonus: hotTrait.bonus, label: hotTrait.label } : null,
+    headline: headline.text + hotLabel,
+  };
+
+  let next = { ...state, market };
+  next = { ...next, log: [{ time: Date.now(), message: `📊 ${market.headline}`, severity: 'info' }, ...next.log].slice(0, 60) };
+  return next;
+}
+
+/** Get the market multiplier for a specific fish */
+export function getMarketMultiplier(fish, market) {
+  if (!market || !market.modifiers) return 1.0;
+  let mult = market.modifiers[fish.species?.rarity || 'common'] || 1.0;
+  // Hot trait bonus
+  if (market.hotTrait && fish.phenotype) {
+    if (fish.phenotype[market.hotTrait.gene] === market.hotTrait.value) {
+      mult *= market.hotTrait.bonus;
+    }
+  }
+  return mult;
+}
+
+// ============================================================
+// EARLY GAME EVENT SYSTEM
+// Scripted events that fire once in the first few minutes to
+// teach mechanics and create early engagement.
+// ============================================================
+const EARLY_EVENTS = [
+  {
+    id: 'firstCustomer',
+    afterSecs: 45,           // 45 seconds in
+    condition: (state) => state.fish.some(f => f.stage === 'adult'),
+    fire: (state, messages) => {
+      // Auto-list the first adult fish and trigger an immediate customer
+      const adult = state.fish.find(f => f.stage === 'adult' && !state.shop.listedFish.includes(f.id));
+      if (!adult) return state;
+      messages.push({ message: `🔔 A customer is looking through the window! Try listing a fish for sale in the Shop tab.`, severity: 'warn' });
+      // Force the next customer to arrive in 5 seconds
+      return { ...state, shop: { ...state.shop, lastCustomerAt: Date.now() - 13_000 } };
+    },
+  },
+  {
+    id: 'giftEgg',
+    afterSecs: 120,          // 2 minutes in
+    fire: (state, messages) => {
+      // Gift a free uncommon egg
+      const tank = state.tanks[0];
+      if (!tank) return state;
+      const count = state.fish.filter(f => f.tankId === tank.id).length;
+      if (count >= (tank.capacity || 12)) return state;
+      const egg = createFish({ stage: 'egg', tankId: tank.id, targetRarity: 'uncommon' });
+      messages.push({ message: `🎁 A mysterious egg appeared in your tank! It looks unusual...`, severity: 'warn' });
+      messages.push({ message: `💡 Tip: Eggs hatch into juveniles, then grow into adults you can sell or breed.`, severity: 'info' });
+      return { ...state, fish: [...state.fish, egg] };
+    },
+  },
+  {
+    id: 'breedHint',
+    afterSecs: 300,          // 5 minutes in
+    condition: (state) => state.fish.filter(f => f.stage === 'adult').length >= 2,
+    fire: (state, messages) => {
+      messages.push({ message: `🧬 You have two adult fish! Try the Breed tab to combine their traits and discover new species.`, severity: 'warn' });
+      return state;
+    },
+  },
+  {
+    id: 'marketIntro',
+    afterSecs: 180,          // 3 minutes in
+    fire: (state, messages) => {
+      messages.push({ message: `📊 The fish market shifts daily — check the Shop for today's hot traits and price trends!`, severity: 'info' });
+      return state;
+    },
+  },
+];
 
 // --- RATES (per real second) ---
 const HUNGER_RATE        = 0.012;  // 0→90 (damage threshold) in ~125 min (was 0.025 = ~60 min). One feeding now lasts ~62 min.
@@ -558,6 +684,23 @@ export function processTick(state) {
 
   // Refresh daily challenges at UTC midnight and track happiness timer challenge
   next = refreshDailyChallenges(next);
+  // Refresh market prices daily
+  next = refreshMarket(next);
+
+  // Early game events — scripted moments that fire once in the first minutes
+  const playAge = (now - (next.player.firstPlayedAt || now)) / 1000;
+  for (const evt of EARLY_EVENTS) {
+    if (next.player.tutorialFlags?.[evt.id]) continue; // already fired
+    if (playAge < evt.afterSecs) continue;              // too early
+    if (evt.condition && !evt.condition(next)) continue; // condition not met
+    const evtMsgs = [];
+    next = evt.fire(next, evtMsgs);
+    next = { ...next, player: { ...next.player, tutorialFlags: { ...next.player.tutorialFlags, [evt.id]: true } } };
+    if (evtMsgs.length > 0) {
+      const entries = evtMsgs.map(m => typeof m === 'string' ? { time: Date.now(), message: m } : { time: Date.now(), ...m });
+      next = { ...next, log: [...entries, ...next.log].slice(0, 60) };
+    }
+  }
   // Build a Set of tankIds that have at least one adult fish (O(n)) so the
   // tanks.filter() below is O(tanks) rather than O(n × tanks) every tick.
   const tanksWithAdults = new Set(next.fish.filter(f => f.stage === 'adult').map(f => f.tankId));
@@ -659,7 +802,7 @@ function processCustomerVisit(state, messages) {
     const tankBonus = getTankBonuses(fishTank?.type).salePriceMult || 1;
     const happiness = fishTank?.happiness ?? 100;
     const happBonus = 1 + (happiness / 100) * 0.2;
-    const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * happBonus * tankBonus * lightingBonus);
+    const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * happBonus * tankBonus * lightingBonus * getMarketMultiplier(f, state.market));
     const askPrice  = state.shop.fishPrices?.[id] ?? autoPrice;
     const budget    = Math.round(askPrice * customer.budgetMult);
     // Only show fish where budget meets at least the walkaway threshold (65% of ask price).
@@ -678,7 +821,8 @@ function processCustomerVisit(state, messages) {
   const tankBonus  = getTankBonuses(fishTank?.type).salePriceMult || 1;
   const happiness  = fishTank?.happiness ?? 100;
   const happBonus  = 1 + (happiness / 100) * 0.2;
-  const autoPrice  = Math.round((fish.species?.basePrice ?? 10) * (fish.health / 100) * happBonus * tankBonus * lightingBonus);
+  const marketMult = getMarketMultiplier(fish, state.market);
+  const autoPrice  = Math.round((fish.species?.basePrice ?? 10) * (fish.health / 100) * happBonus * tankBonus * lightingBonus * marketMult);
   const askPrice   = state.shop.fishPrices?.[fish.id] ?? autoPrice;
 
   // Customer budget is their max willingness to pay

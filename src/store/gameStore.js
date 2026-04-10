@@ -19,6 +19,7 @@ import {
 import {
   processTick, applyOfflineProgress, TICK_INTERVAL_MS,
   refreshDailyChallenges, updateChallengeProgress,
+  refreshMarket,
 } from '../systems/gameTick.js';
 import { breedGenomes, createFish } from '../data/genetics.js';
 import { REAL_SPECIES_MAP } from '../data/realSpecies.js';
@@ -50,6 +51,7 @@ function buildInitialState() {
   const saved = getInitSave();
   let g = saved ? applyOfflineProgress(saved) : createDefaultState();
   g = refreshDailyChallenges(g);
+  g = refreshMarket(g);
   return g;
 }
 
