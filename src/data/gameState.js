@@ -340,7 +340,6 @@ export function loadGame() {
   } catch (e) { console.error('Load failed:', e); return null; }
 }
 
-export function deleteSave() { localStorage.removeItem(SAVE_KEY); }
 
 // ── Export / Import ────────────────────────────────────────
 export function exportSave(state) {
@@ -385,6 +384,13 @@ export function importSave(file) {
 
 export function addLog(state, message) {
   return { ...state, log: [{ time: Date.now(), message }, ...(state.log || [])].slice(0, 60) };
+}
+
+/** Immer-compatible version — mutates draft.log in place */
+export function addLogDraft(draft, message, severity) {
+  if (!draft.log) draft.log = [];
+  draft.log.unshift({ time: Date.now(), message, ...(severity ? { severity } : {}) });
+  if (draft.log.length > 60) draft.log.length = 60;
 }
 
 // ── Achievements ───────────────────────────────────────────

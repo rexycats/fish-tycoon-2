@@ -9,15 +9,8 @@ const LS_KEY  = 'fishtycoon_api_key';
 // ── API key management ────────────────────────────────────
 export function getApiKey()          { return localStorage.getItem(LS_KEY) || ''; }
 export function setApiKey(key)       { if (key) localStorage.setItem(LS_KEY, key.trim()); else localStorage.removeItem(LS_KEY); }
-export function clearApiKey()        { localStorage.removeItem(LS_KEY); }
 
 // Exported so UI can show the right message
-export const AI_ERRORS = {
-  NO_KEY:     'no_key',
-  NO_API:     'no_api',
-  RATE_LIMIT: 'rate_limit',
-  NETWORK:    'network',
-};
 
 // ── Serial request queue ──────────────────────────────────
 // Naming calls are fired one-at-a-time with a MIN_GAP_MS cooldown

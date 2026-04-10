@@ -461,7 +461,6 @@ export function createFish({ genome = null, stage = 'adult', parentIds = [], tan
   };
 }
 
-export const TOTAL_NAMED_SPECIES = Object.keys(NAMED_SPECIES).length;
 
 // ============================================================
 // THE 7 MAGIC FISH — Win Condition
@@ -593,15 +592,3 @@ export function checkMagicFishMatch(phenotype, magicFish) {
   return true;
 }
 
-// Return which magic fish IDs have been found given a fishdex
-export function getFoundMagicFish(fishdex) {
-  const found = new Set();
-  for (const entry of fishdex) {
-    for (const mf of MAGIC_FISH) {
-      if (!found.has(mf.id) && checkMagicFishMatch(entry.phenotype, mf)) {
-        found.add(mf.id);
-      }
-    }
-  }
-  return found;
-}

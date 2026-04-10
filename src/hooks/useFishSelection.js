@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { addLog } from '../data/gameState.js';
+import { addLogDraft } from '../data/gameState.js';
 import { updateChallengeProgress } from '../systems/gameTick.js';
 import { MAGIC_FISH, checkMagicFishMatch } from '../data/genetics.js';
 import { REAL_SPECIES_MAP } from '../data/realSpecies.js';
@@ -69,8 +69,7 @@ export function useFishSelection() {
     useGameStore.setState(state => {
       state.player.fishdex = [...(state.player.fishdex || []), ...newEntries];
       for (const e of newEntries) {
-        const logState = addLog(state, `📖 New species: ${e.name}! (${e.rarity})`);
-        Object.assign(state, logState);
+        addLogDraft(state, `📖 New species: ${e.name}! (${e.rarity})`);
       }
       const afterChallenge = updateChallengeProgress(state, 'discover');
       Object.assign(state, afterChallenge);
@@ -89,8 +88,7 @@ export function useFishSelection() {
         state.player.magicFishFound = [...(state.player.magicFishFound || []), ...newMagic.map(m => m.id)];
         state.player.coins += newMagic.reduce((s, m) => s + m.reward, 0);
         for (const mf of newMagic) {
-          const logState = addLog(state, `🔮 MAGIC FISH DISCOVERED: #${mf.number} ${mf.title}! +🪙${mf.reward} reward!`);
-          Object.assign(state, logState);
+          addLogDraft(state, `🔮 MAGIC FISH DISCOVERED: #${mf.number} ${mf.title}! +🪙${mf.reward} reward!`);
         }
         if (state.player.magicFishFound.length === 7) {
           setTimeout(() => setShowWinModal(true), 500);

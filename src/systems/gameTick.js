@@ -2,7 +2,7 @@
 // FISH TYCOON 2 — GAME TICK SYSTEM v7 (multi-tank)
 // ============================================================
 
-import { GROWTH_STAGES, createFish, GENES, computePhenotype, getSpeciesFromPhenotype } from '../data/genetics.js';
+import { GROWTH_STAGES, createFish } from '../data/genetics.js';
 import { addLog } from '../data/gameState.js';
 
 export const TICK_INTERVAL_MS = 1000;
@@ -553,10 +553,12 @@ export function processTick(state) {
   const deadFish = next.fish.filter(f => f.stage !== 'egg' && f.health <= 0);
   if (deadFish.length > 0) {
     const deadIds = new Set(deadFish.map(f => f.id));
-    // Build autopsy records
+    // Build tank lookup once for autopsy records
+    const tankById = new Map();
+    for (const t of next.tanks) tankById.set(t.id, t);
     const now2 = Date.now();
     const newAutopsies = deadFish.map(f => {
-      const tank = next.tanks.find(t => t.id === f.tankId);
+      const tank = tankById.get(f.tankId);
       // Determine cause of death
       let cause = 'Unknown';
       let detail = '';
@@ -780,11 +782,10 @@ function pickCustomerType(state) {
   return weighted[Math.floor(Math.random() * weighted.length)];
 }
 
-function pickFishToBuy(listedIds, fish, customer) {
-  const listed = listedIds.map(id => fish.find(f => f.id === id)).filter(Boolean);
-  if (listed.length === 0) return null;
+function pickFishToBuy(listedFish, customer) {
+  if (listedFish.length === 0) return null;
   const biasLevel = RARITY_ORDER[customer.rarityBias] ?? 0;
-  const scored = listed.map(f => {
+  const scored = listedFish.map(f => {
     const diff = Math.abs((RARITY_ORDER[f.species?.rarity ?? 'common'] ?? 0) - biasLevel);
     return { fish: f, score: Math.random() * 0.4 + (1 / (diff + 1)) };
   }).sort((a, b) => b.score - a.score);
@@ -793,31 +794,35 @@ function pickFishToBuy(listedIds, fish, customer) {
 
 function processCustomerVisit(state, messages) {
   const customer = pickCustomerType(state);
+  // Build fish lookup once — O(n) instead of O(n) per .find() call
+  const fishById = new Map();
+  for (const f of state.fish) fishById.set(f.id, f);
+  const tankById = new Map();
+  for (const t of state.tanks) tankById.set(t.id, t);
   // Only consider fish the customer can afford (their budget vs ask price)
   const lightingBonus = 1 + (state.shop.upgrades?.lighting?.level || 0) * 0.10;
-  const listedIds = state.shop.listedFish.filter(id => {
-    const f = state.fish.find(fi => fi.id === id);
-    if (!f) return false;
-    const fishTank  = state.tanks.find(t => t.id === f.tankId);
+  const listedFish = [];
+  for (const id of state.shop.listedFish) {
+    const f = fishById.get(id);
+    if (!f) continue;
+    const fishTank  = tankById.get(f.tankId);
     const tankBonus = getTankBonuses(fishTank?.type).salePriceMult || 1;
     const happiness = fishTank?.happiness ?? 100;
     const happBonus = 1 + (happiness / 100) * 0.2;
     const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * happBonus * tankBonus * lightingBonus * getMarketMultiplier(f, state.market));
     const askPrice  = state.shop.fishPrices?.[id] ?? autoPrice;
     const budget    = Math.round(askPrice * customer.budgetMult);
-    // Only show fish where budget meets at least the walkaway threshold (65% of ask price).
-    // If nothing affordable is found, this customer simply doesn't visit — next one will.
-    return budget >= Math.round(askPrice * 0.65);
-  });
+    if (budget >= Math.round(askPrice * 0.65)) listedFish.push(f);
+  }
 
   // No fish in budget — customer passes without entering the shop at all
-  if (listedIds.length === 0) return state;
+  if (listedFish.length === 0) return state;
 
-  const fish = pickFishToBuy(listedIds, state.fish, customer);
+  const fish = pickFishToBuy(listedFish, customer);
   if (!fish) return state;
 
   // Display tank gives a sale price bonus; Premium Lighting adds on top
-  const fishTank   = state.tanks.find(t => t.id === fish.tankId);
+  const fishTank   = tankById.get(fish.tankId);
   const tankBonus  = getTankBonuses(fishTank?.type).salePriceMult || 1;
   const happiness  = fishTank?.happiness ?? 100;
   const happBonus  = 1 + (happiness / 100) * 0.2;
@@ -1062,8 +1067,10 @@ export function applyOfflineProgress(state) {
   const offlineDeadFish = next.fish.filter(f => f.stage !== 'egg' && f.health <= 0);
   if (offlineDeadFish.length > 0) {
     const deadIds = new Set(offlineDeadFish.map(f => f.id));
+    const offTankById = new Map();
+    for (const t of next.tanks) offTankById.set(t.id, t);
     const offlineAutopsies = offlineDeadFish.map(f => {
-      const tank = next.tanks.find(t => t.id === f.tankId);
+      const tank = offTankById.get(f.tankId);
       return {
         id: crypto.randomUUID(),
         fishName: f.species?.name || 'Unknown', rarity: f.species?.rarity || 'common',

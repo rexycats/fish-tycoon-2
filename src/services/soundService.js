@@ -15,7 +15,6 @@ function ctx() {
 }
 
 export function setSoundEnabled(v) { _enabled = v; }
-export function isSoundEnabled() { return _enabled; }
 
 function play(fn) {
   if (!_enabled) return;

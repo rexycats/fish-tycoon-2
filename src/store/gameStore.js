@@ -14,7 +14,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import {
   createDefaultState, saveGame, loadGame, checkAchievements,
-  addLog, createDefaultTank, TANK_UNLOCK, exportSave, importSave,
+  addLogDraft, createDefaultTank, TANK_UNLOCK, exportSave, importSave,
 } from '../data/gameState.js';
 import {
   processTick, applyOfflineProgress, TICK_INTERVAL_MS,
@@ -74,15 +74,12 @@ export const useGameStore = create(
           : false,
 
         // ── Tick ─────────────────────────────────────────────
-        // Called by setInterval every second. Uses Immer draft
-        // so processTick can mutate in-place without spreading.
+        // Called by setInterval every second. Bypasses Immer —
+        // processTick reads plain state via get() and returns a new
+        // plain object. set() shallow-merges it, avoiding Immer's
+        // proxy creation + diff on every tick.
         tick: () => {
-          set(state => {
-            const next = processTick(state);
-            // processTick returns a new plain object — copy its
-            // fields onto the Immer draft so Zustand picks up changes.
-            Object.assign(state, next);
-          });
+          set(processTick(get()));
         },
 
         // ── Dismiss offline modal ────────────────────────────
@@ -104,7 +101,7 @@ export const useGameStore = create(
           const tank = state.tanks.find(t => t.id === fish.tankId);
           if (!tank || tank.supplies.food <= 0) {
             playWarning();
-            Object.assign(state, addLog(state, '⚠️ No food in that tank!'));
+            addLogDraft(state, '⚠️ No food in that tank!');
             return;
           }
           playFeed();
@@ -123,7 +120,7 @@ export const useGameStore = create(
           const medKey = DISEASE_CURES[fish.disease] || 'antibiotic';
           if ((tank.supplies[medKey] || 0) <= 0) {
             playWarning();
-            Object.assign(state, addLog(state, `⚠️ No ${medKey} in ${tank.name}!`));
+            addLogDraft(state, `⚠️ No ${medKey} in ${tank.name}!`);
             return;
           }
           playCoin();
@@ -133,7 +130,7 @@ export const useGameStore = create(
           fish.diseaseSince = null;
           fish.health = Math.min(100, fish.health + 20);
           state.player.stats.medicineUsed = (state.player.stats.medicineUsed || 0) + 1;
-          Object.assign(state, addLog(state, `💊 Cured ${fish.species?.name || 'fish'} of ${diseaseName}!`));
+          addLogDraft(state, `💊 Cured ${fish.species?.name || 'fish'} of ${diseaseName}!`);
           const updated = updateChallengeProgress(state, 'cure_fish');
           Object.assign(state, updated);
         }),
@@ -146,7 +143,7 @@ export const useGameStore = create(
           const count = state.fish.filter(f => f.tankId === targetTankId).length;
           if (count >= (target.capacity || 12)) {
             playWarning();
-            Object.assign(state, addLog(state, `⚠️ ${target.name} is full!`));
+            addLogDraft(state, `⚠️ ${target.name} is full!`);
             return;
           }
           fish.tankId = targetTankId;
@@ -158,7 +155,7 @@ export const useGameStore = create(
           if (!tank) return;
           if ((tank.supplies.waterTreatment || 0) <= 0) {
             playWarning();
-            Object.assign(state, addLog(state, '⚠️ No water treatment supplies!'));
+            addLogDraft(state, '⚠️ No water treatment supplies!');
             return;
           }
           playBubble();
@@ -196,7 +193,7 @@ export const useGameStore = create(
           const newTank = createDefaultTank(`tank_${state.tanks.length}`, type);
           state.tanks.push(newTank);
           playCoin();
-          Object.assign(state, addLog(state, `🏗️ Unlocked a new ${type} tank!`));
+          addLogDraft(state, `🏗️ Unlocked a new ${type} tank!`);
         }),
 
         renameTank: (tankId, name) => set(state => {
@@ -208,7 +205,7 @@ export const useGameStore = create(
           const isListed = state.shop.listedFish.includes(fishId);
           if (!isListed && state.shop.listedFish.length >= state.shop.slots) {
             playWarning();
-            Object.assign(state, addLog(state, '⚠️ Shop full! Buy an upgrade to add more slots.'));
+            addLogDraft(state, '⚠️ Shop full! Buy an upgrade to add more slots.');
             return;
           }
           if (isListed) {
@@ -219,11 +216,11 @@ export const useGameStore = create(
           }
           playCoin();
           const fish = state.fish.find(f => f.id === fishId);
-          Object.assign(state, addLog(state,
+          addLogDraft(state,
             isListed
               ? `🏪 Removed ${fish?.species?.name || 'fish'}.`
               : `🏪 Listed ${fish?.species?.name || 'fish'} for sale!`
-          ));
+          );
         }),
 
         setFishPrice: (fishId, price) => set(state => {
@@ -233,7 +230,7 @@ export const useGameStore = create(
         buySupply: (supplyKey, cost, amount, tankId) => set(state => {
           if (state.player.coins < cost) {
             playWarning();
-            Object.assign(state, addLog(state, '⚠️ Not enough coins!'));
+            addLogDraft(state, '⚠️ Not enough coins!');
             return;
           }
           const tank = state.tanks.find(t => t.id === tankId);
@@ -248,7 +245,7 @@ export const useGameStore = create(
           if (!speciesDef) return;
           if (state.player.coins < speciesDef.price) {
             playWarning();
-            Object.assign(state, addLog(state, '⚠️ Not enough coins!'));
+            addLogDraft(state, '⚠️ Not enough coins!');
             return;
           }
           // Find a tank with room
@@ -257,7 +254,7 @@ export const useGameStore = create(
           const tank = state.tanks.find(t => (fishCountByTank.get(t.id) || 0) < (t.capacity || 12));
           if (!tank) {
             playWarning();
-            Object.assign(state, addLog(state, '⚠️ All tanks are full!'));
+            addLogDraft(state, '⚠️ All tanks are full!');
             return;
           }
           state.player.coins -= speciesDef.price;
@@ -265,7 +262,7 @@ export const useGameStore = create(
           const newFish = createFish({ stage: 'adult', tankId: tank.id, phenotype, targetRarity: speciesDef.rarity });
           state.fish.push(newFish);
           playCoin();
-          Object.assign(state, addLog(state, `🐟 Bought a ${speciesDef.name}!`));
+          addLogDraft(state, `🐟 Bought a ${speciesDef.name}!`);
         }),
 
         buyUpgrade: (upgradeKey) => set(state => {
@@ -274,7 +271,7 @@ export const useGameStore = create(
           const cost = Math.round(upg.cost * Math.pow(1.6, upg.level));
           if (state.player.coins < cost) {
             playWarning();
-            Object.assign(state, addLog(state, '⚠️ Not enough coins!'));
+            addLogDraft(state, '⚠️ Not enough coins!');
             return;
           }
           state.player.coins -= cost;
@@ -288,7 +285,7 @@ export const useGameStore = create(
             state.breedingTank.breedingDurationMs = Math.round(300_000 * Math.pow(0.8, upg.level));
           }
           playCoin();
-          Object.assign(state, addLog(state, `⬆️ Upgraded ${upg.label} to level ${upg.level}!`));
+          addLogDraft(state, `⬆️ Upgraded ${upg.label} to level ${upg.level}!`);
         }),
 
         buyRareMarketItem: (itemId, cost) => set(state => {
@@ -388,7 +385,7 @@ export const useGameStore = create(
             bt.storedGenomeB = fishB?.genome || null;
             bt.storedTankId = fishA?.tankId || state.tanks[0]?.id || 'tank_0';
             playBreed();
-            Object.assign(state, addLog(state, `🧬 Breeding started: ${fishA?.species?.name || '?'} × ${fishB?.species?.name || '?'}`));
+            addLogDraft(state, `🧬 Breeding started: ${fishA?.species?.name || '?'} × ${fishB?.species?.name || '?'}`);
           }
         }),
 
@@ -410,7 +407,7 @@ export const useGameStore = create(
           const count = state.fish.filter(f => f.tankId === tankId).length;
           if (count >= (tank?.capacity || 12)) {
             playWarning();
-            Object.assign(state, addLog(state, '⚠️ Target tank is full!'));
+            addLogDraft(state, '⚠️ Target tank is full!');
             return;
           }
           const childGenome = breedGenomes(bt.storedGenomeA, bt.storedGenomeB);
@@ -423,7 +420,7 @@ export const useGameStore = create(
           bt.storedGenomeB = null;
           state.player.stats.eggsCollected = (state.player.stats.eggsCollected || 0) + 1;
           playCoin();
-          Object.assign(state, addLog(state, '🥚 Collected a new egg!'));
+          addLogDraft(state, '🥚 Collected a new egg!');
           const updated = updateChallengeProgress(state, 'collect_egg');
           Object.assign(state, updated);
         }),
@@ -454,23 +451,6 @@ export const useGameStore = create(
 // ============================================================
 // SELECTORS — components import these to subscribe to slices
 // ============================================================
-// Primitive selectors (cheap reference equality)
-export const selectPlayer       = (s) => s.player;
-export const selectFish         = (s) => s.fish;
-export const selectTanks        = (s) => s.tanks;
-export const selectShop         = (s) => s.shop;
-export const selectBreedingTank = (s) => s.breedingTank;
-export const selectLog          = (s) => s.log;
-export const selectSoundOn      = (s) => s.soundOn;
-export const selectShowOffline  = (s) => s.showOffline;
-export const selectOfflineSummary = (s) => s.offlineSummary;
-export const selectDailyChallenges = (s) => s.dailyChallenges;
-
-// Derived selectors — use shallow equality in the component:
-//   const val = useGameStore(selectSomething, shallow)
-export const selectPlayerCoins  = (s) => s.player.coins;
-export const selectFishCount    = (s) => s.fish.length;
-export const selectTankCount    = (s) => s.tanks.length;
 
 // ============================================================
 // SIDE EFFECTS (subscriptions — run outside React)

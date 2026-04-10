@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, memo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, memo } from 'react';
 import ToastManager from './components/ToastManager.jsx';
 import { MAGIC_FISH } from './data/genetics.js';
 import { TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
@@ -48,6 +48,7 @@ export default function App() {
   const showOffline     = useGameStore(s => s.showOffline);
   const offlineSummary  = useGameStore(s => s.offlineSummary);
   const soundOn         = useGameStore(s => s.soundOn);
+  const market          = useGameStore(s => s.market);
 
   // ── Store actions (stable references — no useCallback needed) ──
   const dismissOffline  = useGameStore(s => s.dismissOffline);
@@ -146,10 +147,12 @@ export default function App() {
   const challengeDone  = (dailyChallenges?.challenges || []).filter(c => c.completed).length;
   const challengeTotal = (dailyChallenges?.challenges || []).length;
 
-  // ── Build a game-like object for components that still expect it ──
-  // This is a transitional shim. Over time, each child component should
-  // subscribe to the store directly and this object goes away.
-  const game = { player, fish, tanks, shop, breedingTank, log, dailyChallenges, offlineSummary };
+  // ── Memoized game-like object for components that still expect it ──
+  // Prevents new object ref unless actual slice refs change.
+  const game = useMemo(
+    () => ({ player, fish, tanks, shop, breedingTank, log, dailyChallenges, offlineSummary, market }),
+    [player, fish, tanks, shop, breedingTank, log, dailyChallenges, offlineSummary, market]
+  );
 
   return (
     <div className="app">
