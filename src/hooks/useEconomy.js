@@ -6,7 +6,7 @@ import {
 import { updateChallengeProgress } from '../systems/gameTick.js';
 import { breedGenomes, createFish } from '../data/genetics.js';
 import { REAL_SPECIES_MAP } from '../data/realSpecies.js';
-import { DECOR_CATALOG } from '../data/decorations.js';
+import { DECOR_CATALOG, TANK_THEMES } from '../data/decorations.js';
 import { fireToast } from '../components/ToastManager.jsx';
 
 // Static lookup — hoisted to module scope so it isn't re-created on every buyFish call
@@ -483,6 +483,50 @@ export function useEconomy(game, setGame, activeTankId, setSelectedFishId, setAc
     });
   }, []);
 
+  // ── Tank Themes ───────────────────────────────────────────────
+  const buyTheme = useCallback((tankId, themeId) => {
+    const theme = TANK_THEMES.find(t => t.id === themeId);
+    if (!theme) return;
+    setGame(prev => {
+      if (prev.player.coins < theme.cost) {
+        playWarning();
+        return addLog(prev, `⚠️ Not enough coins! Need 🪙${theme.cost}.`);
+      }
+      const tank = prev.tanks.find(t => t.id === tankId) || prev.tanks[0];
+      const currentOwned = tank.themes?.owned || ['tropical'];
+      if (currentOwned.includes(themeId)) return prev; // already owned
+      playCoin();
+      return addLog({
+        ...prev,
+        player: { ...prev.player, coins: prev.player.coins - theme.cost },
+        tanks: prev.tanks.map(t => t.id === tank.id ? {
+          ...t,
+          themes: {
+            ...t.themes,
+            owned: [...currentOwned, themeId],
+            active: themeId, // auto-apply on purchase
+          },
+        } : t),
+      }, `🎨 Bought and applied the ${theme.label} theme!`);
+    });
+  }, []);
+
+  const applyTheme = useCallback((tankId, themeId) => {
+    setGame(prev => {
+      const tank = prev.tanks.find(t => t.id === tankId);
+      if (!tank) return prev;
+      const theme = TANK_THEMES.find(t => t.id === themeId);
+      if (!theme) return prev;
+      return addLog({
+        ...prev,
+        tanks: prev.tanks.map(t => t.id === tankId ? {
+          ...t,
+          themes: { ...t.themes, active: themeId },
+        } : t),
+      }, `🎨 Applied the ${theme.label} theme to ${tank.name}!`);
+    });
+  }, []);
+
   // ── Breeding ──────────────────────────────────────────────────
   const selectForBreeding = useCallback((fishId) => {
     setGame(prev => {
@@ -648,6 +692,8 @@ export function useEconomy(game, setGame, activeTankId, setSelectedFishId, setAc
     buyRareMarketItem,
     // Decorations
     buyDecoration, claimUnlockedDecoration, placeDecoration, removeDecoration,
+    // Themes
+    buyTheme, applyTheme,
     // Breeding
     selectForBreeding, cancelBreeding, collectEgg,
     // Save

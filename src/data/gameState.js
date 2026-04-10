@@ -3,7 +3,7 @@
 // ============================================================
 
 import { createFish } from './genetics.js';
-import { getDefaultDecorations } from './decorations.js';
+import { getDefaultDecorations, getDefaultThemes } from './decorations.js';
 
 const SAVE_KEY     = 'fishtycoon2_save';
 const SAVE_VERSION = 7;
@@ -63,6 +63,7 @@ export function createDefaultTank(id, type = 'display') {
     autoFeed: false,
     autoFeedTick: 0,
     decorations: getDefaultDecorations(),
+    themes: getDefaultThemes(),
     supplies: {
       food: 40,
       medicine: 0,           // legacy key — kept at 0 so old saves don't break
@@ -187,6 +188,7 @@ function migrateSave(parsed) {
     autoFeedTick: 0,
     ...t,
     decorations: t.decorations ?? getDefaultDecorations(),
+    themes: t.themes ?? getDefaultThemes(),
     supplies: { breedingBoost: 0, ...t.supplies },
   }));
   if (!parsed.player.achievements) parsed.player.achievements = [];

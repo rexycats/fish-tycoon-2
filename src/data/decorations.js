@@ -447,6 +447,189 @@ export const DECOR_CATALOG = [
   },
 ];
 
+// ============================================================
+// TANK THEMES
+// Each theme is a cohesive visual package that transforms the
+// whole tank at once: water colour, background scenery, and
+// substrate. Individual decorations layer on top as accents.
+// ============================================================
+
+export const TANK_THEMES = [
+  {
+    id: 'tropical',
+    label: 'Tropical Reef',
+    emoji: '🐠',
+    cost: 0,
+    startOwned: true,
+    desc: 'Warm Caribbean blue with coral silhouettes and golden sand. The classic.',
+    substrateId: 'sand',
+    waterGradient: [
+      { offset: '0%',   color: '#0e4a8e', opacity: 0.92 },
+      { offset: '40%',  color: '#0c3a7a', opacity: 0.96 },
+      { offset: '72%',  color: '#082860', opacity: 0.99 },
+      { offset: '100%', color: '#040e28', opacity: 1.00 },
+    ],
+    bgSvgFn: () => `
+      <ellipse cx="100" cy="390" rx="80" ry="32" fill="#1a3050" opacity="0.30"/>
+      <ellipse cx="700" cy="392" rx="90" ry="28" fill="#1a3050" opacity="0.28"/>
+      <ellipse cx="400" cy="395" rx="120" ry="22" fill="#152840" opacity="0.25"/>
+      <g opacity="0.28" fill="#162848">
+        <path d="M30,400 Q48,360 38,322 Q55,290 42,258 Q58,278 52,322 Q65,360 78,400 Z"/>
+        <path d="M350,400 Q372,378 360,348 Q382,320 365,296 Q386,318 376,354 Q390,375 402,400 Z"/>
+        <path d="M680,400 Q695,370 685,342 Q700,315 690,288 Q708,310 700,348 Q714,372 724,400 Z"/>
+      </g>
+      ${[680,714,748].map((x,i) => `<path d="M${x},400 C${x+14},348 ${x-8},296 ${x+18},238 C${x+32},188 ${x+4},158 ${x+22},118" stroke="#1a5030" stroke-width="6" fill="none" opacity="0.22" class="kelp-sway" style="animation-delay:${i*0.8}s"/>`).join('')}
+    `,
+  },
+  {
+    id: 'deep_ocean',
+    label: 'Deep Ocean',
+    emoji: '🌊',
+    cost: 300,
+    startOwned: false,
+    desc: 'Near-black abyssal waters with bioluminescent streaks. Dramatic and moody.',
+    substrateId: 'gravel_dark',
+    waterGradient: [
+      { offset: '0%',   color: '#020818', opacity: 0.97 },
+      { offset: '35%',  color: '#010510', opacity: 0.98 },
+      { offset: '70%',  color: '#010308', opacity: 0.99 },
+      { offset: '100%', color: '#000000', opacity: 1.00 },
+    ],
+    bgSvgFn: () => `
+      <ellipse cx="200" cy="388" rx="100" ry="28" fill="#0a1828" opacity="0.6"/>
+      <ellipse cx="600" cy="390" rx="120" ry="24" fill="#080f1e" opacity="0.6"/>
+      ${[['#00e8c8',120,280,0.12],['#40a0ff',340,200,0.10],['#80ffee',580,310,0.08],['#20d8ff',200,340,0.09],['#60c0ff',700,260,0.10]]
+        .map(([c,x,y,o]) => `<ellipse cx="${x}" cy="${y}" rx="4" ry="4" fill="${c}" opacity="${o}"/>
+          <ellipse cx="${x}" cy="${y}" rx="18" ry="6" fill="${c}" opacity="${o*0.4}"/>`)
+        .join('')}
+      <path d="M0,360 Q80,340 160,360 Q240,342 320,360 Q400,344 480,360 Q560,342 640,360 Q720,344 800,360" stroke="#00e8c8" stroke-width="1" fill="none" opacity="0.08"/>
+      <g opacity="0.35" fill="#060e1c">
+        <path d="M60,400 Q80,365 72,335 Q88,308 75,280 Q92,302 85,338 Q100,368 115,400 Z"/>
+        <path d="M640,400 Q658,370 650,342 Q664,316 655,290 Q670,312 663,345 Q678,373 690,400 Z"/>
+      </g>
+    `,
+  },
+  {
+    id: 'amazon',
+    label: 'Amazon River',
+    emoji: '🌿',
+    cost: 250,
+    startOwned: false,
+    desc: 'Teal-green jungle waters thick with roots and tropical foliage.',
+    substrateId: 'gravel_dark',
+    waterGradient: [
+      { offset: '0%',   color: '#083828', opacity: 0.90 },
+      { offset: '40%',  color: '#062e20', opacity: 0.95 },
+      { offset: '72%',  color: '#041e14', opacity: 0.98 },
+      { offset: '100%', color: '#020c08', opacity: 1.00 },
+    ],
+    bgSvgFn: () => `
+      <ellipse cx="150" cy="392" rx="100" ry="24" fill="#062010" opacity="0.5"/>
+      <ellipse cx="620" cy="390" rx="110" ry="22" fill="#041808" opacity="0.5"/>
+      ${[60,180,320,460,580,700].map((x,i) => `
+        <path d="M${x},400 C${x+10*(i%2?1:-1)},360 ${x-8*(i%3?1:-1)},310 ${x+15*(i%2?1:-1)},240 C${x+25*(i%3?1:-1)},180 ${x+5},150 ${x+18},100"
+              stroke="${['#1a6030','#246838','#1c5828','#2a7040','#1e6030'][i%5]}" stroke-width="${7-i%3}" fill="none" opacity="0.30" class="kelp-sway" style="animation-delay:${i*0.5}s"/>
+        <path d="M${x+20},400 C${x+30},370 ${x+40},330 ${x+15},280"
+              stroke="#184820" stroke-width="4" fill="none" opacity="0.20"/>
+      `).join('')}
+      <g opacity="0.25" fill="#082810">
+        ${[80,220,380,520,660].map((x,i) => `<ellipse cx="${x}" cy="${380+i%3*5}" rx="${55+i*8}" ry="18"/>`).join('')}
+      </g>
+    `,
+  },
+  {
+    id: 'arctic',
+    label: 'Arctic',
+    emoji: '🧊',
+    cost: 350,
+    startOwned: false,
+    desc: 'Icy cyan waters with frost formations and pale volcanic floor.',
+    substrateId: 'gravel_white',
+    waterGradient: [
+      { offset: '0%',   color: '#b8e8f8', opacity: 0.35 },
+      { offset: '30%',  color: '#5abcdc', opacity: 0.72 },
+      { offset: '65%',  color: '#1880b0', opacity: 0.90 },
+      { offset: '100%', color: '#0a3848', opacity: 1.00 },
+    ],
+    bgSvgFn: () => `
+      ${[[-30,340,50,160],[-10,380,30,180],[15,360,40,140],[0,400,28,200]].map(([dx,y,rx,ry],i) => `
+        <ellipse cx="${150+dx+(i*180)}" cy="${y}" rx="${rx}" ry="${ry}"
+                 fill="#c8ecf8" opacity="${0.12+i%3*0.04}"/>
+      `).join('')}
+      ${[[80,200,18],[200,180,14],[420,220,20],[560,190,16],[680,210,12]].map(([x,y,s]) => `
+        <path d="M${x},${y+s} L${x},${y-s} M${x-s},${y} L${x+s},${y} M${x-s*0.7},${y-s*0.7} L${x+s*0.7},${y+s*0.7} M${x-s*0.7},${y+s*0.7} L${x+s*0.7},${y-s*0.7}"
+              stroke="#a8d8f0" stroke-width="1.5" fill="none" opacity="0.18"/>
+      `).join('')}
+      <ellipse cx="400" cy="395" rx="430" ry="18" fill="#d0ecf8" opacity="0.14"/>
+      <g opacity="0.22" fill="#8ccce8">
+        ${[100,300,500,680].map((x,i) => `<path d="M${x-20},400 L${x},${370-i*5} L${x+20},400 Z"/>`).join('')}
+      </g>
+    `,
+  },
+  {
+    id: 'volcanic',
+    label: 'Volcanic Vent',
+    emoji: '🌋',
+    cost: 500,
+    startOwned: false,
+    desc: 'Scorching dark waters lit by glowing vents. Maximum drama.',
+    substrateId: 'gravel_dark',
+    waterGradient: [
+      { offset: '0%',   color: '#100808', opacity: 0.96 },
+      { offset: '40%',  color: '#200c04', opacity: 0.97 },
+      { offset: '72%',  color: '#300e02', opacity: 0.99 },
+      { offset: '100%', color: '#1a0400', opacity: 1.00 },
+    ],
+    bgSvgFn: () => `
+      ${[[120,395,80,20,'#8a2000',0.35],[400,398,60,14,'#a03010',0.30],[660,396,70,18,'#7a1800',0.35]].map(([cx,cy,rx,ry,c,o]) => `
+        <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${c}" opacity="${o}"/>
+        <ellipse cx="${cx}" cy="${cy-2}" rx="${rx*0.7}" ry="${ry*0.6}" fill="#c04010" opacity="${o*0.5}"/>
+      `).join('')}
+      ${[[100,380],[420,370],[680,378]].map(([x,y],i) => `
+        <path d="M${x},400 C${x-5},${y} ${x+8},${y-30} ${x+2},${y-70} C${x-4},${y-110} ${x+6},${y-130} ${x},${y-160}"
+              stroke="#e04010" stroke-width="${3+i}" fill="none" opacity="0.18" class="kelp-sway" style="animation-delay:${i*0.6}s"/>
+      `).join('')}
+      ${[[160,360],[340,350],[540,358],[720,345]].map(([x,y],i) => `
+        <ellipse cx="${x}" cy="${y}" rx="${8+i*2}" ry="${4+i}" fill="#ff6020" opacity="${0.08+i*0.02}"/>
+      `).join('')}
+    `,
+  },
+  {
+    id: 'sakura',
+    label: 'Sakura Pond',
+    emoji: '🌸',
+    cost: 400,
+    startOwned: false,
+    desc: 'Soft jade-green waters with drifting cherry blossoms. Serene.',
+    substrateId: 'sand',
+    waterGradient: [
+      { offset: '0%',   color: '#2a6840', opacity: 0.65 },
+      { offset: '38%',  color: '#1e5030', opacity: 0.80 },
+      { offset: '70%',  color: '#143820', opacity: 0.92 },
+      { offset: '100%', color: '#081808', opacity: 1.00 },
+    ],
+    bgSvgFn: () => `
+      ${[100,260,440,600,730].map((x,i) => `
+        <path d="M${x},400 C${x+8*(i%2?1:-1)},350 ${x-6},290 ${x+12*(i%3?1:-1)},220 C${x+20},170 ${x+4},140 ${x+14},90"
+              stroke="${['#5a9060','#4a8050','#628858','#508060','#3a7048'][i%5]}" stroke-width="${5+i%3}" fill="none" opacity="0.28" class="kelp-sway" style="animation-delay:${i*0.7}s"/>
+      `).join('')}
+      ${[80,200,350,480,560,680,140,310].map((x,i) => `
+        <circle cx="${x}" cy="${80+i*30+(i%3)*20}" r="4" fill="#f8b8c8" opacity="${0.15+i%4*0.05}"/>
+        <circle cx="${x+8}" cy="${85+i*30+(i%3)*20}" r="3" fill="#fca8b8" opacity="${0.12+i%3*0.04}"/>
+        <circle cx="${x-6}" cy="${90+i*30+(i%3)*20}" r="3.5" fill="#f0b0c0" opacity="${0.10+i%4*0.03}"/>
+      `).join('')}
+      <ellipse cx="400" cy="395" rx="420" ry="20" fill="#2a5830" opacity="0.30"/>
+      ${[60,230,460,620].map((x,i) => `
+        <ellipse cx="${x}" cy="${388+i%2*4}" rx="${50+i*10}" ry="12" fill="#1e4428" opacity="0.22"/>
+      `).join('')}
+    `,
+  },
+];
+
+export function getThemeById(id) {
+  return TANK_THEMES.find(t => t.id === id) || TANK_THEMES[0];
+}
+
 export function getDecorById(id) {
   return DECOR_CATALOG.find(d => d.id === id) || null;
 }
@@ -457,6 +640,14 @@ export function getStarterOwnedDecor() {
     if (d.startOwned > 0) owned[d.id] = d.startOwned;
   }
   return owned;
+}
+
+// Default theme state for a new tank
+export function getDefaultThemes() {
+  return {
+    owned: ['tropical'],
+    active: 'tropical',
+  };
 }
 
 // Default decoration layout for a new tank

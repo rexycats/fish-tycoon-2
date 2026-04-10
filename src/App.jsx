@@ -47,6 +47,7 @@ export default function App() {
     treatWater, toggleAutoFeed, useHeater, unlockTank, renameTank,
     toggleSellFish, setFishPrice, buySupply, buyFish, buyUpgrade, buyRareMarketItem,
     buyDecoration, claimUnlockedDecoration, placeDecoration, removeDecoration,
+    buyTheme, applyTheme,
     selectForBreeding, cancelBreeding, collectEgg,
     resetGame, handleExportSave, handleImportSave,
   } = useEconomy(game, setGame, activeTankId, setSelectedFishId, setActiveTankId);
@@ -339,6 +340,8 @@ export default function App() {
             onRemoveDecor={removeDecoration}
             unlockedDecorations={game.player.unlockedDecorations || []}
             onClaimUnlockedDecor={claimUnlockedDecoration}
+            onBuyTheme={buyTheme}
+            onApplyTheme={applyTheme}
           />
         )}
         {activeTab === 'autopsy' && (

@@ -4,7 +4,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import FishSprite from './FishSprite.jsx';
-import { getDecorById } from '../data/decorations.js';
+import { getDecorById, getThemeById } from '../data/decorations.js';
 import { REAL_SPECIES_MAP } from '../data/realSpecies.js';
 
 const SWIM_SPEED  = 0.007;
@@ -210,11 +210,25 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   // it invisible to the render return, causing a ReferenceError when wq < 40.
   const wq = waterQuality;
   const waterBg = useMemo(() => {
-    const r = Math.round(wq > 60 ? 14  : wq > 30 ? 30  : 60);
-    const g = Math.round(wq > 60 ? 62  : wq > 30 ? 78  : 72);
-    const b = Math.round(wq > 60 ? 148 : wq > 30 ? 110 : 60);
-    return `linear-gradient(to bottom, rgba(${r+32},${g+32},${b+32},0.90) 0%, rgba(${r+14},${g+14},${b+10},0.96) 40%, rgba(${r},${g},${b},0.99) 72%, rgba(${Math.max(0,r-20)},${Math.max(0,g-18)},${Math.max(0,b-30)},1) 100%)`;
-  }, [wq]);
+    const theme = getThemeById(tank?.themes?.active || 'tropical');
+    const stops = theme.waterGradient;
+    // Blend wq degradation: as quality drops the water shifts murky brown
+    const wqFactor = wq / 100; // 1 = pristine, 0 = filthy
+    const murkR = Math.round((1 - wqFactor) * 60);
+    const murkG = Math.round((1 - wqFactor) * 18);
+    const murkB = Math.round(-(1 - wqFactor) * 40);
+    const blend = (hex, opacity) => {
+      const r = parseInt(hex.slice(1,3),16);
+      const g = parseInt(hex.slice(3,5),16);
+      const b = parseInt(hex.slice(5,7),16);
+      const nr = Math.min(255, Math.max(0, r + murkR));
+      const ng = Math.min(255, Math.max(0, g + murkG));
+      const nb = Math.min(255, Math.max(0, b + murkB));
+      return `rgba(${nr},${ng},${nb},${opacity})`;
+    };
+    const gradStops = stops.map(s => `${blend(s.color, s.opacity)} ${s.offset}`).join(', ');
+    return `linear-gradient(to bottom, ${gradStops})`;
+  }, [wq, tank?.themes?.active]);
   const ps = DAY_PHASE_STYLES[dayPhase.phase];
 
   const sortedFish = useMemo(() => [...fish].sort((a, b) => {
@@ -331,7 +345,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           </svg>
         )}
 
-        {/* Background SVG (far parallax layer) */}
+        {/* Background SVG (far parallax layer) — driven by active tank theme */}
         <svg className="tank-bg-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax slice">
           {(dayPhase.phase === 'night' || dayPhase.phase === 'evening')
             ? <circle cx="700" cy="40" r="22" fill="rgba(255,245,200,0.18)" />
@@ -339,43 +353,9 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
               ? <circle cx="700" cy="35" r="28" fill="rgba(255,240,150,0.12)" />
               : <ellipse cx="700" cy="40" rx="30" ry="18" fill="rgba(255,160,60,0.14)" />
           }
-          {/* Step 2: far-back rock silhouettes */}
-          <g opacity="0.13" fill="#0c1c36">
-            <ellipse cx="140" cy="392" rx="115" ry="38"/>
-            <ellipse cx="470" cy="394" rx="135" ry="32"/>
-            <path d="M0,400 Q35,345 75,378 Q115,332 160,368 Q200,342 245,382 L245,400 Z"/>
-            <path d="M555,400 Q595,348 638,378 Q678,338 718,362 Q758,348 800,372 L800,400 Z"/>
-          </g>
-          <g opacity="0.28" fill="#1a2840">
-            <rect x="560" y="210" width="60" height="120"/>
-            <rect x="555" y="200" width="10" height="25"/>
-            <rect x="570" y="200" width="10" height="20"/>
-            <rect x="585" y="200" width="10" height="25"/>
-            <rect x="600" y="200" width="10" height="22"/>
-            <rect x="610" y="200" width="10" height="28"/>
-            <rect x="540" y="260" width="35" height="70"/>
-            <rect x="537" y="252" width="8" height="18"/>
-            <rect x="548" y="252" width="8" height="14"/>
-            <rect x="558" y="252" width="8" height="18"/>
-            <rect x="572" y="235" width="14" height="18" fill="#0a1828" opacity="0.6"/>
-            <rect x="590" y="235" width="14" height="18" fill="#0a1828" opacity="0.6"/>
-            <rect x="548" y="278" width="10" height="14" fill="#0a1828" opacity="0.6"/>
-            <path d="M572,330 L572,310 Q579,300 586,310 L586,330 Z" fill="#0a1828" opacity="0.6"/>
-          </g>
-          {[680,720,760].map((x,i) => (
-            <path key={i} d={`M${x},400 C${x+15},350 ${x-10},300 ${x+20},240 C${x+35},190 ${x+5},160 ${x+25},120`}
-                  stroke="#1a5030" strokeWidth="6" fill="none" opacity="0.22"
-                  style={{animationDelay:`${i*0.8}s`}} className="kelp-sway"/>
-          ))}
-          <ellipse cx="100" cy="390" rx="70" ry="30" fill="#1a3050" opacity="0.3"/>
-          <ellipse cx="300" cy="395" rx="90" ry="25" fill="#152840" opacity="0.25"/>
-          <ellipse cx="650" cy="390" rx="80" ry="28" fill="#1a3050" opacity="0.28"/>
-          {/* Step 2: Mid-ground coral silhouettes */}
-          <g opacity="0.30" fill="#162848">
-            <path d="M28,400 Q43,358 33,318 Q48,288 38,258 Q53,278 48,318 Q58,358 73,400 Z"/>
-            <path d="M348,400 Q368,378 358,348 Q378,323 363,298 Q383,318 373,353 Q388,373 398,400 Z"/>
-          </g>
-          {/* Layered sand/substrate gradient strip — sandy beige → deep brown */}
+          {/* Theme scenery layer */}
+          <g dangerouslySetInnerHTML={{ __html: getThemeById(tank?.themes?.active || 'tropical').bgSvgFn() }} />
+          {/* Layered sand/substrate gradient strip */}
           <defs>
             <linearGradient id="sandSubstrateGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%"   stopColor="#c8a862" stopOpacity="0.00"/>
@@ -463,6 +443,22 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           <circle cx="82"  cy="310" r="3"   fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" className="deco-bubble deco-b1"/>
           <circle cx="390" cy="340" r="2.5" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1" className="deco-bubble deco-b2"/>
           <circle cx="672" cy="370" r="2"   fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1" className="deco-bubble deco-b3"/>
+          {(() => {
+            const activeTheme = getThemeById(tank?.themes?.active || 'tropical');
+            const substrateDecor = activeTheme.substrateId ? getDecorById(activeTheme.substrateId) : null;
+            if (!substrateDecor) return null;
+            // Tile three instances across the floor for full coverage at natural scale
+            const tiles = [
+              { x: 140, y: 405, s: 2.8 },
+              { x: 400, y: 406, s: 3.0 },
+              { x: 660, y: 405, s: 2.8 },
+            ];
+            return (
+              <g key="theme-substrate" dangerouslySetInnerHTML={{
+                __html: tiles.map(t => substrateDecor.svgFn(t.x, t.y, t.s)).join('')
+              }}/>
+            );
+          })()}
           {(tank?.decorations?.placed || []).map(item => {
             const decor = getDecorById(item.type);
             if (!decor) return null;

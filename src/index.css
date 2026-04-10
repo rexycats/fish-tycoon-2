@@ -3654,6 +3654,56 @@ body {
 }
 .btn-place:hover { background: #143870 !important; }
 
+/* ── Theme cards ── */
+.decor-themes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.decor-theme-card {
+  background: #0d1b2e;
+  border: 1px solid #1e3a5a;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  cursor: default;
+}
+.decor-theme-card:hover { border-color: #2a5a80; }
+.decor-theme-card.theme-active {
+  border-color: #4aaae0;
+  box-shadow: 0 0 12px rgba(74,170,224,0.25);
+}
+.decor-theme-preview-wrap {
+  position: relative;
+  width: 100%;
+}
+.decor-theme-preview-wrap svg { display: block; width: 100%; height: auto; }
+.theme-active-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(74,170,224,0.90);
+  color: #fff;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+.decor-theme-info {
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.decor-theme-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #c0d8f0;
+}
+
 /* ── Placed items list ── */
 .placed-items-list {
   display: flex;

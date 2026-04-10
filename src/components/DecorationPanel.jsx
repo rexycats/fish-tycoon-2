@@ -4,9 +4,33 @@
 // ============================================================
 
 import React, { useState, useRef, useCallback } from 'react';
-import { DECOR_CATALOG, DECOR_CATEGORIES, getDecorById } from '../data/decorations.js';
+import { DECOR_CATALOG, DECOR_CATEGORIES, getDecorById, TANK_THEMES, getThemeById } from '../data/decorations.js';
 
 const CAT_ORDER = ['substrate', 'plant', 'rock', 'coral', 'structure', 'special'];
+
+// ── Tiny SVG preview for a tank theme card ──────────────────
+function ThemePreview({ theme, size = 120 }) {
+  const stops = theme.waterGradient.map(s => `${s.color} ${s.offset}`).join(', ');
+  const gradId = `tpg-${theme.id}`;
+  return (
+    <svg width={size} height={Math.round(size * 0.55)} viewBox="0 0 120 66"
+         style={{ display: 'block', borderRadius: '6px 6px 0 0' }}>
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          {theme.waterGradient.map((s, i) => (
+            <stop key={i} offset={s.offset} stopColor={s.color} stopOpacity={s.opacity}/>
+          ))}
+        </linearGradient>
+      </defs>
+      <rect width="120" height="66" fill={`url(#${gradId})`}/>
+      <g dangerouslySetInnerHTML={{ __html: theme.bgSvgFn() }}
+         transform="scale(0.15) translate(0, 0)"
+         style={{ transformOrigin: '0 0' }}/>
+      <rect x="0" y="54" width="120" height="12" fill="#7a5828" opacity="0.8"/>
+      <rect x="0" y="58" width="120" height="8" fill="#9a7840" opacity="0.6"/>
+    </svg>
+  );
+}
 
 // ── Tiny SVG preview for the shop card ──────────────────────
 function DecorPreview({ decor, size = 80 }) {
@@ -170,11 +194,11 @@ function PlacedItemRow({ item, onRemove }) {
 }
 
 // ── Main component ────────────────────────────────────────────
-export default function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveDecor, unlockedDecorations = [], onClaimUnlockedDecor }) {
+export default function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveDecor, unlockedDecorations = [], onClaimUnlockedDecor, onBuyTheme, onApplyTheme }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedDecorType, setSelectedDecorType]  = useState(null);
   const [placingScale, setPlacingScale] = useState(1.0);
-  const [subTab, setSubTab] = useState('shop'); // 'shop' | 'placed' | 'awards'
+  const [subTab, setSubTab] = useState('themes'); // 'themes' | 'shop' | 'placed' | 'awards'
 
   const { player } = game;
   const owned = activeTank?.decorations?.owned || {};
@@ -240,8 +264,11 @@ export default function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceD
 
       {/* Sub-tabs */}
       <div className="decor-subtabs">
+        <button className={`decor-subtab ${subTab==='themes'?'active':''}`} onClick={() => setSubTab('themes')}>
+          🎨 Themes
+        </button>
         <button className={`decor-subtab ${subTab==='shop'?'active':''}`} onClick={() => setSubTab('shop')}>
-          🛒 Buy Decorations
+          🛒 Decorations
         </button>
         <button className={`decor-subtab ${subTab==='placed'?'active':''}`} onClick={() => setSubTab('placed')}>
           📋 Placed ({placed.length})
@@ -250,6 +277,53 @@ export default function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceD
           🏆 Awards {unlockedDecorations.length > 0 ? `(${unlockedDecorations.length})` : ''}
         </button>
       </div>
+
+      {subTab === 'themes' && (
+        <div className="decor-themes-grid">
+          {TANK_THEMES.map(theme => {
+            const ownedThemes = activeTank?.themes?.owned || ['tropical'];
+            const activeThemeId = activeTank?.themes?.active || 'tropical';
+            const isOwned    = ownedThemes.includes(theme.id);
+            const isActive   = activeThemeId === theme.id;
+            const canAfford  = player.coins >= theme.cost;
+            return (
+              <div key={theme.id} className={`decor-theme-card ${isActive ? 'theme-active' : ''} ${isOwned ? 'theme-owned' : ''}`}>
+                <div className="decor-theme-preview-wrap">
+                  <ThemePreview theme={theme} size={160} />
+                  {isActive && <div className="theme-active-badge">✓ Active</div>}
+                </div>
+                <div className="decor-theme-info">
+                  <div className="decor-theme-name">{theme.emoji} {theme.label}</div>
+                  <div className="decor-card-desc">{theme.desc}</div>
+                  <div className="decor-card-actions">
+                    {isOwned ? (
+                      isActive ? (
+                        <span className="decor-free-label">Applied</span>
+                      ) : (
+                        <button
+                          className="btn btn-sm btn-place"
+                          onClick={() => activeTank && onApplyTheme && onApplyTheme(activeTank.id, theme.id)}
+                        >
+                          🎨 Apply
+                        </button>
+                      )
+                    ) : (
+                      <button
+                        className="btn btn-sm"
+                        disabled={!canAfford}
+                        title={canAfford ? `Buy for 🪙${theme.cost}` : `Need ${theme.cost - player.coins} more coins`}
+                        onClick={() => activeTank && onBuyTheme && onBuyTheme(activeTank.id, theme.id)}
+                      >
+                        🪙{theme.cost}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {subTab === 'shop' && (
         <>
