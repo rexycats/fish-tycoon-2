@@ -1,10 +1,19 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-import './index.css'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.jsx';
+import { bootSideEffects, teardownSideEffects } from './store/gameStore.js';
+import './index.css';
+
+// Boot game engine side effects (tick, auto-save, watchers) outside React
+bootSideEffects();
+
+// HMR cleanup
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => teardownSideEffects());
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
-)
+);

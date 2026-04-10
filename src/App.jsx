@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, memo } from 'react';
 import ToastManager from './components/ToastManager.jsx';
 import { MAGIC_FISH } from './data/genetics.js';
 import { TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
@@ -16,20 +16,70 @@ import MagicFishPanel from './components/MagicFish.jsx';
 import DecorationPanel from './components/DecorationPanel.jsx';
 import FishAutopsyPanel from './components/FishAutopsy.jsx';
 
-import { useGameEngine }    from './hooks/useGameEngine.js';
+import { useGameStore } from './store/gameStore.js';
 import { useFishSelection } from './hooks/useFishSelection.js';
-import { useEconomy }       from './hooks/useEconomy.js';
+import { useCoinDeltas }    from './hooks/useCoinDeltas.js';
+
+// ============================================================
+// Memoized tab content components — only re-render when their
+// specific props change, not on every tick.
+// ============================================================
+const MemoTankView       = memo(TankView);
+const MemoFishPanel      = memo(FishPanel);
+const MemoHUD            = memo(HUD);
+const MemoLogPanel       = memo(LogPanel);
+const MemoShop           = memo(Shop);
+const MemoBreedingLab    = memo(BreedingLab);
+const MemoFishdex        = memo(Fishdex);
+const MemoAchievements   = memo(Achievements);
+const MemoMagicFishPanel = memo(MagicFishPanel);
+const MemoDecorationPanel = memo(DecorationPanel);
+const MemoFishAutopsy    = memo(FishAutopsyPanel);
 
 export default function App() {
-  // ── Core game state + tick + save ───────────────────────────
-  const {
-    game, setGame,
-    showOffline, setShowOffline,
-    soundOn, toggleSound,
-    coinDeltas,
-  } = useGameEngine();
+  // ── Store selectors — each subscribes to its own slice ─────
+  const player          = useGameStore(s => s.player);
+  const fish            = useGameStore(s => s.fish);
+  const tanks           = useGameStore(s => s.tanks);
+  const shop            = useGameStore(s => s.shop);
+  const breedingTank    = useGameStore(s => s.breedingTank);
+  const log             = useGameStore(s => s.log);
+  const dailyChallenges = useGameStore(s => s.dailyChallenges);
+  const showOffline     = useGameStore(s => s.showOffline);
+  const offlineSummary  = useGameStore(s => s.offlineSummary);
+  const soundOn         = useGameStore(s => s.soundOn);
 
-  // ── Fish / tank selection + Fishdex + AI lore ────────────────
+  // ── Store actions (stable references — no useCallback needed) ──
+  const dismissOffline  = useGameStore(s => s.dismissOffline);
+  const toggleSound     = useGameStore(s => s.toggleSound);
+  const feedFish        = useGameStore(s => s.feedFish);
+  const useMedicine     = useGameStore(s => s.useMedicine);
+  const moveFishToTank  = useGameStore(s => s.moveFishToTank);
+  const treatWater      = useGameStore(s => s.treatWater);
+  const toggleAutoFeed  = useGameStore(s => s.toggleAutoFeed);
+  const useHeater       = useGameStore(s => s.useHeater);
+  const unlockTank      = useGameStore(s => s.unlockTank);
+  const renameTank      = useGameStore(s => s.renameTank);
+  const toggleSellFish  = useGameStore(s => s.toggleSellFish);
+  const setFishPrice    = useGameStore(s => s.setFishPrice);
+  const buySupply       = useGameStore(s => s.buySupply);
+  const buyFish         = useGameStore(s => s.buyFish);
+  const buyUpgrade      = useGameStore(s => s.buyUpgrade);
+  const buyRareMarketItem = useGameStore(s => s.buyRareMarketItem);
+  const buyDecoration   = useGameStore(s => s.buyDecoration);
+  const claimUnlockedDecoration = useGameStore(s => s.claimUnlockedDecoration);
+  const placeDecoration = useGameStore(s => s.placeDecoration);
+  const removeDecoration = useGameStore(s => s.removeDecoration);
+  const buyTheme        = useGameStore(s => s.buyTheme);
+  const applyTheme      = useGameStore(s => s.applyTheme);
+  const selectForBreeding = useGameStore(s => s.selectForBreeding);
+  const cancelBreeding  = useGameStore(s => s.cancelBreeding);
+  const collectEgg      = useGameStore(s => s.collectEgg);
+  const resetGame       = useGameStore(s => s.resetGame);
+  const handleExportSave = useGameStore(s => s.handleExportSave);
+  const handleImportSave = useGameStore(s => s.handleImportSave);
+
+  // ── Fish/tank selection (local UI state) ───────────────────
   const {
     selectedFishId, setSelectedFishId,
     activeTankId,   setActiveTankId,
@@ -39,56 +89,44 @@ export default function App() {
     generatingLoreFor,
     aiError,        setAiError,
     handleGenerateLore,
-  } = useFishSelection(game, setGame);
+  } = useFishSelection();
 
-  // ── All player action callbacks ──────────────────────────────
-  const {
-    feedFish, useMedicine, moveFishToTank,
-    treatWater, toggleAutoFeed, useHeater, unlockTank, renameTank,
-    toggleSellFish, setFishPrice, buySupply, buyFish, buyUpgrade, buyRareMarketItem,
-    buyDecoration, claimUnlockedDecoration, placeDecoration, removeDecoration,
-    buyTheme, applyTheme,
-    selectForBreeding, cancelBreeding, collectEgg,
-    resetGame, handleExportSave, handleImportSave,
-  } = useEconomy(game, setGame, activeTankId, setSelectedFishId, setActiveTankId);
+  // ── Floating coin deltas ───────────────────────────────────
+  const coinDeltas = useCoinDeltas();
 
-  // ── Tab + "NEW" badge state ──────────────────────────────────
+  // ── Tab + badge state ──────────────────────────────────────
   const [activeTab, setActiveTab]         = useState('tank');
   const [showApiSetup, setShowApiSetup]   = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-  const currentFishdexCount  = (game.player.fishdex || []).length;
-  const currentShopFishCount = (game.fish || []).filter(f => f.stage === 'adult').length;
-  const newFishdexCount      = Math.max(0, currentFishdexCount  - (game.player.seenFishdexCount  || 0));
-  const newShopFishCount     = Math.max(0, currentShopFishCount - (game.player.seenShopFishCount || 0));
-  const currentAchCount      = (game.player.achievements || []).length;
-  const newAchCount          = Math.max(0, currentAchCount - (game.player.seenAchCount || 0));
+  const currentFishdexCount  = (player.fishdex || []).length;
+  const currentShopFishCount = fish.filter(f => f.stage === 'adult').length;
+  const newFishdexCount      = Math.max(0, currentFishdexCount  - (player.seenFishdexCount  || 0));
+  const newShopFishCount     = Math.max(0, currentShopFishCount - (player.seenShopFishCount || 0));
+  const currentAchCount      = (player.achievements || []).length;
+  const newAchCount          = Math.max(0, currentAchCount - (player.seenAchCount || 0));
 
   const handleTabChange = useCallback((tab) => {
     setActiveTab(tab);
     if (tab === 'fishdex') {
-      setGame(prev => ({
-        ...prev,
-        player: { ...prev.player, seenFishdexCount: (prev.player.fishdex || []).length },
-      }));
+      useGameStore.setState(state => {
+        state.player.seenFishdexCount = (state.player.fishdex || []).length;
+      });
     }
     if (tab === 'shop') {
-      setGame(prev => ({
-        ...prev,
-        player: { ...prev.player, seenShopFishCount: (prev.fish || []).filter(f => f.stage === 'adult').length },
-      }));
+      useGameStore.setState(state => {
+        state.player.seenShopFishCount = state.fish?.filter(f => f.stage === 'adult').length || 0;
+      });
     }
     if (tab === 'achieve') {
-      setGame(prev => ({
-        ...prev,
-        player: { ...prev.player, seenAchCount: (prev.player.achievements || []).length },
-      }));
+      useGameStore.setState(state => {
+        state.player.seenAchCount = (state.player.achievements || []).length;
+      });
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const tabBarRef = useRef(null);
 
-  // All 9 tabs are first-class — no More drawer
   const TAB_LIST = [
     ['tank',       '🐠', 'Tank'],
     ['shop',       '🏪', 'Shop'],
@@ -103,12 +141,15 @@ export default function App() {
   const VISIBLE_TAB_COUNT = TAB_LIST.length;
   const pillIdx = TAB_LIST.findIndex(([t]) => t === activeTab);
 
-  // Badge counts — hoisted here so they are computed once per render,
-  // not once per tab inside TAB_LIST.map.
-  const magicCount     = (game.player.magicFishFound || []).length;
-  const autopsyCount   = (game.player.autopsies      || []).length;
-  const challengeDone  = (game.dailyChallenges?.challenges || []).filter(c => c.completed).length;
-  const challengeTotal = (game.dailyChallenges?.challenges || []).length;
+  const magicCount     = (player.magicFishFound || []).length;
+  const autopsyCount   = (player.autopsies || []).length;
+  const challengeDone  = (dailyChallenges?.challenges || []).filter(c => c.completed).length;
+  const challengeTotal = (dailyChallenges?.challenges || []).length;
+
+  // ── Build a game-like object for components that still expect it ──
+  // This is a transitional shim. Over time, each child component should
+  // subscribe to the store directly and this object goes away.
+  const game = { player, fish, tanks, shop, breedingTank, log, dailyChallenges, offlineSummary };
 
   return (
     <div className="app">
@@ -126,17 +167,17 @@ export default function App() {
         ))}
       </div>
 
-      {showOffline && game.offlineSummary && (
-        <OfflineSummary summary={game.offlineSummary} onDismiss={() => setShowOffline(false)} />
+      {showOffline && offlineSummary && (
+        <OfflineSummary summary={offlineSummary} onDismiss={dismissOffline} />
       )}
 
-      <HUD
-        player={game.player}
-        shop={game.shop}
-        tanks={game.tanks}
+      <MemoHUD
+        player={player}
+        shop={shop}
+        tanks={tanks}
         activeTank={activeTank}
         selectedFishTankId={selectedFish?.tankId}
-        fish={game.fish}
+        fish={fish}
         onBuyFood={() => buySupply('food', 10, 10, activeTank?.id)}
         onTreatWater={treatWater}
         onToggleAutoFeed={toggleAutoFeed}
@@ -146,13 +187,13 @@ export default function App() {
       />
 
       <TankTabs
-        tanks={game.tanks}
+        tanks={tanks}
         activeTankId={activeTank?.id}
         onSelectTank={setActiveTankId}
         onUnlockTank={unlockTank}
-        canUnlock={TANK_UNLOCK[game.tanks.length]}
-        playerCoins={game.player.coins}
-        fish={game.fish}
+        canUnlock={TANK_UNLOCK[tanks.length]}
+        playerCoins={player.coins}
+        fish={fish}
         onRename={renameTank}
       />
 
@@ -200,8 +241,8 @@ export default function App() {
       <main className="main-layout">
         {activeTab === 'tank' && (
           <>
-            {game.tanks.length > 1
-              ? <AquariumOverview tanks={game.tanks} fish={game.fish} activeTankId={activeTank?.id} onSelectTank={setActiveTankId} />
+            {tanks.length > 1
+              ? <AquariumOverview tanks={tanks} fish={fish} activeTankId={activeTank?.id} onSelectTank={setActiveTankId} />
               : <div className="aquarium-overview aquarium-overview--teaser">
                   <div className="aquarium-overview-title">🌊 Aquarium Overview</div>
                   <div className="overview-unlock-cta">
@@ -211,47 +252,45 @@ export default function App() {
                 </div>
             }
             <div className="tank-col">
-              <TankView
+              <MemoTankView
                 fish={tankFish}
                 selectedFishId={selectedFishId}
                 onSelectFish={setSelectedFishId}
                 waterQuality={activeTank?.waterQuality ?? 100}
                 tank={activeTank}
-                listedFishIds={game.shop.listedFish || []}
+                listedFishIds={shop.listedFish || []}
               />
             </div>
             <div className="side-col">
-              <FishPanel
+              <MemoFishPanel
                 fish={selectedFish}
                 onFeed={feedFish}
                 onSell={toggleSellFish}
                 onMedicine={useMedicine}
                 isListed={isListed}
-                isFirstRun={(game.player.fishdex || []).length === 0}
+                isFirstRun={(player.fishdex || []).length === 0}
                 foodStock={
-                  // Use the fish's own tank — not activeTank — so counts are correct
-                  // when a fish from a non-active tank is selected.
-                  (game.tanks.find(t => t.id === selectedFish?.tankId) ?? activeTank)?.supplies?.food ?? 0
+                  (tanks.find(t => t.id === selectedFish?.tankId) ?? activeTank)?.supplies?.food ?? 0
                 }
                 medicineStock={(() => {
-                  const fishTank = game.tanks.find(t => t.id === selectedFish?.tankId) ?? activeTank;
+                  const fishTank = tanks.find(t => t.id === selectedFish?.tankId) ?? activeTank;
                   return selectedFish?.disease === 'bloat'  ? (fishTank?.supplies?.digestiveRemedy ?? 0)
                        : selectedFish?.disease === 'velvet' ? (fishTank?.supplies?.antiparasitic   ?? 0)
                        :                                      (fishTank?.supplies?.antibiotic       ?? 0);
                 })()}
-                tanks={game.tanks}
+                tanks={tanks}
                 onMoveFish={moveFishToTank}
                 onNavigate={handleTabChange}
               />
-              <LogPanel log={game.log} />
+              <MemoLogPanel log={log} />
             </div>
           </>
         )}
         {activeTab === 'challenges' && (
-          <DailyChallengesPanel dailyChallenges={game.dailyChallenges} streak={game.player.challengeStreak || 0} />
+          <DailyChallengesPanel dailyChallenges={dailyChallenges} streak={player.challengeStreak || 0} />
         )}
         {activeTab === 'shop' && (
-          <Shop
+          <MemoShop
             game={game}
             activeTank={activeTank}
             onToggleSell={toggleSellFish}
@@ -264,9 +303,9 @@ export default function App() {
           />
         )}
         {activeTab === 'breed' && (
-          <BreedingLab
-            fish={game.fish}
-            breedingTank={game.breedingTank}
+          <MemoBreedingLab
+            fish={fish}
+            breedingTank={breedingTank}
             onSelectForBreeding={selectForBreeding}
             onCollectEgg={collectEgg}
             onCancelBreeding={cancelBreeding}
@@ -274,35 +313,35 @@ export default function App() {
           />
         )}
         {activeTab === 'fishdex' && (
-          <Fishdex
-            fishdex={game.player.fishdex || []}
+          <MemoFishdex
+            fishdex={player.fishdex || []}
             onGenerateLore={handleGenerateLore}
             generatingLoreFor={generatingLoreFor}
             aiError={aiError}
-            legendFishUnlocked={!!game.player.legendFishUnlocked}
+            legendFishUnlocked={!!player.legendFishUnlocked}
           />
         )}
         {activeTab === 'achieve' && (
-          <Achievements achievements={game.player.achievements || []} player={game.player} onNavigate={handleTabChange} />
+          <MemoAchievements achievements={player.achievements || []} player={player} onNavigate={handleTabChange} />
         )}
         {activeTab === 'magic' && (
-          <MagicFishPanel magicFishFound={game.player.magicFishFound || []} />
+          <MemoMagicFishPanel magicFishFound={player.magicFishFound || []} />
         )}
         {activeTab === 'decor' && (
-          <DecorationPanel
+          <MemoDecorationPanel
             game={game}
             activeTank={activeTank}
             onBuyDecor={buyDecoration}
             onPlaceDecor={placeDecoration}
             onRemoveDecor={removeDecoration}
-            unlockedDecorations={game.player.unlockedDecorations || []}
+            unlockedDecorations={player.unlockedDecorations || []}
             onClaimUnlockedDecor={claimUnlockedDecoration}
             onBuyTheme={buyTheme}
             onApplyTheme={applyTheme}
           />
         )}
         {activeTab === 'autopsy' && (
-          <FishAutopsyPanel autopsies={game.player.autopsies || []} />
+          <MemoFishAutopsy autopsies={player.autopsies || []} />
         )}
       </main>
 
@@ -315,7 +354,7 @@ export default function App() {
         />
       )}
 
-      {(game.player.magicFishFound || []).length === 7 && showWinModal && (
+      {(player.magicFishFound || []).length === 7 && showWinModal && (
         <MagicWinModal
           totalReward={MAGIC_FISH.reduce((s, m) => s + m.reward, 0)}
           onDismiss={() => setShowWinModal(false)}
@@ -328,7 +367,7 @@ export default function App() {
         <button className="btn btn-sm" onClick={handleExportSave} title="Download your save as a JSON file">💾 Export</button>
         <label className="btn btn-sm" title="Load a previously exported save file" style={{ cursor: 'pointer' }}>
           📂 Import
-          <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportSave} />
+          <input type="file" accept=".json" style={{ display: 'none' }} onChange={e => handleImportSave(e.target.files[0])} />
         </label>
         <span className="footer-tip">Auto-saves every 30s</span>
         <button className="btn btn-sm" onClick={() => setShowApiSetup(true)} title="Configure Anthropic API key for AI fish names">

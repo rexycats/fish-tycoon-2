@@ -1,122 +1,82 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { addLog } from '../data/gameState.js';
 import { updateChallengeProgress } from '../systems/gameTick.js';
 import { MAGIC_FISH, checkMagicFishMatch } from '../data/genetics.js';
 import { REAL_SPECIES_MAP } from '../data/realSpecies.js';
 import { generateFishName, generateFishLore } from '../services/aiService.js';
 import { playDiscover } from '../services/soundService.js';
+import { useGameStore } from '../store/gameStore.js';
 
 /**
- * useFishSelection
- *
- * Owns all state and effects related to what the player is looking at:
- *   - which fish is selected (detail panel)
- *   - which tank is active (view + supply scope)
- *   - Fishdex discovery: detects new species, writes entries, triggers AI naming
- *   - Magic fish win detection
- *   - AI lore generation (on demand)
- *
- * Receives `game` and `setGame` from useGameEngine so it can react to
- * state produced by the tick without duplicating state ownership.
+ * useFishSelection — now reads from the Zustand store.
+ * Local UI state (selectedFishId, activeTankId, modals) stays in React.
+ * Game mutations go through the store.
  */
-export function useFishSelection(game, setGame) {
+export function useFishSelection() {
+  const fish           = useGameStore(s => s.fish);
+  const tanks          = useGameStore(s => s.tanks);
+  const fishdex        = useGameStore(s => s.player.fishdex || []);
+  const listedFish     = useGameStore(s => s.shop.listedFish);
+
   const [selectedFishId, setSelectedFishId] = useState(null);
-
-  // Seed from the first tank that exists in the loaded save
-  const [activeTankId, setActiveTankId] = useState(
-    () => game.tanks?.[0]?.id ?? 'tank_0',
-  );
-
+  const [activeTankId, setActiveTankId]     = useState(() => tanks[0]?.id ?? 'tank_0');
   const [generatingLoreFor, setGeneratingLoreFor] = useState(null);
-  const [aiError, setAiError]                     = useState(null);
-  const [showWinModal, setShowWinModal]           = useState(false);
+  const [aiError, setAiError]               = useState(null);
+  const [showWinModal, setShowWinModal]     = useState(false);
 
-  // Local ref for async AI callbacks — keeps async closures from going stale.
-  // useGameEngine has its own gameRef for auto-save; both track the same game
-  // object. This one is intentionally private to useFishSelection.
-  const gameRef = useRef(game);
-  useEffect(() => { gameRef.current = game; }, [game]);
-
-  // ── Guard: keep activeTankId valid when tanks change ────────
   useEffect(() => {
-    if (!game.tanks.find(t => t.id === activeTankId)) {
-      setActiveTankId(game.tanks[0]?.id ?? 'tank_0');
+    if (!tanks.find(t => t.id === activeTankId)) {
+      setActiveTankId(tanks[0]?.id ?? 'tank_0');
     }
-  }, [game.tanks, activeTankId]);
+  }, [tanks, activeTankId]);
 
-  // ── Fishdex entry updater (used by AI naming + lore) ────────
-  // Declared before the speciesNameKey effect so the async .then()
-  // closure inside that effect can reference it without fragile hoisting.
-  // setGame is stable (guaranteed by React), so dep array is [].
   const updateFishdexEntry = useCallback((speciesName, updates) => {
-    setGame(prev => ({
-      ...prev,
-      player: {
-        ...prev.player,
-        fishdex: (prev.player.fishdex || []).map(e =>
-          e.name === speciesName ? { ...e, ...updates } : e,
-        ),
-      },
-    }));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    useGameStore.setState(state => {
+      state.player.fishdex = (state.player.fishdex || []).map(e =>
+        e.name === speciesName ? { ...e, ...updates } : e,
+      );
+    });
+  }, []);
 
-  // ── Fishdex discovery ────────────────────────────────────────
-  // Dependency: sorted set of unique species names currently alive.
-  // This fires only when a genuinely new species appears — not every tick.
   const speciesNameKey = useMemo(
-    () => [...new Set(
-      (game.fish || []).map(f => f.species?.name).filter(Boolean),
-    )].sort().join(','),
-    [game.fish],
+    () => [...new Set(fish.map(f => f.species?.name).filter(Boolean))].sort().join(','),
+    [fish],
   );
 
   useEffect(() => {
-    const knownNames = new Set((game.player.fishdex || []).map(e => e.name));
+    const knownNames = new Set(fishdex.map(e => e.name));
     const newEntries = [];
-
-    for (const f of game.fish) {
+    for (const f of fish) {
       if (!f.species || knownNames.has(f.species.name)) continue;
       const realSpec = f.species.visualType === 'species' && f.species.key
-        ? REAL_SPECIES_MAP[f.species.key]
-        : null;
+        ? REAL_SPECIES_MAP[f.species.key] : null;
       newEntries.push({
-        name:               f.species.name,
-        rarity:             f.species.rarity,
-        basePrice:          f.species.basePrice,
-        phenotype:          f.phenotype,
-        firstDiscoveredAt:  Date.now(),
-        aiName:             null,
-        aiLore:             null,
-        colorVariant:       f.colorVariant || null,
+        name: f.species.name, rarity: f.species.rarity,
+        basePrice: f.species.basePrice, phenotype: f.phenotype,
+        firstDiscoveredAt: Date.now(), aiName: null, aiLore: null,
+        colorVariant: f.colorVariant || null,
         ...(realSpec && {
-          visualType:         'species',
-          speciesKey:         realSpec.key,
-          scientificName:     realSpec.scientificName,
-          habitat:            realSpec.habitat,
-          funFact:            realSpec.funFact,
-          conservationStatus: realSpec.conservationStatus,
-          lore:               realSpec.lore,
+          visualType: 'species', speciesKey: realSpec.key,
+          scientificName: realSpec.scientificName, habitat: realSpec.habitat,
+          funFact: realSpec.funFact, conservationStatus: realSpec.conservationStatus,
+          lore: realSpec.lore,
         }),
       });
       knownNames.add(f.species.name);
     }
-
     if (newEntries.length === 0) return;
 
-    setGame(prev => {
-      let next = {
-        ...prev,
-        player: {
-          ...prev.player,
-          fishdex: [...(prev.player.fishdex || []), ...newEntries],
-        },
-      };
-      for (const e of newEntries) next = addLog(next, `📖 New species: ${e.name}! (${e.rarity})`);
-      next = updateChallengeProgress(next, 'discover');
+    useGameStore.setState(state => {
+      state.player.fishdex = [...(state.player.fishdex || []), ...newEntries];
+      for (const e of newEntries) {
+        const logState = addLog(state, `📖 New species: ${e.name}! (${e.rarity})`);
+        Object.assign(state, logState);
+      }
+      const afterChallenge = updateChallengeProgress(state, 'discover');
+      Object.assign(state, afterChallenge);
 
-      // Magic fish check
-      const alreadyFound = new Set(prev.player.magicFishFound || []);
-      const newMagic     = [];
+      const alreadyFound = new Set(state.player.magicFishFound || []);
+      const newMagic = [];
       for (const entry of newEntries) {
         for (const mf of MAGIC_FISH) {
           if (!alreadyFound.has(mf.id) && checkMagicFishMatch(entry.phenotype, mf)) {
@@ -126,29 +86,18 @@ export function useFishSelection(game, setGame) {
         }
       }
       if (newMagic.length > 0) {
-        const magicFishFound = [
-          ...(prev.player.magicFishFound || []),
-          ...newMagic.map(m => m.id),
-        ];
-        next = {
-          ...next,
-          player: {
-            ...next.player,
-            coins:        next.player.coins + newMagic.reduce((s, m) => s + m.reward, 0),
-            magicFishFound,
-          },
-        };
+        state.player.magicFishFound = [...(state.player.magicFishFound || []), ...newMagic.map(m => m.id)];
+        state.player.coins += newMagic.reduce((s, m) => s + m.reward, 0);
         for (const mf of newMagic) {
-          next = addLog(next, `🔮 MAGIC FISH DISCOVERED: #${mf.number} ${mf.title}! +🪙${mf.reward} reward!`);
+          const logState = addLog(state, `🔮 MAGIC FISH DISCOVERED: #${mf.number} ${mf.title}! +🪙${mf.reward} reward!`);
+          Object.assign(state, logState);
         }
-        if (magicFishFound.length === 7) {
+        if (state.player.magicFishFound.length === 7) {
           setTimeout(() => setShowWinModal(true), 500);
         }
       }
-      return next;
     });
 
-    // Fire sound + kick off async AI naming for each new entry
     for (const entry of newEntries) {
       playDiscover();
       generateFishName(entry.phenotype, entry.rarity, entry.name).then(aiName => {
@@ -157,48 +106,46 @@ export function useFishSelection(game, setGame) {
     }
   }, [speciesNameKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── On-demand AI lore generation ────────────────────────────
   const handleGenerateLore = useCallback(async (speciesName) => {
-    const entry = (gameRef.current.player.fishdex || []).find(e => e.name === speciesName);
+    const currentFishdex = useGameStore.getState().player.fishdex || [];
+    const entry = currentFishdex.find(e => e.name === speciesName);
     if (!entry || entry.aiLore) return;
     setGeneratingLoreFor(speciesName);
     setAiError(null);
     try {
-      const nameForLore    = entry.aiName || entry.name;
+      const nameForLore = entry.aiName || entry.name;
       const { text, error } = await generateFishLore(entry.phenotype, entry.rarity, nameForLore);
-      if (error)      setAiError(error);
-      else if (text)  updateFishdexEntry(speciesName, { aiLore: text });
+      if (error) setAiError(error);
+      else if (text) updateFishdexEntry(speciesName, { aiLore: text });
     } finally {
       setGeneratingLoreFor(null);
     }
   }, [updateFishdexEntry]);
 
-  // ── Derived selection helpers (memoized to avoid .find()/.filter() on every tick render) ──
   const activeTank = useMemo(
-    () => game.tanks.find(t => t.id === activeTankId) || game.tanks[0],
-    [game.tanks, activeTankId],
+    () => tanks.find(t => t.id === activeTankId) || tanks[0],
+    [tanks, activeTankId],
   );
   const tankFish = useMemo(
-    () => game.fish.filter(f => f.tankId === activeTank?.id),
-    [game.fish, activeTank?.id],
+    () => fish.filter(f => f.tankId === activeTank?.id),
+    [fish, activeTank?.id],
   );
   const selectedFish = useMemo(
-    () => game.fish.find(f => f.id === selectedFishId) || null,
-    [game.fish, selectedFishId],
+    () => fish.find(f => f.id === selectedFishId) || null,
+    [fish, selectedFishId],
   );
   const isListed = useMemo(
-    () => selectedFish ? game.shop.listedFish.includes(selectedFish.id) : false,
-    [selectedFish, game.shop.listedFish],
+    () => selectedFish ? listedFish.includes(selectedFish.id) : false,
+    [selectedFish, listedFish],
   );
 
   return {
-    selectedFishId,  setSelectedFishId,
-    activeTankId,    setActiveTankId,
-    activeTank,      tankFish,
-    selectedFish,    isListed,
-    showWinModal,    setShowWinModal,
-    generatingLoreFor,
-    aiError,         setAiError,
+    selectedFishId, setSelectedFishId,
+    activeTankId,   setActiveTankId,
+    activeTank,     tankFish,
+    selectedFish,   isListed,
+    showWinModal,   setShowWinModal,
+    generatingLoreFor, aiError, setAiError,
     handleGenerateLore,
   };
 }
