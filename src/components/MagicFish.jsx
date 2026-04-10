@@ -5,7 +5,6 @@
 
 import React, { useState } from 'react';
 import { MAGIC_FISH } from '../data/genetics.js';
-import { RARITY } from '../data/genetics.js';
 
 const RARITY_COLORS = {
   uncommon:  '#6ab0de',

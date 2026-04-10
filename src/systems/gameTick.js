@@ -2,8 +2,8 @@
 // FISH TYCOON 2 — GAME TICK SYSTEM v7 (multi-tank)
 // ============================================================
 
-import { GROWTH_STAGES, computePhenotype, getSpeciesFromPhenotype, RARITY, createFish, rarityFromScore, computeRarityScore } from '../data/genetics.js';
-import { addLog, TANK_TYPES } from '../data/gameState.js';
+import { GROWTH_STAGES, createFish } from '../data/genetics.js';
+import { addLog } from '../data/gameState.js';
 
 export const TICK_INTERVAL_MS = 1000;
 

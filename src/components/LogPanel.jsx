@@ -3,7 +3,6 @@
 // ============================================================
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 
-const SEVERITY_ORDER = { critical: 0, warn: 1, success: 2, info: 3 };
 
 function classifyMessage(entry) {
   if (entry.severity) return entry.severity;

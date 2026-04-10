@@ -159,7 +159,7 @@ export const DECOR_CATALOG = [
     desc: 'A group of colourful pebbles.',
     defaultScale: 1,
     svgFn: (x, y, s) => `
-      ${[[-14,0,'#8a7060'],[-4,-5,'#607080'],[6,2,'#708870'],[-20,-3,'#706880'],[16,-2,'#806858']].map(([dx,dy,c],i)=>`<ellipse cx="${x+dx*s}" cy="${y+dy*s}" rx="${10*s}" ry="${7*s}" fill="${c}"/><ellipse cx="${x+dx*s-2*s}" cy="${y+dy*s-2*s}" rx="${5*s}" ry="${3*s}" fill="white" opacity="0.15"/>`).join('')}
+      ${[[-14,0,'#8a7060'],[-4,-5,'#607080'],[6,2,'#708870'],[-20,-3,'#706880'],[16,-2,'#806858']].map(([dx,dy,c],_i)=>`<ellipse cx="${x+dx*s}" cy="${y+dy*s}" rx="${10*s}" ry="${7*s}" fill="${c}"/><ellipse cx="${x+dx*s-2*s}" cy="${y+dy*s-2*s}" rx="${5*s}" ry="${3*s}" fill="white" opacity="0.15"/>`).join('')}
     `,
   },
 
@@ -199,7 +199,7 @@ export const DECOR_CATALOG = [
       <path d="M${x-50*s},${y} L${x-60*s},${y-22*s} L${x+60*s},${y-22*s} L${x+50*s},${y} Z" fill="none" stroke="#4a3828" stroke-width="${2*s}"/>
       <rect x="${x-10*s}" y="${y-48*s}" width="${8*s}" height="${28*s}" rx="${1*s}" fill="#584838" transform="rotate(-12,${x},${y-22*s})"/>
       <path d="M${x-8*s},${y-48*s} L${x+12*s},${y-42*s} L${x+4*s},${y-28*s} Z" fill="#7a6850" opacity="0.7"/>
-      ${[[-30,-18],[-10,-16],[10,-18],[30,-16]].map(([dx,dy],i)=>`<rect x="${x+dx*s}" y="${y+dy*s}" width="${10*s}" height="${8*s}" rx="${1*s}" fill="#1a1210" opacity="0.6"/>`).join('')}
+      ${[[-30,-18],[-10,-16],[10,-18],[30,-16]].map(([dx,dy],_i)=>`<rect x="${x+dx*s}" y="${y+dy*s}" width="${10*s}" height="${8*s}" rx="${1*s}" fill="#1a1210" opacity="0.6"/>`).join('')}
       <ellipse cx="${x}" cy="${y}" rx="${52*s}" ry="${8*s}" fill="#584838"/>
     `,
   },

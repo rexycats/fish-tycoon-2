@@ -96,7 +96,7 @@ const RARITY_AURA = {
 // ============================================================
 // ─── EGG SPRITE ─────────────────────────────────────────────
 // ============================================================
-function EggSprite({ uid, size, C, aura, isGlow, selected, onClick }) {
+function EggSprite({ uid, size, aura, isGlow, selected, onClick }) {
   return (
     <svg width={size} height={size} viewBox="0 0 60 64" onClick={onClick}
       style={{ cursor: onClick ? 'pointer' : 'default', overflow: 'visible' }}>
@@ -329,7 +329,7 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
     }
   }
 
-  if (fish.stage === 'egg')      return <EggSprite      uid={uid} size={size} C={C} aura={aura} isGlow={isGlow} selected={selected} onClick={onClick}/>;
+  if (fish.stage === 'egg')      return <EggSprite      uid={uid} size={size} aura={aura} isGlow={isGlow} selected={selected} onClick={onClick}/>;
   if (fish.stage === 'juvenile') return <JuvenileSprite uid={uid} size={size} C={C} aura={aura} isGlow={isGlow} isSpot={isSpot} selected={selected} flipped={flipped} onClick={onClick}/>;
 
   // ── Adult geometry ──────────────────────────────────────

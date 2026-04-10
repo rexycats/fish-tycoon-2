@@ -3,7 +3,7 @@
 // ============================================================
 
 import React, { useState, useMemo } from 'react';
-import { RARITY, GENES } from '../data/genetics.js';
+import { RARITY } from '../data/genetics.js';
 import FishSprite from './FishSprite.jsx';
 
 // ── Fish silhouette ────────────────────────────────────────
@@ -274,7 +274,7 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
 }
 
 // ── Main Fishdex ───────────────────────────────────────────
-export default function Fishdex({ fishdex, onGenerateLore, generatingLoreFor, aiError, onClearAiError, legendFishUnlocked }) {
+export default function Fishdex({ fishdex, onGenerateLore, generatingLoreFor, aiError, legendFishUnlocked }) {
   const [selected, setSelected]   = useState(null);
   const [search, setSearch]       = useState('');
   const [filterRarity, setFilterRarity] = useState('all');

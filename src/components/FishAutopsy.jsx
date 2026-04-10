@@ -5,7 +5,6 @@
 
 import React, { useState } from 'react';
 import { RARITY } from '../data/genetics.js';
-import { DISEASES } from '../systems/gameTick.js';
 import FishSprite from './FishSprite.jsx';
 
 const CAUSE_COLORS = {

@@ -1,7 +1,7 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   addLog, saveGame, createDefaultState, exportSave, importSave,
-  createDefaultTank, TANK_UNLOCK, TANK_TYPES,
+  createDefaultTank, TANK_UNLOCK,
 } from '../data/gameState.js';
 import { updateChallengeProgress } from '../systems/gameTick.js';
 import { breedGenomes, createFish } from '../data/genetics.js';
@@ -37,7 +37,7 @@ import {
 export function useEconomy(game, setGame, activeTankId, setSelectedFishId, setActiveTankId) {
   // Stable ref so export always sees the latest game without being in dep arrays
   const gameRef = useRef(game);
-  gameRef.current = game;
+  useEffect(() => { gameRef.current = game; }, [game]);
 
   // ── Feed ─────────────────────────────────────────────────────
   const feedFish = useCallback((fishId) => {

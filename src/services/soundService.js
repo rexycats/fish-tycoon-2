@@ -19,7 +19,7 @@ export function isSoundEnabled() { return _enabled; }
 
 function play(fn) {
   if (!_enabled) return;
-  try { fn(ctx()); } catch (e) { /* ignore audio errors */ }
+  try { fn(ctx()); } catch { /* ignore audio errors */ }
 }
 
 // Coin ding — two-tone ascending chime

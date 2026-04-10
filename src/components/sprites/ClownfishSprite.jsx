@@ -29,17 +29,6 @@ const RARITY_AURA = {
 };
 
 // ── Colour variants ──────────────────────────────────────────
-const VARIANTS_CF = {
-  // Default: classic vivid orange
-  default: { body: '#e8621a', bodyHi: '#f5a030', bar: '#f5f0e8', barShad: '#d8e4ee' },
-  // Rare: cinnabar — deep red body, cream bars
-  cinnabar: { body: '#b82010', bodyHi: '#e03020', bar: '#f8f0e0', barShad: '#ddd0c0' },
-  // Rare: snowflake — pale gold body, white bars
-  snowflake: { body: '#d4a030', bodyHi: '#f0c860', bar: '#ffffff', barShad: '#e8e8e8' },
-  // Mutated: melanistic — charcoal body, dim bars
-  melanistic: { body: '#2a1808', bodyHi: '#483020', bar: '#505050', barShad: '#303030' },
-};
-
 function ClownfishSprite({
   fish,
   size     = 60,
@@ -54,7 +43,6 @@ function ClownfishSprite({
 
   // Resolve colour variant
   const variantKey = fish?.colorVariant || 'default';
-  const V = VARIANTS_CF[variantKey] || VARIANTS_CF.default;
 
   const W = size;
   const H = size * 0.68;

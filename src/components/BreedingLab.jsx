@@ -2,7 +2,7 @@
 // FISH TYCOON 2 — BREEDING LAB (Phase 7: Drag-and-Drop)
 // ============================================================
 
-import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { predictOffspringPhenotypes, RARITY } from '../data/genetics.js';
 
 function TraitTag({ label, value }) {

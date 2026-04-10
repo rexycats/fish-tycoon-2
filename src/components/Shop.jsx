@@ -3,7 +3,6 @@
 // ============================================================
 
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { RARITY } from '../data/genetics.js';
 import RareMarket from './RareMarket.jsx';
 
 const RC = { common: '#7ec8a0', uncommon: '#6ab0de', rare: '#b07ee8', epic: '#f0c040', legendary: '#ff7eb3' };

@@ -84,7 +84,7 @@ export default function App() {
         player: { ...prev.player, seenAchCount: (prev.player.achievements || []).length },
       }));
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps — setGame is stable
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const tabBarRef = useRef(null);
 
@@ -105,7 +105,6 @@ export default function App() {
 
   // Badge counts — hoisted here so they are computed once per render,
   // not once per tab inside TAB_LIST.map.
-  const fishdexCount   = (game.player.fishdex       || []).length;
   const magicCount     = (game.player.magicFishFound || []).length;
   const autopsyCount   = (game.player.autopsies      || []).length;
   const challengeDone  = (game.dailyChallenges?.challenges || []).filter(c => c.completed).length;
@@ -228,7 +227,6 @@ export default function App() {
                 onSell={toggleSellFish}
                 onMedicine={useMedicine}
                 isListed={isListed}
-                coins={game.player.coins}
                 isFirstRun={(game.player.fishdex || []).length === 0}
                 foodStock={
                   // Use the fish's own tank — not activeTank — so counts are correct
@@ -281,7 +279,6 @@ export default function App() {
             onGenerateLore={handleGenerateLore}
             generatingLoreFor={generatingLoreFor}
             aiError={aiError}
-            onClearAiError={() => setAiError(null)}
             legendFishUnlocked={!!game.player.legendFishUnlocked}
           />
         )}

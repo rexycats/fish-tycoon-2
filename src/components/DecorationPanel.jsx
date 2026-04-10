@@ -4,13 +4,12 @@
 // ============================================================
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { DECOR_CATALOG, DECOR_CATEGORIES, getDecorById, TANK_THEMES, getThemeById } from '../data/decorations.js';
+import { DECOR_CATALOG, DECOR_CATEGORIES, getDecorById, TANK_THEMES } from '../data/decorations.js';
 
 const CAT_ORDER = ['substrate', 'plant', 'rock', 'coral', 'structure', 'special'];
 
 // ── Tiny SVG preview for a tank theme card ──────────────────
 function ThemePreview({ theme, size = 120 }) {
-  const stops = theme.waterGradient.map(s => `${s.color} ${s.offset}`).join(', ');
   const gradId = `tpg-${theme.id}`;
   return (
     <svg width={size} height={Math.round(size * 0.55)} viewBox="0 0 120 66"

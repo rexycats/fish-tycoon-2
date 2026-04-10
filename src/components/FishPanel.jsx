@@ -3,7 +3,7 @@ import FishSprite from './FishSprite.jsx';
 import { RARITY, GENES } from '../data/genetics.js';
 import { DISEASES } from '../systems/gameTick.js';
 
-function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicineStock, foodStock = 0, tanks = [], onMoveFish, isFirstRun, onNavigate }) {
+function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, foodStock = 0, tanks = [], onMoveFish, isFirstRun, onNavigate }) {
   const prevFishId = useRef(null);
   const [entering, setEntering] = useState(false);
   const [showGenetics, setShowGenetics] = useState(false);
@@ -285,7 +285,6 @@ export default memo(FishPanel, (prev, next) =>
   prev.fish?.hunger    === next.fish?.hunger     &&
   prev.fish?.disease   === next.fish?.disease    &&
   prev.isListed        === next.isListed         &&
-  prev.coins           === next.coins            &&
   prev.foodStock       === next.foodStock        &&
   prev.medicineStock   === next.medicineStock    &&
   prev.tanks           === next.tanks            &&
