@@ -248,7 +248,7 @@ function maybeSpreadDisease(tankFish, wq, capacity) {
 }
 
 // ── Process one tank's fish for one tick ───────────────────
-function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, playerBoosts = {}) {
+function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, playerBoosts = {}, upgradeLevels = {}) {
   const bonuses  = getTankBonuses(tank.type);
 
   // Active boost multipliers (boosts store expiry timestamps)
@@ -256,9 +256,14 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
   const growBoost      = boostActive('growSpeed')     ? 0.5  : 1.0; // 0.5 = 50% faster
   const regenBoost     = boostActive('healthRegen')   ? 3.0  : 1.0;
 
-  const wq        = Math.max(0, tank.waterQuality - WATER_DECAY_RATE * 1); // per-tick decay (1 tick = 1 second)
+  // Water Purifier: -25% decay per level
+  const purifierMult   = 1 - (upgradeLevels.purifier || 0) * 0.25;
+  const wq        = Math.max(0, tank.waterQuality - WATER_DECAY_RATE * purifierMult);
   const temp      = tank.temperature ?? 74;
-  const tempDrift = temp > 74 ? -0.002 : temp < 74 ? 0.002 : 0;
+  // Climate Control: -30% drift per level
+  const tempControlMult = 1 - (upgradeLevels.tempControl || 0) * 0.3;
+  const baseDrift  = temp > 74 ? -0.002 : temp < 74 ? 0.002 : 0;
+  const tempDrift  = baseDrift * tempControlMult;
   const newTemp   = Math.round((temp + tempDrift) * 1000) / 1000;
   const tempStress = newTemp < 65 || newTemp > 85;
 
@@ -534,9 +539,18 @@ export function processTick(state) {
     fishByTank.get(f.tankId).push(f);
   }
 
+  const upgrades = next.shop?.upgrades || {};
+  const upgradeLevels = {
+    purifier:    upgrades.purifier?.level    || 0,
+    autoMedic:   upgrades.autoMedic?.level   || 0,
+    tempControl: upgrades.tempControl?.level || 0,
+    fame:        upgrades.fame?.level        || 0,
+    insurance:   upgrades.insurance?.level   || 0,
+  };
+
   for (const tank of next.tanks) {
     const tankFishList = fishByTank.get(tank.id) || [];
-    const { updatedTank, updatedTankFish } = processOneTank(tank, tankFishList, messages, now, hatcheryLevel, next.player?.boosts);
+    const { updatedTank, updatedTankFish } = processOneTank(tank, tankFishList, messages, now, hatcheryLevel, next.player?.boosts, upgradeLevels);
     updatedTanks.push(updatedTank);
     allUpdatedFish.push(...updatedTankFish);
   }
@@ -614,6 +628,20 @@ export function processTick(state) {
         autopsies: [...(next.player.autopsies || []), ...newAutopsies].slice(0, 50),
       },
     };
+    // Insurance: refund a % of fish base value on death
+    const insuranceLevel = upgradeLevels.insurance || 0;
+    if (insuranceLevel > 0) {
+      const refundPct = insuranceLevel * 0.2;
+      let totalRefund = 0;
+      for (const f of deadFish) {
+        const refund = Math.round((f.species?.basePrice ?? 10) * refundPct);
+        totalRefund += refund;
+      }
+      if (totalRefund > 0) {
+        next = { ...next, player: { ...next.player, coins: next.player.coins + totalRefund } };
+        messages.push(`🛡️ Insurance payout: +🪙${totalRefund} for ${deadFish.length} lost fish.`);
+      }
+    }
     // Index-based lookup avoids O(n²) .find() per death message
     deadFish.forEach((f, i) => messages.push(`💀 ${f.species?.name || 'A fish'} has died. (Cause: ${newAutopsies[i]?.cause || 'Unknown'})`));
   }
@@ -670,7 +698,8 @@ export function processTick(state) {
       if (adultCount === 0) continue;
       const placed = tank.decorations?.placed?.length || 0;
       const decorMult = 1 + Math.min(10, placed) * PASSIVE_DECOR_BONUS;
-      tip += Math.floor((tank.happiness / 100) * decorMult * PASSIVE_INCOME_BASE);
+      const fameMult  = 1 + (upgradeLevels.fame || 0) * 0.15;
+      tip += Math.floor((tank.happiness / 100) * decorMult * PASSIVE_INCOME_BASE * fameMult);
     }
     if (tip > 0) {
       const incomeBoost = (next.player?.boosts?.passiveIncome || 0) > now ? 2.0 : 1.0;
@@ -680,6 +709,30 @@ export function processTick(state) {
       next = updateChallengeProgress(next, 'earn_coins', { amount: boostedTip });
     }
     next = { ...next, passiveTick: 0 };
+
+    // Auto-Medic: per-minute chance to cure sick fish
+    const autoMedicLevel = upgradeLevels.autoMedic || 0;
+    if (autoMedicLevel > 0) {
+      const cureChance = autoMedicLevel * 0.10; // 10% per level
+      const cured = [];
+      next = {
+        ...next,
+        fish: next.fish.map(f => {
+          if (!f.disease || f.stage === 'egg') return f;
+          if (Math.random() < cureChance) {
+            cured.push(f.species?.name || 'A fish');
+            return { ...f, disease: null, diseaseSince: null, health: Math.min(100, f.health + 10) };
+          }
+          return f;
+        }),
+      };
+      if (cured.length > 0) {
+        messages.push(`🩺 Auto-Medic cured ${cured.length} fish: ${cured.join(', ')}`);
+        for (let i = 0; i < cured.length; i++) {
+          next = updateChallengeProgress(next, 'cure_fish');
+        }
+      }
+    }
   } else {
     next = { ...next, passiveTick };
   }

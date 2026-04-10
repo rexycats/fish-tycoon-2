@@ -112,15 +112,24 @@ const UPGRADE_ICONS = {
   vip:        '💎',
   hatchery:   '🥚',
   tankSitter: '🌙',
+  purifier:   '💧',
+  autoMedic:  '🩺',
+  mutagen:    '🧬',
+  insurance:  '🛡️',
+  fame:       '⭐',
+  tempControl:'🌡️',
 };
 
 function UpgradeCard({ id, upgrade, coins, onBuy }) {
   const maxLevel  = upgrade.maxLevel || 3;
-  const canAfford = coins >= upgrade.cost;
   const maxed     = upgrade.level >= maxLevel;
   const icon      = UPGRADE_ICONS[id] || '⬆️';
-  const nextLevelCost = Math.round(upgrade.cost * 2.8);
-  const showNextCost  = !maxed && upgrade.level + 1 < maxLevel;
+  // Actual cost matches the store's formula: baseCost * 1.6^level
+  const actualCost = Math.round(upgrade.cost * Math.pow(1.6, upgrade.level));
+  const canAfford  = coins >= actualCost;
+  const nextCost   = !maxed && upgrade.level + 1 < maxLevel
+    ? Math.round(upgrade.cost * Math.pow(1.6, upgrade.level + 1))
+    : null;
   return (
     <div className={`upgrade-card ${maxed ? 'maxed' : ''}`}>
       <div className="upgrade-title">{icon} {upgrade.label}</div>
@@ -136,11 +145,11 @@ function UpgradeCard({ id, upgrade, coins, onBuy }) {
       ) : (
         <>
           <button className="btn btn-sm" disabled={!canAfford} onClick={() => onBuy(id)}
-                  title={canAfford ? '' : `Need ${upgrade.cost - coins} more coins`}>
-            🪙 {upgrade.cost}
+                  title={canAfford ? '' : `Need ${actualCost - coins} more coins`}>
+            🪙 {actualCost}
           </button>
-          {showNextCost && (
-            <div className="upgrade-next-cost">Next: 🪙{nextLevelCost}</div>
+          {nextCost && (
+            <div className="upgrade-next-cost">Next: 🪙{nextCost}</div>
           )}
         </>
       )}
@@ -541,6 +550,14 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
           <div className="section-title" style={{ margin: '1rem 0 0.5rem' }}>Advanced Upgrades</div>
           <div className="upgrades-grid">
             {['lighting', 'vip', 'hatchery', 'tankSitter'].map(id => {
+              const upg = shop.upgrades?.[id];
+              return upg ? <UpgradeCard key={id} id={id} upgrade={upg} coins={player.coins} onBuy={onBuyUpgrade} /> : null;
+            })}
+          </div>
+
+          <div className="section-title" style={{ margin: '1rem 0 0.5rem' }}>Expert Upgrades</div>
+          <div className="upgrades-grid">
+            {['purifier', 'autoMedic', 'mutagen', 'insurance', 'fame', 'tempControl'].map(id => {
               const upg = shop.upgrades?.[id];
               return upg ? <UpgradeCard key={id} id={id} upgrade={upg} coins={player.coins} onBuy={onBuyUpgrade} /> : null;
             })}

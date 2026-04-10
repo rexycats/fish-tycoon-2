@@ -153,6 +153,12 @@ export function createDefaultState() {
         vip:        { level: 0, maxLevel: 3, cost: 500,  label: 'VIP Membership',          description: 'Wealthy Patrons visit sooner & more often' },
         hatchery:   { level: 0, maxLevel: 3, cost: 450,  label: 'Hatchery',                description: '-15% egg & juvenile grow time per level' },
         tankSitter: { level: 0, maxLevel: 3, cost: 600,  label: 'Tank Sitter',             description: '+24h offline progress cap per level (base: 48h)' },
+        purifier:   { level: 0, maxLevel: 3, cost: 300,  label: 'Water Purifier',           description: '-25% water decay rate per level' },
+        autoMedic:  { level: 0, maxLevel: 3, cost: 400,  label: 'Auto-Medic',               description: '10% chance/min to auto-cure sick fish per level' },
+        mutagen:    { level: 0, maxLevel: 3, cost: 500,  label: 'Mutation Catalyst',         description: '+3% mutation chance when breeding per level' },
+        insurance:  { level: 0, maxLevel: 3, cost: 350,  label: 'Aquarium Insurance',        description: 'Refund 20% of fish value on death per level' },
+        fame:       { level: 0, maxLevel: 5, cost: 250,  label: 'Aquarium Fame',             description: '+15% passive income per level' },
+        tempControl:{ level: 0, maxLevel: 3, cost: 300,  label: 'Climate Control',           description: '-30% temperature drift per level' },
       },
     },
 
@@ -236,6 +242,12 @@ function migrateSave(parsed, fromVersion) {
     if (!u.vip)         u.vip         = { level: 0, maxLevel: 3, cost: 500,  label: 'VIP Membership',           description: 'Wealthy Patrons visit sooner & more often' };
     if (!u.hatchery)    u.hatchery    = { level: 0, maxLevel: 3, cost: 450,  label: 'Hatchery',                 description: '-15% egg & juvenile grow time per level' };
     if (!u.tankSitter)  u.tankSitter  = { level: 0, maxLevel: 3, cost: 600,  label: 'Tank Sitter',              description: '+24h offline progress cap per level (base: 48h)' };
+    if (!u.purifier)    u.purifier    = { level: 0, maxLevel: 3, cost: 300,  label: 'Water Purifier',            description: '-25% water decay rate per level' };
+    if (!u.autoMedic)   u.autoMedic   = { level: 0, maxLevel: 3, cost: 400,  label: 'Auto-Medic',                description: '10% chance/min to auto-cure sick fish per level' };
+    if (!u.mutagen)     u.mutagen     = { level: 0, maxLevel: 3, cost: 500,  label: 'Mutation Catalyst',          description: '+3% mutation chance when breeding per level' };
+    if (!u.insurance)   u.insurance   = { level: 0, maxLevel: 3, cost: 350,  label: 'Aquarium Insurance',         description: 'Refund 20% of fish value on death per level' };
+    if (!u.fame)        u.fame        = { level: 0, maxLevel: 5, cost: 250,  label: 'Aquarium Fame',              description: '+15% passive income per level' };
+    if (!u.tempControl) u.tempControl = { level: 0, maxLevel: 3, cost: 300,  label: 'Climate Control',            description: '-30% temperature drift per level' };
   }
   if (!parsed.player.magicFishFound) parsed.player.magicFishFound = [];
   if (!parsed.player.autopsies) parsed.player.autopsies = [];

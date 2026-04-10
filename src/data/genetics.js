@@ -326,14 +326,14 @@ export const GROWTH_STAGES = {
   adult:    { label: 'Adult',    durationMs: Infinity },
 };
 
-export function breedGenomes(genomeA, genomeB, donorGenome = null) {
+export function breedGenomes(genomeA, genomeB, donorGenome = null, mutationRate = 0.02) {
   const offspring = {};
   const DONOR_CHANCE = 0.18; // each allele slot has 18% chance to inherit from donor
   for (const gene of Object.keys(GENES)) {
     if (!genomeA[gene] || !genomeB[gene]) continue;
     const [a1, a2] = genomeA[gene];
     const [b1, b2] = genomeB[gene];
-    const mutate = Math.random() < 0.02;
+    const mutate = Math.random() < mutationRate;
     if (mutate) {
       const alleleKeys = Object.keys(GENES[gene].alleles);
       offspring[gene] = [

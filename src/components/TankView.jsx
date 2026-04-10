@@ -321,6 +321,27 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
         <div className="surface-ripple"/>
         <div className="surface-ripple surface-ripple-2"/>
         <div className="surface-ripple surface-ripple-3"/>
+
+        {/* Animated water surface wave */}
+        <div className="water-surface">
+          <svg viewBox="0 0 1600 30" preserveAspectRatio="none">
+            <path d="M0,15 C100,5 200,25 400,12 C600,0 700,28 900,15 C1100,2 1200,22 1400,10 C1500,5 1600,18 1600,15 L1600,0 L0,0 Z"
+              fill="rgba(10,25,60,0.85)"/>
+            <path d="M0,18 C150,8 250,26 450,14 C650,3 750,25 950,16 C1150,5 1250,24 1450,12 C1550,8 1600,20 1600,18 L1600,0 L0,0 Z"
+              fill="rgba(10,25,60,0.4)"/>
+          </svg>
+        </div>
+
+        {/* Glass reflections */}
+        <div className="glass-reflections">
+          <div className="glass-streak glass-streak-1"/>
+          <div className="glass-streak glass-streak-2"/>
+          <div className="glass-streak glass-streak-3"/>
+          <div className="glass-streak glass-streak-4"/>
+        </div>
+
+        {/* Water depth fog */}
+        <div className="water-depth-fog"/>
         <div className="surface-shimmer"/>
 
         {/* Caustics — 4 staggered layers */}

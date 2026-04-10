@@ -514,7 +514,9 @@ export const useGameStore = create(
             addLogDraft(state, '⚠️ Target tank is full!');
             return;
           }
-          const childGenome = breedGenomes(bt.storedGenomeA, bt.storedGenomeB);
+          const mutagenLevel = state.shop?.upgrades?.mutagen?.level || 0;
+          const mutationRate = 0.02 + mutagenLevel * 0.03; // base 2% + 3% per level
+          const childGenome = breedGenomes(bt.storedGenomeA, bt.storedGenomeB, null, mutationRate);
           const egg = createFish({ stage: 'egg', tankId, genome: childGenome });
           state.fish.push(egg);
           bt.eggReady = false;
