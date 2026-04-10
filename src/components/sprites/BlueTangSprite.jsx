@@ -85,6 +85,7 @@ function BlueTangSprite({
   const isJuvenile = stage === 'juvenile';
   const stripeOpacity = isJuvenile ? 0.55 : 0.92;
   const bodyOpacity   = isJuvenile ? 0.85 : 1.00;
+  const finOpacity    = isJuvenile ? 0.50 : 0.72;
 
   return (
     <svg
@@ -166,6 +167,14 @@ function BlueTangSprite({
         <pattern id={`bt-scale-${uid}`} x="0" y="0" width="7" height="6" patternUnits="userSpaceOnUse">
           <ellipse cx="3.5" cy="3" rx="3" ry="2.2" fill="none" stroke="#0a3888" strokeWidth="0.35" opacity="0.18"/>
         </pattern>
+
+        {/* ── Fin rim-light: blurred halo composite ── */}
+        <filter id={`bt-finglow-${uid}`} x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="2.0" result="blur"/>
+          <feFlood floodColor="#4a9fe8" floodOpacity="0.45" result="colour"/>
+          <feComposite in="colour" in2="blur" operator="in" result="glowColour"/>
+          <feMerge><feMergeNode in="glowColour"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
       </defs>
 
       {/* ── Rarity aura (behind everything) ── */}
@@ -185,7 +194,9 @@ function BlueTangSprite({
       <path className="fish-tail" d={`M 17 36 C 5 22, 0 14, 8 11 C 13 8, 18 22, 17 36 Z`}
         fill={`url(#bt-tail-${uid})`} filter={`url(#bt-sh-${uid})`}/>
       <path className="fish-tail" d={`M 17 36 C 5 50, 0 58, 8 61 C 13 64, 18 50, 17 36 Z`}
-        fill={`url(#bt-tail-${uid})`}/>
+        fill={`url(#bt-tail-${uid})`}
+        opacity={finOpacity}
+        filter={`url(#bt-finglow-${uid})`}/>
       {/* Tail fin rays */}
       {[0.2, 0.5, 0.8].map((t, i) => (
         <line key={i}
@@ -196,7 +207,9 @@ function BlueTangSprite({
 
       {/* ════ DORSAL FIN (runs ~full body length, high profile) ════ */}
       <path className="fish-dorsal" d={`M 30 14 C 28 4, 36 1, 44 3 C 52 1, 60 3, 65 8 C 68 11, 66 14, 62 14 Z`}
-        fill={`url(#bt-fin-${uid})`}/>
+        fill={`url(#bt-fin-${uid})`}
+        opacity={finOpacity}
+        filter={`url(#bt-finglow-${uid})`}/>
       {/* Dorsal fin rays */}
       {[[30,14,28,3],[37,14,36,1],[44,14,43,1],[51,14,52,1],[58,14,60,2],[63,14,66,7]].map(([x1,y1,x2,y2],i) => (
         <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
@@ -205,7 +218,9 @@ function BlueTangSprite({
 
       {/* ════ ANAL FIN (mirror of dorsal on belly side) ════ */}
       <path className="fish-fin" d={`M 30 58 C 28 68, 38 71, 48 69 C 56 67, 62 62, 65 58 Z`}
-        fill={`url(#bt-fin-${uid})`}/>
+        fill={`url(#bt-fin-${uid})`}
+        opacity={finOpacity}
+        filter={`url(#bt-finglow-${uid})`}/>
       {/* Anal fin rays */}
       {[[30,58,28,68],[40,58,40,70],[52,58,54,68],[62,58,64,61]].map(([x1,y1,x2,y2],i) => (
         <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
@@ -215,6 +230,8 @@ function BlueTangSprite({
       {/* ════ PECTORAL FIN ════ */}
       <ellipse className="fish-fin" cx="62" cy="42" rx="10" ry="6"
         fill={`url(#bt-pec-${uid})`}
+        opacity={finOpacity * 0.85}
+        filter={`url(#bt-finglow-${uid})`}
         transform="rotate(-15 62 42)"/>
       {/* Pectoral fin rays */}
       {[[-8,-2],[-3,-4],[2,-5],[6,-3],[9,-1]].map(([dx,dy],i) => (

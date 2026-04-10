@@ -146,7 +146,7 @@ function GoldfishSprite({
   const isJuvenile  = stage === 'juvenile';
   const tailOpacity = isJuvenile ? 0.55 : 0.82;
   const bodyOpacity = isJuvenile ? 0.85 : 1.00;
-  const finOpacity  = isJuvenile ? 0.50 : 0.78;
+  const finOpacity  = isJuvenile ? 0.50 : 0.72;
   // Juvenile tail lobes are shorter / rounder (scale factor)
   const ts          = isJuvenile ? 0.60 : 1.00;  // tail scale
 

@@ -101,7 +101,7 @@ function AngelFishSprite({
   const barCount       = isJuvenile ? 1 : 3;
   const filamentScale  = isJuvenile ? 0.50 : 1.00;
   const bodyOpacity    = isJuvenile ? 0.82 : 1.00;
-  const finOpacity     = isJuvenile ? 0.60 : 0.88;
+  const finOpacity     = isJuvenile ? 0.50 : 0.72;
   const fs             = filamentScale;
 
   // ── Core geometry ─────────────────────────────────────────
@@ -210,6 +210,14 @@ function AngelFishSprite({
           <ellipse cx="3" cy="3.5" rx="2.5" ry="3" fill="none"
             stroke="#7090a8" strokeWidth="0.32" opacity="0.18"/>
         </pattern>
+
+        {/* ── Fin rim-light: blurred halo composite ── */}
+        <filter id={`af-finglow-${uid}`} x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="2.0" result="blur"/>
+          <feFlood floodColor="#c0d8e8" floodOpacity="0.50" result="colour"/>
+          <feComposite in="colour" in2="blur" operator="in" result="glowColour"/>
+          <feMerge><feMergeNode in="glowColour"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
       </defs>
 
       {/* ── Rarity aura ── */}
@@ -246,7 +254,8 @@ function AngelFishSprite({
         Z
       `}
         fill={`url(#af-tail-${uid})`}
-        opacity={finOpacity}/>
+        opacity={finOpacity}
+        filter={`url(#af-finglow-${uid})`}/>
       {/* Tail fin rays */}
       {[
         [26, 57, 8 - 4*fs, 43 - 8*fs],
@@ -269,7 +278,8 @@ function AngelFishSprite({
         Z
       `}
         fill={`url(#af-dfin-${uid})`}
-        opacity={finOpacity}/>
+        opacity={finOpacity}
+        filter={`url(#af-finglow-${uid})`}/>
       {/* Dorsal filament — trailing tip extends back-left */}
       <path d={`
         M 35 32
@@ -305,7 +315,8 @@ function AngelFishSprite({
         Z
       `}
         fill={`url(#af-anlfin-${uid})`}
-        opacity={finOpacity}/>
+        opacity={finOpacity}
+        filter={`url(#af-finglow-${uid})`}/>
       {/* Anal filament */}
       <path d={`
         M 35 88
