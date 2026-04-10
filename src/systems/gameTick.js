@@ -8,11 +8,14 @@ import { addLog } from '../data/gameState.js';
 export const TICK_INTERVAL_MS = 1000;
 
 // --- RATES (per real second) ---
-const HUNGER_RATE        = 0.025;
-const WATER_DECAY_RATE   = 0.002; // 0.004 was ~14.4 pts/hr — too fast for casual sessions; 0.002 = ~7.2 pts/hr, full tank lasts ~13.9 h
+const HUNGER_RATE        = 0.012;  // 0→90 (damage threshold) in ~125 min (was 0.025 = ~60 min). One feeding now lasts ~62 min.
+const WATER_DECAY_RATE   = 0.0008; // ~2.9 pts/hr — full tank lasts ~35 h (was 0.002 = ~7.2 pts/hr, ~14 h). Water treatment is a choice, not a chore.
 const HEALTH_HUNGER_DMG  = 0.06;
 const HEALTH_WATER_DMG   = 0.03;
-const HEALTH_REGEN       = 0.01;
+const HEALTH_REGEN       = 0.025; // 50→100 in ~33 min (was 0.01 = ~83 min). Nursing a fish back is now visibly rewarding.
+// Regen fires when hunger is below this threshold (fish is reasonably fed) and wq > 60.
+// 60 matches the new hunger midpoint — fish fed once per hour sit around 40-50 hunger and now heal.
+const HEALTH_REGEN_HUNGER_THRESHOLD = 60;
 
 // --- PASSIVE INCOME ---
 // Once per minute, tanks with adult fish trickle a small coin bonus
@@ -194,7 +197,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
 
       if (dmg > 0) {
         f.health = Math.max(0, f.health - Math.min(dmg, 0.25));
-      } else if (f.hunger < 40 && wq > 60) {
+      } else if (f.hunger < HEALTH_REGEN_HUNGER_THRESHOLD && wq > 60) {
         f.health = Math.min(100, f.health + regen);
       }
     }
@@ -246,7 +249,7 @@ const CHALLENGE_TEMPLATES = [
   { id: 'sell_rare',      emoji: '💎', desc: 'Sell 1 rare fish today',             type: 'sell_rarity',   rarity: 'rare',     goal: 1,  reward: 150 },
   { id: 'earn_coins',     emoji: '🪙', desc: 'Earn 200 coins today',               type: 'earn_coins',    goal: 200,          reward: 60  },
   { id: 'breed_eggs',     emoji: '🥚', desc: 'Collect 2 eggs from breeding today', type: 'breed_eggs',    goal: 2,            reward: 70  },
-  { id: 'treat_water',    emoji: '🧪', desc: 'Treat water quality 2 times today',  type: 'treat_water',   goal: 2,            reward: 35  },
+  { id: 'treat_water',    emoji: '🧪', desc: 'Treat water quality once today',      type: 'treat_water',   goal: 1,            reward: 50  },
   { id: 'cure_fish',      emoji: '💊', desc: 'Cure a sick fish today',             type: 'cure_fish',     goal: 1,            reward: 50  },
   { id: 'happiness_high', emoji: '😊', desc: 'Keep tank happiness above 90% for 10 minutes', type: 'happiness_timer', goal: 600, reward: 55 },
   { id: 'sell_5_fish',    emoji: '🛒', desc: 'Sell 5 fish in total today',         type: 'sell_any',      goal: 5,            reward: 90  },
@@ -368,7 +371,11 @@ export function updateChallengeProgress(state, eventType, payload = {}) {
 
   let next = { ...state, dailyChallenges: { ...dc, challenges: updated } };
   if (coinsAwarded > 0) {
-    next = { ...next, player: { ...next.player, coins: next.player.coins + coinsAwarded } };
+    next = { ...next, player: {
+      ...next.player,
+      coins: next.player.coins + coinsAwarded,
+      totalCoinsEarned: (next.player.totalCoinsEarned || 0) + coinsAwarded,
+    } };
   }
   if (messages.length > 0) {
     const entries = messages.map(message => ({ time: Date.now(), message, severity: 'warn' }));
@@ -551,9 +558,11 @@ export function processTick(state) {
 
   // Refresh daily challenges at UTC midnight and track happiness timer challenge
   next = refreshDailyChallenges(next);
-  // Only count tanks that actually have adult fish (empty tanks sit at 100% trivially)
+  // Build a Set of tankIds that have at least one adult fish (O(n)) so the
+  // tanks.filter() below is O(tanks) rather than O(n × tanks) every tick.
+  const tanksWithAdults = new Set(next.fish.filter(f => f.stage === 'adult').map(f => f.tankId));
   const happinessValues = next.tanks
-    .filter(t => next.fish.some(f => f.tankId === t.id && f.stage === 'adult'))
+    .filter(t => tanksWithAdults.has(t.id))
     .map(t => t.happiness || 0);
   next = updateChallengeProgress(next, 'happiness_tick', { tanks: happinessValues });
 
@@ -862,7 +871,13 @@ export function applyOfflineProgress(state) {
 
     if (f.stage !== 'egg') {
       f.hunger = Math.min(100, (f.hunger || 0) + HUNGER_RATE * secondsElapsed);
+      // Apply starvation damage at half rate offline (player can't intervene)
       if (f.hunger >= 90) f.health = Math.max(0, f.health - HEALTH_HUNGER_DMG * secondsElapsed * 0.5);
+      // Apply disease damage offline — diseased fish should still deteriorate while away
+      if (f.disease) {
+        const disease = DISEASES[f.disease];
+        if (disease) f.health = Math.max(0, f.health - disease.healthDmgPerSec * secondsElapsed * 0.5);
+      }
     }
 
     // Stage progression
@@ -920,7 +935,13 @@ export function applyOfflineProgress(state) {
     next = {
       ...next,
       fish: next.fish.filter(f => !deadIds.has(f.id)),
-      shop: { ...next.shop, listedFish: next.shop.listedFish.filter(id => !deadIds.has(id)) },
+      shop: {
+        ...next.shop,
+        listedFish: next.shop.listedFish.filter(id => !deadIds.has(id)),
+        fishPrices: Object.fromEntries(
+          Object.entries(next.shop.fishPrices || {}).filter(([id]) => !deadIds.has(id))
+        ),
+      },
       breedingTank: {
         ...next.breedingTank,
         slots: next.breedingTank.slots.map(s => deadIds.has(s) ? null : s),
