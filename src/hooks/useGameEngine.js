@@ -46,7 +46,7 @@ export function useGameEngine() {
 
   // gameRef is used by auto-save so we always flush the latest state
   const gameRef = useRef(game);
-  gameRef.current = game;
+  useEffect(() => { gameRef.current = game; }, [game]);
 
   // Track coin changes to spawn floating deltas
   useEffect(() => {
@@ -103,7 +103,10 @@ export function useGameEngine() {
     game.player.stats?.medicineUsed,
     game.player.stats?.waterTreated,
     (game.shop.salesHistory || []).length,
-    game.shop.upgrades,
+    // Use the scalar max level rather than the upgrades object reference, which
+    // is a new object every tick (processTick spreads state.shop) and would
+    // cause this memo to re-run on every tick, defeating the optimisation.
+    Math.max(...Object.values(game.shop.upgrades || {}).map(u => u.level || 0)),
   ]);
 
   useEffect(() => {
@@ -127,7 +130,11 @@ export function useGameEngine() {
 
   // ── Auto-save ───────────────────────────────────────────────
   useEffect(() => {
-    const id = setInterval(() => saveGame(gameRef.current), 30_000);
+    const id = setInterval(() => {
+      if (!saveGame(gameRef.current)) {
+        fireToast('⚠️ Save failed — storage full?', 'alert', '💾');
+      }
+    }, 30_000);
     return () => clearInterval(id);
   }, []);
 

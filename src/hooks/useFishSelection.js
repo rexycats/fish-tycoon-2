@@ -35,7 +35,7 @@ export function useFishSelection(game, setGame) {
   // useGameEngine has its own gameRef for auto-save; both track the same game
   // object. This one is intentionally private to useFishSelection.
   const gameRef = useRef(game);
-  gameRef.current = game;
+  useEffect(() => { gameRef.current = game; }, [game]);
 
   // ── Guard: keep activeTankId valid when tanks change ────────
   useEffect(() => {
@@ -63,9 +63,12 @@ export function useFishSelection(game, setGame) {
   // ── Fishdex discovery ────────────────────────────────────────
   // Dependency: sorted set of unique species names currently alive.
   // This fires only when a genuinely new species appears — not every tick.
-  const speciesNameKey = [...new Set(
-    (game.fish || []).map(f => f.species?.name).filter(Boolean),
-  )].sort().join(',');
+  const speciesNameKey = useMemo(
+    () => [...new Set(
+      (game.fish || []).map(f => f.species?.name).filter(Boolean),
+    )].sort().join(','),
+    [game.fish],
+  );
 
   useEffect(() => {
     const knownNames = new Set((game.player.fishdex || []).map(e => e.name));

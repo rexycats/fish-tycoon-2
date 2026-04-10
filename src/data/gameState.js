@@ -164,26 +164,37 @@ export function createDefaultState() {
   };
 }
 
-// ── Migration: v6 → v7 ────────────────────────────────────
-function migrateSave(parsed) {
-  if (!parsed.tanks) {
-    const old = parsed.tank || {};
-    const base = createDefaultTank('tank_0', 'display');
-    parsed.tanks = [{
-      ...base,
-      capacity:     old.capacity     ?? base.capacity,
-      waterQuality: old.waterQuality ?? base.waterQuality,
-      temperature:  old.temperature  ?? base.temperature,
-      happiness:    old.happiness    ?? base.happiness,
-      autoFeed:     old.autoFeed     ?? base.autoFeed,
-      decorations:  Array.isArray(old.decorations) ? getDefaultDecorations() : (old.decorations ?? getDefaultDecorations()),
-      supplies: { ...base.supplies, ...(old.supplies || {}) },
-    }];
-    delete parsed.tank;
+// ── Migration ──────────────────────────────────────────────
+// Each block is gated on fromVersion < N so:
+//   a) blocks are self-documenting about when they were introduced
+//   b) future developers adding a new field must bump SAVE_VERSION and add
+//      a new gated block — forgetting either will be immediately obvious
+//   c) migrateSave is a pure transformation: it receives the original version
+//      rather than reading back from the object it's mutating
+function migrateSave(parsed, fromVersion) {
+  // v6 → v7: multi-tank restructure
+  if (fromVersion < 7) {
+    if (!parsed.tanks) {
+      const old = parsed.tank || {};
+      const base = createDefaultTank('tank_0', 'display');
+      parsed.tanks = [{
+        ...base,
+        capacity:     old.capacity     ?? base.capacity,
+        waterQuality: old.waterQuality ?? base.waterQuality,
+        temperature:  old.temperature  ?? base.temperature,
+        happiness:    old.happiness    ?? base.happiness,
+        autoFeed:     old.autoFeed     ?? base.autoFeed,
+        decorations:  Array.isArray(old.decorations) ? getDefaultDecorations() : (old.decorations ?? getDefaultDecorations()),
+        supplies: { ...base.supplies, ...(old.supplies || {}) },
+      }];
+      delete parsed.tank;
+    }
+    if (parsed.fish) {
+      parsed.fish = parsed.fish.map(f => ({ tankId: 'tank_0', ...f }));
+    }
   }
-  if (parsed.fish) {
-    parsed.fish = parsed.fish.map(f => ({ tankId: 'tank_0', ...f }));
-  }
+
+  // Always ensure tanks array is normalized (safe to re-apply)
   parsed.tanks = (parsed.tanks || []).map(t => ({
     autoFeedTick: 0,
     ...t,
@@ -191,6 +202,7 @@ function migrateSave(parsed) {
     themes: t.themes ?? getDefaultThemes(),
     supplies: { breedingBoost: 0, ...t.supplies },
   }));
+
   if (!parsed.player.achievements) parsed.player.achievements = [];
   if (!parsed.player.unlockedDecorations) parsed.player.unlockedDecorations = [];
   if (parsed.player.legendFishUnlocked === undefined) parsed.player.legendFishUnlocked = false;
@@ -279,6 +291,7 @@ function migrateSave(parsed) {
       },
     };
   });
+
   parsed.version = SAVE_VERSION;
   return parsed;
 }
@@ -303,9 +316,10 @@ export function loadGame() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (parsed.version !== SAVE_VERSION) {
-      console.warn(`Migrating save from v${parsed.version} → v${SAVE_VERSION}`);
-      return migrateSave(parsed);
+    const fromVersion = parsed.version ?? 0;
+    if (fromVersion !== SAVE_VERSION) {
+      console.warn(`Migrating save from v${fromVersion} → v${SAVE_VERSION}`);
+      return migrateSave(parsed, fromVersion);
     }
     return parsed;
   } catch (e) { console.error('Load failed:', e); return null; }
@@ -342,7 +356,8 @@ export function importSave(file) {
         if (!parsed.player || !parsed.fish || !parsed.tanks) {
           return reject(new Error('Invalid save file — missing required fields.'));
         }
-        const migrated = parsed.version !== SAVE_VERSION ? migrateSave(parsed) : parsed;
+        const fromVersion = parsed.version ?? 0;
+        const migrated = fromVersion !== SAVE_VERSION ? migrateSave(parsed, fromVersion) : parsed;
         resolve(migrated);
       } catch {
         reject(new Error('Could not parse save file — is it a valid JSON export?'));

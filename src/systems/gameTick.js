@@ -20,6 +20,9 @@ const HEALTH_REGEN       = 0.01;
 // Max = floor(1.0 × (1 + 10×0.25) × 4) = 14 coins/min/tank at 100% happiness + 10 decor.
 // Meaningful during fish-dry spells, negligible vs active selling.
 const PASSIVE_INCOME_INTERVAL = 60;   // ticks (= 1 real minute)
+// Auto-feed fires every AUTO_FEED_INTERVAL ticks (~40 seconds). The cap on
+// autoFeedTick uses this constant so the two values stay in sync if changed.
+const AUTO_FEED_INTERVAL = 40;
 const PASSIVE_INCOME_BASE     = 4;    // coins/min at 100% happiness, 0 decor
 const PASSIVE_DECOR_BONUS     = 0.25; // +25% per placed decoration, capped at 10
 
@@ -28,8 +31,8 @@ export const DISEASES = {
   ich: {
     id: 'ich', name: 'Ich', emoji: '🔴',
     desc: 'White-spot disease. Spreads quickly between fish.',
-    healthDmgPerSec: 0.08,
-    spreadChancePerSec: 0.003,
+    healthDmgPerSec: 0.02,
+    spreadChancePerSec: 0.0008,
     color: '#ff4444',
     curedBy: 'antibiotic',
     treatmentName: 'Antibiotic',
@@ -37,8 +40,8 @@ export const DISEASES = {
   fin_rot: {
     id: 'fin_rot', name: 'Fin Rot', emoji: '🟤',
     desc: 'Bacterial infection. Caused by poor water quality.',
-    healthDmgPerSec: 0.04,
-    spreadChancePerSec: 0.001,
+    healthDmgPerSec: 0.01,
+    spreadChancePerSec: 0.0003,
     color: '#a06020',
     curedBy: 'antibiotic',
     treatmentName: 'Antibiotic',
@@ -46,7 +49,7 @@ export const DISEASES = {
   bloat: {
     id: 'bloat', name: 'Bloat', emoji: '🟡',
     desc: 'Digestive illness. Linked to overfeeding.',
-    healthDmgPerSec: 0.05,
+    healthDmgPerSec: 0.015,
     spreadChancePerSec: 0,
     color: '#d4c020',
     curedBy: 'digestiveRemedy',
@@ -55,8 +58,8 @@ export const DISEASES = {
   velvet: {
     id: 'velvet', name: 'Velvet', emoji: '🟠',
     desc: 'Parasitic infection. Hard to spot until advanced.',
-    healthDmgPerSec: 0.1,
-    spreadChancePerSec: 0.004,
+    healthDmgPerSec: 0.025,
+    spreadChancePerSec: 0.001,
     color: '#e06820',
     curedBy: 'antiparasitic',
     treatmentName: 'Antiparasitic',
@@ -64,9 +67,9 @@ export const DISEASES = {
 };
 
 // Disease outbreak chance factors (per second)
-const DISEASE_BASE_CHANCE  = 0.00008;  // base chance per fish per second
-const DISEASE_WATER_MULT   = 3.5;      // multiplier when water quality < 30
-const DISEASE_CROWD_MULT   = 2.0;      // multiplier when tank is >80% full
+const DISEASE_BASE_CHANCE  = 0.000015; // base chance per fish per second (~5%/hr; was 0.00008 = ~25%/hr)
+const DISEASE_WATER_MULT   = 2.0;      // multiplier when water quality < 30 (was 3.5)
+const DISEASE_CROWD_MULT   = 1.5;      // multiplier when tank is >80% full (was 2.0)
 
 const CUSTOMER_BASE_INTERVAL_MS  = 18_000;
 const BASE_OFFLINE_SECONDS       = 60 * 60 * 48;   // 48h base cap
@@ -135,7 +138,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
   const feedTick = (tank.autoFeedTick || 0) + 1;
   let autoFeedUsed = false;
   let autoFeedTriggered = false; // true when the interval fired, regardless of outcome
-  if (tank.autoFeed && feedTick >= 40 && supplies.food > 0) {
+  if (tank.autoFeed && feedTick >= AUTO_FEED_INTERVAL && supplies.food > 0) {
     autoFeedTriggered = true;
     const hungryFish = tankFish.filter(f => f.stage !== 'egg' && (f.hunger || 0) > 30);
     if (hungryFish.length > 0) {
@@ -227,7 +230,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
     waterQuality: wq,
     temperature: newTemp,
     happiness,
-    autoFeedTick: (autoFeedUsed || autoFeedTriggered) ? 0 : Math.min(feedTick, 40),  // reset after interval fires; cap at 40 when out of food
+    autoFeedTick: (autoFeedUsed || autoFeedTriggered) ? 0 : Math.min(feedTick, AUTO_FEED_INTERVAL),  // reset after interval fires; cap at AUTO_FEED_INTERVAL when out of food
     supplies,
   };
 
@@ -254,11 +257,21 @@ function todayUTCDay() {
   return Math.floor(Date.now() / 86_400_000);
 }
 
+// Simple LCG seeded PRNG — same seed → same sequence on every device for a given day
+function seededRandom(seed) {
+  let s = seed >>> 0;
+  return () => {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    return s / 0x100000000;
+  };
+}
+
 function generateDailyChallenges(day) {
-  // Shuffle with proper Fisher-Yates (sort-based shuffle is statistically biased)
+  // Seed on UTC day so every device produces the same challenges for the same day
+  const rng = seededRandom(day * 2654435761);
   const shuffled = [...CHALLENGE_TEMPLATES];
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rng() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   const picked = [];
@@ -378,7 +391,7 @@ export function processTick(state) {
   // Pre-group fish by tankId once (O(n)) so each processOneTank call only
   // receives its own fish instead of filtering all fish per tank (O(n×t)).
   const updatedTanks = [];
-  const fishById = new Map(next.fish.map(f => [f.id, f]));
+  const allUpdatedFish = [];
   const hatcheryLevel = next.shop?.upgrades?.hatchery?.level || 0;
 
   // Build tankId → fish[] map once before the loop
@@ -392,11 +405,16 @@ export function processTick(state) {
     const tankFishList = fishByTank.get(tank.id) || [];
     const { updatedTank, updatedTankFish } = processOneTank(tank, tankFishList, messages, now, hatcheryLevel, next.player?.boosts);
     updatedTanks.push(updatedTank);
-    for (const f of updatedTankFish) fishById.set(f.id, f);
+    allUpdatedFish.push(...updatedTankFish);
   }
 
-  let updatedFish = [...fishById.values()];
-  next = { ...next, tanks: updatedTanks, fish: updatedFish };
+  // Any fish not belonging to a known tank (shouldn't happen, safe fallback)
+  const processedIds = new Set(allUpdatedFish.map(f => f.id));
+  for (const f of next.fish) {
+    if (!processedIds.has(f.id)) allUpdatedFish.push(f);
+  }
+
+  next = { ...next, tanks: updatedTanks, fish: allUpdatedFish };
 
   // Remove dead fish from all tanks — record autopsy data
   const deadFish = next.fish.filter(f => f.stage !== 'egg' && f.health <= 0);
@@ -445,7 +463,13 @@ export function processTick(state) {
     next = {
       ...next,
       fish: next.fish.filter(f => !deadIds.has(f.id)),
-      shop: { ...next.shop, listedFish: next.shop.listedFish.filter(id => !deadIds.has(id)) },
+      shop: {
+        ...next.shop,
+        listedFish: next.shop.listedFish.filter(id => !deadIds.has(id)),
+        fishPrices: Object.fromEntries(
+          Object.entries(next.shop.fishPrices || {}).filter(([id]) => !deadIds.has(id))
+        ),
+      },
       breedingTank: {
         ...next.breedingTank,
         slots: next.breedingTank.slots.map(s => deadIds.has(s) ? null : s),
@@ -944,7 +968,8 @@ export function applyOfflineProgress(state) {
       }
     }
     if (offlineEvent.type === 'found_item' && offlineEvent.coinBonus) {
-      next = { ...next, player: { ...next.player, coins: next.player.coins + offlineEvent.coinBonus } };
+      coinsEarned += offlineEvent.coinBonus;  // include in offline summary earnings
+      next = { ...next, player: { ...next.player, coins: next.player.coins + offlineEvent.coinBonus, totalCoinsEarned: (next.player.totalCoinsEarned || 0) + offlineEvent.coinBonus } };
     }
     if (offlineEvent.type === 'mutation' && offlineEvent.fishId) {
       next = {
