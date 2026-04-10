@@ -1602,7 +1602,8 @@ body {
   gap: 0;
   border-bottom: 1px solid var(--panel-border);
   flex-shrink: 0;
-  overflow-x: visible;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   position: relative;
 }
@@ -7707,4 +7708,139 @@ button:active, .btn:active, .action-btn:active {
   color: #f0c040;
   font-weight: 600;
   margin-left: 4px;
+}
+
+/* ============================================================
+   RARE MARKET v2
+   ============================================================ */
+.rm-merchant {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.rm-merchant-emoji {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+.rm-merchant-greeting {
+  font-size: 0.82rem;
+  color: rgba(200,220,255,0.55);
+  font-style: italic;
+  margin-top: 2px;
+  max-width: 320px;
+}
+.rm-header-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Deal ribbon */
+.rare-market-card {
+  position: relative;
+  overflow: hidden;
+}
+.rare-market-card--deal {
+  border-color: rgba(240,192,64,0.5) !important;
+  box-shadow: 0 0 12px rgba(240,192,64,0.12);
+}
+.rmc-deal-ribbon {
+  position: absolute;
+  top: 8px;
+  right: -28px;
+  background: linear-gradient(135deg, #e8a020, #d4a830);
+  color: #1a1a2e;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 32px;
+  transform: rotate(35deg);
+  letter-spacing: 0.5px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  z-index: 1;
+}
+.rmc-top-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.rmc-emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+/* Strikethrough original price */
+.rmc-cost-original {
+  text-decoration: line-through;
+  opacity: 0.45;
+  font-size: 0.78rem;
+  margin-right: 4px;
+}
+
+/* Rarity odds chips */
+.rmc-odds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0 2px;
+}
+.rmc-odds-chip {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  text-transform: capitalize;
+}
+
+/* Locked hint */
+.rm-locked-hint {
+  text-align: center;
+  font-size: 0.8rem;
+  color: rgba(200,220,255,0.4);
+  padding: 10px 0 4px;
+}
+
+@media (max-width: 600px) {
+  .rm-merchant-greeting { max-width: 200px; font-size: 0.75rem; }
+  .rm-header-right { display: none; }
+}
+
+/* ============================================================
+   HUD: Active Boosts Bar
+   ============================================================ */
+.hud2-boosts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 12px 6px;
+  background: rgba(80,200,80,0.06);
+  border-top: 1px solid rgba(80,200,80,0.15);
+}
+.hud2-boost-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(80,200,80,0.12);
+  color: #60c860;
+  white-space: nowrap;
+}
+.hud2-boost-time {
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+/* ── Feed All button ──────────────────────────────────────── */
+.hud2-btn--feed-all {
+  background: rgba(93,190,138,0.15) !important;
+  border-color: rgba(93,190,138,0.3) !important;
+  color: #5dbe8a !important;
+}
+.hud2-btn--feed-all:hover:not(:disabled) {
+  background: rgba(93,190,138,0.25) !important;
+}
+
+/* ── FishPanel market delta positive ──────────────────────── */
+.fp-value-delta--up {
+  color: #5dbe8a !important;
 }

@@ -230,8 +230,7 @@ function PriceInput({ value, max, onCommit }) {
 
 // Bug 8: these were declared inside Shop() and re-created on every render.
 // Hoisting to module scope makes them true constants — zero allocation cost.
-const PRIMARY_TABS   = ['sell', 'fish', 'upgrades', 'supplies', 'market'];
-const SECONDARY_TABS = ['history'];
+const ALL_SHOP_TABS = ['sell', 'fish', 'upgrades', 'supplies', 'market', 'history'];
 const TAB_LABELS = {
   sell: '📋 Listings', fish: '🐠 Buy Fish', upgrades: '⬆️ Upgrades',
   supplies: '🛒 Supplies', market: '🌟 Market', history: '📜 Sales Log',
@@ -253,7 +252,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
   // (intentional — felt snappy in testing), but button presses are batched.
   const debouncedSetPrice = useDebounced(onSetPrice, 80);
   const [shopTab, setShopTab] = useState('sell');
-  const [showShopMore, setShowShopMore] = useState(false);
+  
   const [activeCustomer, setActiveCustomer] = useState(null);
   const [selectedToList, setSelectedToList] = useState(new Set());
   // Bug 2: initialise to current length so re-mounting the Shop tab (after switching
@@ -333,36 +332,12 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
 
       {/* Sub-tabs */}
       <div className="shop-tabs">
-        {PRIMARY_TABS.map(t => (
+        {ALL_SHOP_TABS.map(t => (
           <button key={t} className={`shop-tab-btn ${shopTab === t ? 'active' : ''}`}
                   onClick={() => setShopTab(t)}>
             {TAB_LABELS[t]}
           </button>
         ))}
-
-        {/* ⋯ More wrapper (Market + Sales Log) */}
-        <div className="shop-tab-more-wrapper">
-          <button
-            className={`shop-tab-btn ${SECONDARY_TABS.includes(shopTab) ? 'active' : ''}`}
-            onClick={() => setShowShopMore(v => !v)}
-          >
-            {SECONDARY_TABS.includes(shopTab) ? TAB_LABELS[shopTab] : '⋯ More'}
-          </button>
-
-          {showShopMore && (
-            <>
-              <div className="shop-tab-more-backdrop" onClick={() => setShowShopMore(false)} />
-              <div className="shop-tab-more-dropdown">
-                {SECONDARY_TABS.map(t => (
-                  <button key={t} className={`shop-tab-more-item ${shopTab === t ? 'active' : ''}`}
-                          onClick={() => { setShopTab(t); setShowShopMore(false); }}>
-                    {TAB_LABELS[t]}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
       </div>
 
       {/* Sell tab */}

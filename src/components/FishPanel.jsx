@@ -1,7 +1,8 @@
 import React, { memo, useState, useEffect, useRef } from 'react';
 import FishSprite from './FishSprite.jsx';
 import { RARITY, GENES } from '../data/genetics.js';
-import { DISEASES } from '../systems/gameTick.js';
+import { DISEASES, getMarketMultiplier } from '../systems/gameTick.js';
+import { useGameStore } from '../store/gameStore.js';
 
 function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, foodStock = 0, tanks = [], onMoveFish, isFirstRun, onNavigate }) {
   const prevFishId = useRef(null);
@@ -51,7 +52,11 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
   }
 
   const rarity = RARITY[fish.species.rarity];
-  const salePrice = Math.round(fish.species.basePrice * (fish.health / 100));
+  const market = useGameStore(s => s.market);
+  const marketMult = getMarketMultiplier(fish, market);
+  const basePrice = Math.round(fish.species.basePrice * (fish.health / 100));
+  const salePrice = Math.round(basePrice * marketMult);
+  const marketDelta = marketMult !== 1 ? Math.round((marketMult - 1) * 100) : 0;
   // Fix 2: human-readable age
   const ageMin = Math.floor(fish.age / 60);
   const ageLabel = ageMin < 60
@@ -125,6 +130,11 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
         <span className="fp-value-coin">🪙</span>
         <span className="fp-value-number">{salePrice}</span>
         <span className="fp-value-label">sale value</span>
+        {marketDelta !== 0 && (
+          <span className={`fp-value-delta ${marketDelta > 0 ? 'fp-value-delta--up' : ''}`}>
+            {marketDelta > 0 ? '📈' : '📉'} {marketDelta > 0 ? '+' : ''}{marketDelta}% market
+          </span>
+        )}
         {showDelta && (
           <span className="fp-value-delta" title={`Health penalty: ${healthDelta}%`}>
             {healthDelta}% {disease ? 'sick' : 'health'}

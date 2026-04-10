@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useGameStore } from '../store/gameStore.js';
 
 /* ── Animated coin counter ─────────────────────────────────── */
 function CoinDisplay({ value }) {
@@ -190,9 +191,68 @@ export default function HUD({
           >
             + <span className="hud2-btn-label">Food</span>
           </button>
+
+          <FeedAllButton tankId={tank?.id} food={food} />
         </div>
       </div>
 
+      {/* ── Row 3: active boosts (from Rare Market) ────────────── */}
+      <ActiveBoosts />
+
     </header>
+  );
+}
+
+const BOOST_INFO = {
+  growSpeed:     { emoji: '🌱', label: 'Growth +50%' },
+  healthRegen:   { emoji: '💖', label: 'Regen ×3' },
+  salePrice:     { emoji: '📈', label: 'Prices +25%' },
+  passiveIncome: { emoji: '🌊', label: 'Income ×2' },
+};
+
+function ActiveBoosts() {
+  const boosts = useGameStore(s => s.player?.boosts || {});
+  const [, tick] = useState(0);
+
+  const active = Object.entries(boosts).filter(([, exp]) => exp > Date.now());
+
+  useEffect(() => {
+    if (active.length === 0) return;
+    const id = setInterval(() => tick(t => t + 1), 10_000);
+    return () => clearInterval(id);
+  }, [active.length]);
+
+  if (active.length === 0) return null;
+
+  return (
+    <div className="hud2-boosts">
+      {active.map(([key, exp]) => {
+        const info = BOOST_INFO[key] || { emoji: '⚡', label: key };
+        const mins = Math.max(0, Math.ceil((exp - Date.now()) / 60_000));
+        return (
+          <span key={key} className="hud2-boost-pill">
+            {info.emoji} {info.label} <span className="hud2-boost-time">{mins}m</span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function FeedAllButton({ tankId, food }) {
+  const feedAll = useGameStore(s => s.feedAllInTank);
+  const hungryCount = useGameStore(s =>
+    s.fish.filter(f => f.tankId === tankId && f.stage !== 'egg' && f.hunger > 30).length
+  );
+  if (hungryCount === 0) return null;
+  return (
+    <button
+      className="hud2-btn hud2-btn--feed-all"
+      onClick={() => feedAll(tankId)}
+      disabled={food <= 0}
+      title={`Feed ${hungryCount} hungry fish (1 food each)`}
+    >
+      🍤 <span className="hud2-btn-label">Feed All ({hungryCount})</span>
+    </button>
   );
 }

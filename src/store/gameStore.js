@@ -110,6 +110,28 @@ export const useGameStore = create(
           fish.health = Math.min(100, fish.health + 5);
         }),
 
+        feedAllInTank: (tankId) => set(state => {
+          const tank = state.tanks.find(t => t.id === tankId);
+          if (!tank) return;
+          const hungry = state.fish.filter(f => f.tankId === tankId && f.stage !== 'egg' && f.hunger > 30);
+          if (hungry.length === 0) return;
+          const feedCount = Math.min(hungry.length, tank.supplies.food);
+          if (feedCount === 0) {
+            playWarning();
+            addLogDraft(state, '⚠️ No food in that tank!');
+            return;
+          }
+          tank.supplies.food -= feedCount;
+          // Feed the hungriest first
+          hungry.sort((a, b) => b.hunger - a.hunger);
+          for (let i = 0; i < feedCount; i++) {
+            hungry[i].hunger = Math.max(0, hungry[i].hunger - 45);
+            hungry[i].health = Math.min(100, hungry[i].health + 5);
+          }
+          playFeed();
+          addLogDraft(state, `🍤 Fed ${feedCount} fish in ${tank.name}.`);
+        }),
+
         useMedicine: (fishId) => set(state => {
           const fish = state.fish.find(f => f.id === fishId);
           if (!fish || !fish.disease) return;
@@ -301,27 +323,67 @@ export const useGameStore = create(
             return;
           }
 
+          // Check tank capacity for fish/egg items
+          const tank = state.tanks.find(t => t.id === tankId) || state.tanks[0];
+          if ((item.type === 'fish' || item.type === 'egg') && tank) {
+            const count = state.fish.filter(f => f.tankId === tank.id).length;
+            const needed = item.eggCount || 1;
+            if (count + needed > (tank.capacity || 12)) {
+              playWarning();
+              addLogDraft(state, `⚠️ Not enough room in ${tank.name}!`);
+              return;
+            }
+          }
+
           state.player.coins -= item.cost;
           if (!state.rareMarket.purchased) state.rareMarket.purchased = [];
           state.rareMarket.purchased.push({ day: today, itemId: item.id });
 
-          // Apply supplies to the active tank
-          if (item.supplies) {
-            const tank = state.tanks.find(t => t.id === tankId) || state.tanks[0];
-            if (tank) {
-              for (const [key, amount] of Object.entries(item.supplies)) {
-                tank.supplies[key] = (tank.supplies[key] || 0) + amount;
+          // ── Mystery Egg: roll rarity from weights, spawn eggs ──
+          if (item.type === 'egg' && item.rarityWeights && tank) {
+            const weights = item.rarityWeights;
+            const total = Object.values(weights).reduce((s, v) => s + v, 0);
+            const eggCount = item.eggCount || 1;
+            const hatched = [];
+            for (let i = 0; i < eggCount; i++) {
+              let roll = Math.random() * total;
+              let rarity = 'common';
+              for (const [r, w] of Object.entries(weights)) {
+                roll -= w;
+                if (roll <= 0) { rarity = r; break; }
               }
+              const egg = createFish({ stage: 'egg', tankId: tank.id, targetRarity: rarity });
+              state.fish.push(egg);
+              hatched.push(rarity);
+            }
+            const summary = hatched.join(', ');
+            addLogDraft(state, `🥚 Mystery egg${eggCount > 1 ? 's' : ''} placed in ${tank.name}! (${summary})`);
+            playCoin();
+            return;
+          }
+
+          // ── Exotic Fish: spawn adult of target rarity ──
+          if (item.type === 'fish' && item.targetRarity && tank) {
+            const newFish = createFish({ stage: 'adult', tankId: tank.id, targetRarity: item.targetRarity });
+            state.fish.push(newFish);
+            addLogDraft(state, `🐠 ${newFish.species?.name || 'Exotic fish'} (${newFish.species?.rarity}) added to ${tank.name}!`);
+            playCoin();
+            return;
+          }
+
+          // ── Supplies ──
+          if (item.supplies && tank) {
+            for (const [key, amount] of Object.entries(item.supplies)) {
+              tank.supplies[key] = (tank.supplies[key] || 0) + amount;
             }
           }
 
-          // Apply instant water restore
-          if (item.restoreWater) {
-            const tank = state.tanks.find(t => t.id === tankId) || state.tanks[0];
-            if (tank) tank.waterQuality = 100;
+          // ── Instant water restore ──
+          if (item.restoreWater && tank) {
+            tank.waterQuality = 100;
           }
 
-          // Apply timed boosts
+          // ── Timed boosts ──
           if (item.boost && item.boostDurationMs) {
             if (!state.player.boosts) state.player.boosts = {};
             state.player.boosts[item.boost] = Date.now() + item.boostDurationMs;
@@ -611,6 +673,47 @@ function startDiseaseWatcher() {
   );
 }
 
+// 8. Breeding egg ready toast + sound
+let _breedUnsub;
+function startBreedingWatcher() {
+  if (_breedUnsub) return;
+  let wasReady = useGameStore.getState().breedingTank?.eggReady || false;
+  _breedUnsub = useGameStore.subscribe(
+    (s) => s.breedingTank?.eggReady,
+    (eggReady) => {
+      if (eggReady && !wasReady) {
+        playDiscover();
+        fireToast('An egg is ready to collect! 🥚', 'sale', '🧬');
+      }
+      wasReady = eggReady;
+    }
+  );
+}
+
+// 9. Fish death toast
+let _deathUnsub;
+function startDeathWatcher() {
+  if (_deathUnsub) return;
+  let prevIds = new Set(useGameStore.getState().fish.map(f => f.id));
+  _deathUnsub = useGameStore.subscribe(
+    (s) => s.fish.length,
+    () => {
+      const currentIds = new Set(useGameStore.getState().fish.map(f => f.id));
+      // Check for fish that disappeared (died or sold — only toast for deaths via autopsy)
+      const autopsies = useGameStore.getState().player.autopsies || [];
+      for (const id of prevIds) {
+        if (!currentIds.has(id)) {
+          const autopsy = autopsies.find(a => a._fishId === id);
+          if (autopsy) {
+            fireToast(`${autopsy.fishName} has died 💀`, 'alert', '☠️');
+          }
+        }
+      }
+      prevIds = currentIds;
+    }
+  );
+}
+
 // ── Boot all side effects ──────────────────────────────────
 export function bootSideEffects() {
   startAutoSave();
@@ -619,6 +722,8 @@ export function bootSideEffects() {
   startSalesWatcher();
   startAchSoundWatcher();
   startDiseaseWatcher();
+  startBreedingWatcher();
+  startDeathWatcher();
 
   window.addEventListener('beforeunload', handleUnload);
   document.addEventListener('visibilitychange', handleVisibility);
@@ -632,6 +737,8 @@ export function teardownSideEffects() {
   _salesUnsub?.();  _salesUnsub = null;
   _achSoundUnsub?.(); _achSoundUnsub = null;
   _diseaseUnsub?.();  _diseaseUnsub = null;
+  _breedUnsub?.();    _breedUnsub = null;
+  _deathUnsub?.();    _deathUnsub = null;
   window.removeEventListener('beforeunload', handleUnload);
   document.removeEventListener('visibilitychange', handleVisibility);
 }
