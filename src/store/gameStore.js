@@ -262,10 +262,8 @@ export const useGameStore = create(
           playCoin();
         }),
 
-        buyFish: (speciesKey) => set(state => {
-          const speciesDef = REAL_SPECIES_MAP[speciesKey];
-          if (!speciesDef) return;
-          if (state.player.coins < speciesDef.price) {
+        buyFish: (cost, targetRarity, speciesKey) => set(state => {
+          if (state.player.coins < cost) {
             playWarning();
             addLogDraft(state, '⚠️ Not enough coins!');
             return;
@@ -279,12 +277,24 @@ export const useGameStore = create(
             addLogDraft(state, '⚠️ All tanks are full!');
             return;
           }
-          state.player.coins -= speciesDef.price;
-          const phenotype = SPECIES_PHENOTYPES[speciesKey];
-          const newFish = createFish({ stage: 'adult', tankId: tank.id, phenotype, targetRarity: speciesDef.rarity });
+          state.player.coins -= cost;
+
+          let newFish;
+          if (speciesKey && REAL_SPECIES_MAP[speciesKey]) {
+            // Named species (clownfish, betta, etc.)
+            const speciesDef = REAL_SPECIES_MAP[speciesKey];
+            const phenotype = SPECIES_PHENOTYPES[speciesKey];
+            newFish = createFish({ stage: 'adult', tankId: tank.id, phenotype, targetRarity: speciesDef.rarity });
+            // Override species info for real species
+            newFish.species = { ...newFish.species, ...speciesDef, visualType: 'species', key: speciesKey };
+          } else {
+            // Generic fish by rarity
+            newFish = createFish({ stage: 'adult', tankId: tank.id, targetRarity: targetRarity || 'common' });
+          }
+
           state.fish.push(newFish);
           playCoin();
-          addLogDraft(state, `🐟 Bought a ${speciesDef.name}!`);
+          addLogDraft(state, `🐟 Bought a ${newFish.species?.name || 'fish'}!`);
         }),
 
         buyUpgrade: (upgradeKey) => set(state => {
