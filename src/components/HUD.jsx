@@ -94,8 +94,6 @@ export default function HUD({
   onBuyFood, onTreatWater, onToggleAutoFeed, onUseHeater,
   soundOn, onToggleSound,
 }) {
-  // When a fish from a different tank is selected, show that tank's stats so
-  // the HUD matches the fish the player is actually looking at.
   const displayTank = (selectedFishTankId && tanks?.find(t => t.id === selectedFishTankId)) || activeTank || tanks?.[0] || {};
   const tank    = displayTank;
   const wq      = Math.round(tank.waterQuality ?? 100);
@@ -109,88 +107,92 @@ export default function HUD({
 
   return (
     <header className="hud2">
-      {/* Brand */}
-      <div className="hud2-brand">
-        <span className="hud2-logo">🐠</span>
-        <span className="hud2-title">Fish Tycoon</span>
-      </div>
 
-      {/* Divider */}
-      <div className="hud2-divider" />
+      {/* ── Row 1: brand · coins · rep · sound ───────────────── */}
+      <div className="hud2-row hud2-row--top">
+        <div className="hud2-brand">
+          <span className="hud2-logo">🐠</span>
+          <span className="hud2-title">Fish Tycoon</span>
+        </div>
 
-      {/* Coins — hero element */}
-      <CoinDisplay value={player.coins} />
+        <div className="hud2-divider hud2-divider--v" />
 
-      {/* Divider */}
-      <div className="hud2-divider" />
+        <CoinDisplay value={player.coins} />
 
-      {/* Tank stats row */}
-      <div className="hud2-pills">
-        <StatPill icon="💧" value={`${wq}%`}  label="Water quality" color={wqCol}  alert={wqBad} />
-        <StatPill icon="🌡" value={`${Math.round(temp)}°`} label="Temperature" color={tempCol} alert={tempBad} />
-        <StatPill icon="🐟" value={`${fishCnt}/${tank.capacity ?? 12}`} label="Fish capacity" />
-        <StatPill icon="🍤" value={food < 1 ? 'Empty' : `${food} feeds`} label={`Food supply (${food} remaining)`} alert={food < 3} />
-      </div>
+        <div className="hud2-spacer" />
 
-      {/* Divider */}
-      <div className="hud2-divider" />
-
-      {/* Status bars */}
-      <div className="hud2-bars">
-        <HappinessBar value={tank.happiness} />
-        <RepBadge rep={shop?.reputation} />
-      </div>
-
-      {/* Divider */}
-      <div className="hud2-divider" />
-
-      {/* Quick actions */}
-      <div className="hud2-actions">
-        <button
-          className={`hud2-btn ${tank.autoFeed ? 'hud2-btn--active' : ''}`}
-          onClick={onToggleAutoFeed}
-          title={tank.autoFeed ? 'Auto-feed ON' : 'Auto-feed OFF'}
-        >
-          🍤 <span className="hud2-btn-label">{tank.autoFeed ? 'Auto ✓' : 'Auto'}</span>
-        </button>
-
-        {tempBad && (
-          <button
-            className="hud2-btn hud2-btn--warn"
-            onClick={onUseHeater}
-            disabled={(tank.supplies?.heater || 0) <= 0}
-            title={`Adjust temperature (${tank.supplies?.heater || 0} left)`}
-          >
-            🌡 <span className="hud2-btn-label">Temp</span>
-          </button>
-        )}
-
-        {wqBad && (
-          <button
-            className="hud2-btn hud2-btn--warn"
-            onClick={onTreatWater}
-            disabled={(tank.supplies?.waterTreatment || 0) <= 0}
-            title={`Treat water (${tank.supplies?.waterTreatment || 0} left)`}
-          >
-            🧪 <span className="hud2-btn-label">Treat</span>
-          </button>
-        )}
-
-        <button
-          className="hud2-btn"
-          onClick={onBuyFood}
-          disabled={player.coins < 10}
-          title="Buy 10 food (10🪙)"
-        >
-          + <span className="hud2-btn-label">Food</span>
-        </button>
+        <div className="hud2-bars">
+          <HappinessBar value={tank.happiness} />
+          <RepBadge rep={shop?.reputation} />
+        </div>
 
         {onToggleSound && (
-          <button className="hud2-btn hud2-btn--icon" onClick={onToggleSound} title={soundOn ? 'Mute' : 'Unmute'}>
-            {soundOn ? '🔊' : '🔇'}
-          </button>
+          <>
+            <div className="hud2-divider hud2-divider--v" />
+            <button
+              className="hud2-btn hud2-btn--icon"
+              onClick={onToggleSound}
+              title={soundOn ? 'Mute' : 'Unmute'}
+            >
+              {soundOn ? '🔊' : '🔇'}
+            </button>
+          </>
         )}
       </div>
+
+      {/* ── Row 2: tank stats · quick actions ────────────────── */}
+      <div className="hud2-row hud2-row--bottom">
+        <div className="hud2-pills">
+          <StatPill icon="💧" value={`${wq}%`}  label="Water quality" color={wqCol}  alert={wqBad} />
+          <StatPill icon="🌡" value={`${Math.round(temp)}°`} label="Temperature" color={tempCol} alert={tempBad} />
+          <StatPill icon="🐟" value={`${fishCnt}/${tank.capacity ?? 12}`} label="Fish capacity" />
+          <StatPill icon="🍤" value={food < 1 ? 'Empty' : `${food} feeds`} label={`Food supply (${food} remaining)`} alert={food < 3} />
+        </div>
+
+        <div className="hud2-spacer" />
+
+        <div className="hud2-actions">
+          <button
+            className={`hud2-btn ${tank.autoFeed ? 'hud2-btn--active' : ''}`}
+            onClick={onToggleAutoFeed}
+            title={tank.autoFeed ? 'Auto-feed ON' : 'Auto-feed OFF'}
+          >
+            🍤 <span className="hud2-btn-label">{tank.autoFeed ? 'Auto ✓' : 'Auto'}</span>
+          </button>
+
+          {tempBad && (
+            <button
+              className="hud2-btn hud2-btn--warn"
+              onClick={onUseHeater}
+              disabled={(tank.supplies?.heater || 0) <= 0}
+              title={`Adjust temperature (${tank.supplies?.heater || 0} left)`}
+            >
+              🌡 <span className="hud2-btn-label">Temp</span>
+            </button>
+          )}
+
+          {wqBad && (
+            <button
+              className="hud2-btn hud2-btn--warn"
+              onClick={onTreatWater}
+              disabled={(tank.supplies?.waterTreatment || 0) <= 0}
+              title={`Treat water (${tank.supplies?.waterTreatment || 0} left)`}
+            >
+              🧪 <span className="hud2-btn-label">Treat</span>
+            </button>
+          )}
+
+          <button
+            className="hud2-btn"
+            onClick={onBuyFood}
+            disabled={player.coins < 10}
+            title="Buy 10 food (10🪙)"
+          >
+            + <span className="hud2-btn-label">Food</span>
+          </button>
+        </div>
+      </div>
+
     </header>
   );
 }

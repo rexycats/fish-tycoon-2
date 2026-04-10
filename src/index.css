@@ -103,7 +103,11 @@ body {
   border-bottom: 1px solid rgba(24,50,110,0.6);
   box-shadow: 0 2px 12px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(0,0,0,0.3);
   z-index: 20;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
 }
+.tab-bar::-webkit-scrollbar { display: none; }
 .tab-btn {
   color: var(--text-dim); font-family: 'Space Mono', monospace; font-size: var(--text-xs);
   letter-spacing: 0.08em; padding: 8px 4px 9px; transition: color 0.2s, background 0.2s;
@@ -218,39 +222,7 @@ body {
 .tank-tab-name { font-family: 'Space Mono', monospace; font-size: var(--text-xs); letter-spacing: 0.04em; color: var(--text-dim); }
 .tank-tab.active .tank-tab-name { color: var(--gold); }
 
-/* ── HUD ──────────────────────────────────────────────────── */
-.hud2 {
-  background: linear-gradient(180deg, rgba(8,20,48,0.99) 0%, rgba(5,13,32,1) 100%);
-  border-bottom: 1px solid rgba(24,60,140,0.4);
-  box-shadow: inset 0 1px 0 rgba(100,160,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.5), 0 3px 16px rgba(0,0,0,0.5);
-  height: 54px;
-}
-.hud2-title {
-  font-family: 'Cinzel', serif; font-weight: 900; font-size: 15px; letter-spacing: 0.10em;
-  color: var(--gold-light);
-  text-shadow: 0 0 20px rgba(255,216,80,0.5), 0 0 40px rgba(232,184,48,0.25), 0 1px 3px rgba(0,0,0,0.7);
-}
-.hud2-coin {
-  background: linear-gradient(135deg, rgba(180,148,30,0.14) 0%, rgba(120,90,10,0.08) 100%);
-  border-color: rgba(200,165,40,0.28);
-  box-shadow: inset 0 1px 0 rgba(255,220,80,0.08), 0 2px 8px rgba(0,0,0,0.4), 0 0 16px rgba(180,148,30,0.08);
-}
-.hud2-coin-val { font-family: 'Space Mono', monospace; font-size: 14px; color: var(--gold-light); text-shadow: 0 0 12px rgba(255,216,80,0.45); }
-.hud2-pill { background: rgba(255,255,255,0.04); border: 1px solid rgba(30,60,130,0.3); border-radius: 10px; }
-.hud2-pill-val { font-family: 'Space Mono', monospace; font-size: var(--text-xs); }
-.hud2-btn {
-  background: linear-gradient(160deg, rgba(16,36,80,0.9) 0%, rgba(10,22,52,0.95) 100%);
-  border: 1px solid rgba(40,80,160,0.45); border-radius: var(--radius-sm);
-  color: var(--text-dim); font-family: 'Space Mono', monospace; font-size: var(--text-xs);
-  letter-spacing: 0.04em; padding: 5px 10px; transition: all 0.15s;
-}
-.hud2-btn:hover:not(:disabled) {
-  background: linear-gradient(160deg, rgba(22,50,112,0.98) 0%, rgba(14,30,72,1) 100%);
-  border-color: rgba(70,130,240,0.6); color: var(--text-bright);
-  box-shadow: 0 0 12px rgba(30,80,200,0.2);
-}
-.hud2-btn--active { background: linear-gradient(160deg, rgba(20,100,60,0.85) 0%, rgba(10,60,36,0.9) 100%); border-color: rgba(40,180,120,0.5); color: #80ffcc; }
-.hud2-btn--warn  { background: linear-gradient(160deg, rgba(120,70,10,0.85) 0%, rgba(80,44,6,0.9) 100%); border-color: rgba(220,150,30,0.5); color: #ffd070; }
+/* HUD styles consolidated below at authoritative block */
 
 /* ── Side / fish panel ─────────────────────────────────────── */
 .side-col { border-left: 1px solid rgba(20,50,120,0.5); background: linear-gradient(180deg, rgba(7,15,34,0.98) 0%, rgba(5,12,28,1) 100%); }
@@ -5330,26 +5302,45 @@ button:active, .btn:active, .action-btn:active {
 
 .hud2 {
   display: flex;
-  align-items: center;
-  gap: 0;
-  height: 52px;
-  padding: 0 14px;
+  flex-direction: column;
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
-
-  /* Glassmorphism base */
   background:
     linear-gradient(180deg,
       rgba(20, 40, 72, 0.97) 0%,
       rgba(12, 26, 52, 0.99) 100%
     );
   border-bottom: 1px solid rgba(80, 130, 210, 0.22);
-
-  /* Subtle top highlight line */
   box-shadow:
     inset 0 1px 0 rgba(140, 190, 255, 0.10),
     0 2px 12px rgba(0, 0, 0, 0.40);
+}
+
+/* ── Two-row layout ── */
+.hud2-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0 14px;
+}
+.hud2-row--top {
+  height: 44px;
+  border-bottom: 1px solid rgba(80, 130, 210, 0.12);
+}
+.hud2-row--bottom {
+  height: 36px;
+  background: rgba(0, 0, 0, 0.12);
+}
+.hud2-spacer {
+  flex: 1;
+}
+.hud2-divider--v {
+  width: 1px;
+  height: 22px;
+  background: linear-gradient(to bottom, transparent, rgba(80,130,210,0.30) 30%, rgba(80,130,210,0.30) 70%, transparent);
+  flex-shrink: 0;
+  margin: 0 10px;
 }
 
 /* Shimmer scan line across the whole bar */
@@ -5392,18 +5383,7 @@ button:active, .btn:active, .action-btn:active {
 }
 
 /* ── Dividers ── */
-.hud2-divider {
-  width: 1px;
-  height: 28px;
-  background: linear-gradient(to bottom,
-    transparent,
-    rgba(80, 130, 210, 0.30) 30%,
-    rgba(80, 130, 210, 0.30) 70%,
-    transparent
-  );
-  flex-shrink: 0;
-  margin: 0 12px;
-}
+/* .hud2-divider moved to .hud2-divider--v above */
 
 /* ── Coin display ── */
 .hud2-coin {
@@ -5460,8 +5440,10 @@ button:active, .btn:active, .action-btn:active {
 .hud2-pills {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   flex-shrink: 0;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 .hud2-pill {
   display: flex;
@@ -5501,9 +5483,9 @@ button:active, .btn:active, .action-btn:active {
 .hud2-bars {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
   flex-shrink: 0;
-  min-width: 100px;
+  min-width: 110px;
 }
 
 .hud2-happy {
@@ -6040,7 +6022,7 @@ button:active, .btn:active, .action-btn:active {
     max-height: 55vh;
   }
 
-  /* Tab bar: icon-only, fixed size, horizontal scroll */
+  /* Tab bar: scrollable, icon-only on tablet */
   .tab-bar {
     overflow-x: auto;
     overflow-y: hidden;
@@ -6049,17 +6031,12 @@ button:active, .btn:active, .action-btn:active {
   .tab-bar::-webkit-scrollbar { display: none; }
   .tab-btn {
     flex: 0 0 auto;
-    padding: 8px 14px;
-    min-width: 48px;
+    padding: 8px 10px;
+    min-width: 44px;
   }
   .tab-btn-label { display: none; }
-  .tab-btn-icon  { font-size: 20px; }
+  .tab-btn-icon  { font-size: 18px; }
   .tab-dot       { top: 2px; right: 2px; }
-
-  /* HUD — hide secondary bars to save space */
-  .hud2-bars, .hud2-rep { display: none; }
-  .hud2-divider:nth-child(8),
-  .hud2-divider:nth-child(9) { display: none; }
 
   /* Tank tabs scrollable */
   .tank-tab-name { max-width: 60px; font-size: var(--text-xs); }
@@ -6111,9 +6088,7 @@ button:active, .btn:active, .action-btn:active {
   .fdex-grid { grid-template-columns: repeat(2, 1fr) !important; }
   .fdex-card { width: auto; }
 
-  /* HUD pill values — show only coin & fish count */
-  .hud2-pill:not(:first-child):not(:nth-child(3)) { display: none; }
-  .hud2-divider:not(:first-child) { display: none; }
+  /* pills all visible — tab bar scrolls instead */
 
   /* Side panel full height */
   .side-col { max-height: 60vh; }

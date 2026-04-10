@@ -66,7 +66,6 @@ export default function App() {
 
   const handleTabChange = useCallback((tab) => {
     setActiveTab(tab);
-    setShowMoreDrawer(false);
     if (tab === 'fishdex') {
       setGame(prev => ({
         ...prev,
@@ -87,28 +86,22 @@ export default function App() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps — setGame is stable
 
-  const [showMoreDrawer, setShowMoreDrawer] = useState(false);
   const tabBarRef = useRef(null);
 
-  const PRIMARY_TAB_LIST = [
+  // All 9 tabs are first-class — no More drawer
+  const TAB_LIST = [
     ['tank',       '🐠', 'Tank'],
     ['shop',       '🏪', 'Shop'],
     ['breed',      '🧬', 'Breed'],
     ['challenges', '🎯', 'Goals'],
+    ['fishdex',    '📖', 'Fishdex'],
+    ['magic',      '🔮', 'Magic'],
+    ['decor',      '🎨', 'Decor'],
+    ['autopsy',    '🔬', 'Autopsy'],
+    ['achieve',    '🏆', 'Awards'],
   ];
-  const SECONDARY_TAB_LIST = [
-    ['fishdex',  '📖', 'Fishdex'],
-    ['magic',    '🔮', 'Magic'],
-    ['decor',    '🎨', 'Decor'],
-    ['autopsy',  '🔬', 'Autopsy'],
-    ['achieve',  '🏆', 'Awards'],
-  ];
-  // Keep TAB_LIST for content rendering (all 9 tabs)
-  const TAB_LIST = [...PRIMARY_TAB_LIST, ...SECONDARY_TAB_LIST];
-  const isSecondaryActive = SECONDARY_TAB_LIST.some(([t]) => t === activeTab);
-  // Pill: positions 0–3 for primary tabs, position 4 for "More" (when secondary active)
-  const pillIdx = isSecondaryActive ? 4 : PRIMARY_TAB_LIST.findIndex(([t]) => t === activeTab);
-  const VISIBLE_TAB_COUNT = 5; // 4 primary + More
+  const VISIBLE_TAB_COUNT = TAB_LIST.length;
+  const pillIdx = TAB_LIST.findIndex(([t]) => t === activeTab);
 
   // Badge counts — hoisted here so they are computed once per render,
   // not once per tab inside TAB_LIST.map.
@@ -175,7 +168,7 @@ export default function App() {
 
       <nav ref={tabBarRef} className="tab-bar" style={{ '--tab-count': VISIBLE_TAB_COUNT }}>
         <div className="tab-pill" style={{ '--pill-idx': pillIdx, '--pill-total': VISIBLE_TAB_COUNT }} />
-        {PRIMARY_TAB_LIST.map(([tab, icon, label]) => {
+        {TAB_LIST.map(([tab, icon, label]) => {
           let badge = null;
           if (tab === 'shop' && newShopFishCount > 0) badge = (
             <span className="tab-new-badge tab-new-badge--standalone">NEW</span>
@@ -185,11 +178,17 @@ export default function App() {
               {challengeDone}/{challengeTotal}
             </span>
           );
+          if (tab === 'fishdex' && newFishdexCount > 0) badge = (
+            <span className="tab-new-badge tab-new-badge--standalone">NEW</span>
+          );
+          if (tab === 'magic')   badge = <span className="tab-dot tab-dot--magic">{magicCount}/7</span>;
+          if (tab === 'autopsy' && autopsyCount > 0) badge = <span className="tab-dot tab-dot--warn">{autopsyCount}</span>;
+          if (tab === 'achieve' && newAchCount > 0)  badge = <span className="tab-dot tab-dot--gold">{newAchCount}</span>;
           return (
             <button
               key={tab}
               className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-              onClick={() => { handleTabChange(tab); setShowMoreDrawer(false); }}
+              onClick={() => handleTabChange(tab)}
             >
               <span className="tab-btn-icon">{icon}</span>
               <span className="tab-btn-label">{label}</span>
@@ -197,58 +196,6 @@ export default function App() {
             </button>
           );
         })}
-        {/* ⋯ More — collapses 5 secondary tabs */}
-        <div className="tab-btn--more-wrapper">
-          <button
-            className={`tab-btn tab-btn--more ${isSecondaryActive ? 'active' : ''} ${showMoreDrawer ? 'tab-btn--more-open' : ''}`}
-            onClick={() => setShowMoreDrawer(v => !v)}
-          >
-            <span className="tab-btn-icon">{isSecondaryActive ? TAB_LIST.find(([t]) => t === activeTab)?.[1] : '⋯'}</span>
-            <span className="tab-btn-label">{isSecondaryActive ? TAB_LIST.find(([t]) => t === activeTab)?.[2] : 'More'}</span>
-            {(newFishdexCount > 0 || newAchCount > 0 || autopsyCount > 0) && !isSecondaryActive && (
-              <span className="tab-dot tab-dot--warn">!</span>
-            )}
-          </button>
-
-          {showMoreDrawer && (
-            <>
-              {/* full-screen backdrop to close on outside tap */}
-              <div className="more-drawer-backdrop" onClick={() => setShowMoreDrawer(false)} />
-              <div
-                className="more-drawer"
-                style={{
-                  '--more-drawer-top': tabBarRef.current
-                    ? `${tabBarRef.current.getBoundingClientRect().bottom + 2}px`
-                    : '100px',
-                }}
-              >
-                {SECONDARY_TAB_LIST.map(([tab, icon, label]) => {
-                  let badge = null;
-                  if (tab === 'fishdex') badge = (
-                    <span className="tab-dot">
-                      {fishdexCount}
-                      {newFishdexCount > 0 && <span className="tab-new-badge">NEW</span>}
-                    </span>
-                  );
-                  if (tab === 'magic')   badge = <span className="tab-dot tab-dot--magic">{magicCount}/7</span>;
-                  if (tab === 'autopsy' && autopsyCount > 0) badge = <span className="tab-dot tab-dot--warn">{autopsyCount}</span>;
-                  if (tab === 'achieve' && newAchCount > 0)  badge = <span className="tab-dot tab-dot--gold">{newAchCount}</span>;
-                  return (
-                    <button
-                      key={tab}
-                      className={`more-drawer-item ${activeTab === tab ? 'active' : ''}`}
-                      onClick={() => { handleTabChange(tab); setShowMoreDrawer(false); }}
-                    >
-                      <span className="more-drawer-icon">{icon}</span>
-                      <span className="more-drawer-label">{label}</span>
-                      {badge}
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </div>
       </nav>
 
       <main className="main-layout">
