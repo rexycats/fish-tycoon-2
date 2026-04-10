@@ -66,6 +66,7 @@ export default function App() {
 
   const handleTabChange = useCallback((tab) => {
     setActiveTab(tab);
+    setShowMoreDrawer(false);
     if (tab === 'fishdex') {
       setGame(prev => ({
         ...prev,
@@ -259,7 +260,7 @@ export default function App() {
                   <div className="aquarium-overview-title">🌊 Aquarium Overview</div>
                   <div className="overview-unlock-cta">
                     <span>🔓 Unlock a second tank to manage multiple habitats</span>
-                    <button className="btn btn-sm" onClick={() => setActiveTab('shop')}>Tank Expansion →</button>
+                    <button className="btn btn-sm" onClick={() => handleTabChange('shop')}>Tank Expansion →</button>
                   </div>
                 </div>
             }
@@ -295,6 +296,7 @@ export default function App() {
                 })()}
                 tanks={game.tanks}
                 onMoveFish={moveFishToTank}
+                onNavigate={handleTabChange}
               />
               <LogPanel log={game.log} />
             </div>
@@ -313,6 +315,7 @@ export default function App() {
             onBuySupply={(k, c, a) => buySupply(k, c, a, activeTank?.id)}
             onBuyFish={buyFish}
             onBuyRareItem={buyRareMarketItem}
+            onNavigate={handleTabChange}
           />
         )}
         {activeTab === 'breed' && (
@@ -322,6 +325,7 @@ export default function App() {
             onSelectForBreeding={selectForBreeding}
             onCollectEgg={collectEgg}
             onCancelBreeding={cancelBreeding}
+            onNavigate={handleTabChange}
           />
         )}
         {activeTab === 'fishdex' && (
@@ -331,10 +335,11 @@ export default function App() {
             generatingLoreFor={generatingLoreFor}
             aiError={aiError}
             onClearAiError={() => setAiError(null)}
+            legendFishUnlocked={!!game.player.legendFishUnlocked}
           />
         )}
         {activeTab === 'achieve' && (
-          <Achievements achievements={game.player.achievements || []} player={game.player} />
+          <Achievements achievements={game.player.achievements || []} player={game.player} onNavigate={handleTabChange} />
         )}
         {activeTab === 'magic' && (
           <MagicFishPanel magicFishFound={game.player.magicFishFound || []} />
@@ -370,6 +375,7 @@ export default function App() {
         <MagicWinModal
           totalReward={MAGIC_FISH.reduce((s, m) => s + m.reward, 0)}
           onDismiss={() => setShowWinModal(false)}
+          onNavigate={handleTabChange}
         />
       )}
 
@@ -613,7 +619,7 @@ function ResetConfirmModal({ onConfirm, onCancel }) {
 }
 
 // ── Magic Fish Win Modal ──────────────────────────────────────
-function MagicWinModal({ totalReward, onDismiss }) {
+function MagicWinModal({ totalReward, onDismiss, onNavigate }) {
   return (
     <div className="win-modal-overlay" onClick={onDismiss}>
       <div className="win-modal" onClick={e => e.stopPropagation()}>
@@ -632,11 +638,17 @@ function MagicWinModal({ totalReward, onDismiss }) {
         </p>
         <div className="win-modal-reward">Total reward collected: <strong>🪙 {totalReward.toLocaleString()}</strong></div>
         <div className="win-modal-unlocks">
-          <div className="win-unlock-item">🎨 <strong>Legend Throne</strong> decoration unlocked — check your Decor tab!</div>
+          <div className="win-unlock-item">
+            🎨 <strong>Legend Throne</strong> decoration unlocked —{' '}
+            <button className="btn btn-sm" onClick={() => { onDismiss(); onNavigate('decor'); }}>
+              Open Decor tab
+            </button>
+          </div>
           <div className="win-unlock-item">🐉 <strong>Legend Fish</strong> species unlocked in the Fishdex!</div>
           <div className="win-unlock-item">🏆 <strong>+🪙500</strong> achievement bonus awarded!</div>
         </div>
         <div className="win-modal-actions">
+          <button className="btn btn-sm" onClick={() => { onDismiss(); onNavigate('magic'); }}>🔮 View Magic Fish</button>
           <button className="btn btn-primary win-continue-btn" onClick={onDismiss}>✨ Continue Playing</button>
         </div>
         <div className="win-modal-hint">The ocean has more secrets. Keep breeding.</div>

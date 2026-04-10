@@ -15,7 +15,7 @@ const ACHIEVEMENT_DECOR_REWARDS = {
   magic_7:     'legend_throne',
 };
 
-function AchievementCard({ def, unlock }) {
+function AchievementCard({ def, unlock, onNavigate }) {
   const earned   = !!unlock;
   const isSecret = def.secret && !earned;
   const decorId  = ACHIEVEMENT_DECOR_REWARDS[def.id];
@@ -39,9 +39,19 @@ function AchievementCard({ def, unlock }) {
               +🪙{def.tier === 'common' ? 25 : def.tier === 'rare' ? 100 : 500}
             </span>
             {decor && (
-              <span className="ach-decor-badge" title={decor.desc}>
-                🎨 {decor.label}
-              </span>
+              earned && onNavigate ? (
+                <button
+                  className="ach-decor-badge ach-decor-badge--btn"
+                  title={`${decor.desc} — click to open Decor tab`}
+                  onClick={() => onNavigate('decor')}
+                >
+                  🎨 {decor.label} →
+                </button>
+              ) : (
+                <span className="ach-decor-badge" title={decor.desc}>
+                  🎨 {decor.label}
+                </span>
+              )
             )}
             {isLegend && (
               <span className="ach-legend-badge" title="Unlocks the Legend Fish species in the Fishdex">
@@ -63,7 +73,7 @@ function AchievementCard({ def, unlock }) {
   );
 }
 
-export default function Achievements({ achievements, player }) {
+export default function Achievements({ achievements, player, onNavigate }) {
   const earned = useMemo(
     () => Object.fromEntries((achievements || []).map(a => [a.id, a])),
     [achievements]
@@ -114,7 +124,7 @@ export default function Achievements({ achievements, player }) {
       {/* Achievement cards */}
       <div className="ach-list">
         {ACHIEVEMENT_DEFS.map(def => (
-          <AchievementCard key={def.id} def={def} unlock={earned[def.id]} />
+          <AchievementCard key={def.id} def={def} unlock={earned[def.id]} onNavigate={onNavigate} />
         ))}
       </div>
     </div>

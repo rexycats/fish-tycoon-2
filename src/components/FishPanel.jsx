@@ -3,7 +3,7 @@ import FishSprite from './FishSprite.jsx';
 import { RARITY, GENES } from '../data/genetics.js';
 import { DISEASES } from '../systems/gameTick.js';
 
-function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicineStock, foodStock = 0, tanks = [], onMoveFish, isFirstRun }) {
+function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicineStock, foodStock = 0, tanks = [], onMoveFish, isFirstRun, onNavigate }) {
   const prevFishId = useRef(null);
   const [entering, setEntering] = useState(false);
   const [showGenetics, setShowGenetics] = useState(false);
@@ -34,6 +34,15 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, coins, medicine
               <p className="fish-panel-onboarding-step">📈 Juveniles grow into adults over time</p>
               <p className="fish-panel-onboarding-step">💰 Sell adults in the Shop to earn coins</p>
               <p className="fish-panel-onboarding-step">⬆️ Use coins to upgrade your aquarium</p>
+              {onNavigate && (
+                <button
+                  className="btn btn-sm btn-primary"
+                  style={{ marginTop: 10, width: '100%' }}
+                  onClick={() => onNavigate('shop')}
+                >
+                  🏪 Open Shop →
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -280,5 +289,6 @@ export default memo(FishPanel, (prev, next) =>
   prev.foodStock       === next.foodStock        &&
   prev.medicineStock   === next.medicineStock    &&
   prev.tanks           === next.tanks            &&
-  prev.isFirstRun      === next.isFirstRun
+  prev.isFirstRun      === next.isFirstRun       &&
+  prev.onNavigate      === next.onNavigate
 );

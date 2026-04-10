@@ -48,6 +48,23 @@ function FishdexCard({ entry, onClick, isSelected }) {
   const isHighRarity = entry.rarity === 'legendary' || entry.rarity === 'epic';
   const ph = entry.phenotype || {};
   const hasProceduralPhenotype = !isRealSpecies && ph.bodyShape && ph.primaryColor;
+
+  // Locked Legend Fish — special locked card
+  if (entry._isLegendLocked) {
+    return (
+      <div className="fdex-card fdex-card--legendary fdex-card--legend-locked"
+           style={{ '--rarity-color': rarityColor }}>
+        <div className="fdex-card-ring" style={{ borderColor: rarityColor }} />
+        <div className="fdex-card-sprite" style={{ fontSize: '2rem', opacity: 0.25 }}>🐉</div>
+        <div className="fdex-card-name" style={{ color: rarityColor, opacity: 0.5 }}>???</div>
+        <div className="fdex-card-rarity" style={{ color: rarityColor, opacity: 0.4 }}>legendary</div>
+        <div style={{ fontSize: '10px', color: 'rgba(160,200,255,0.4)', textAlign: 'center', marginTop: 2, lineHeight: 1.4 }}>
+          🔮 Discover all 7 Magic Fish to unlock
+        </div>
+      </div>
+    );
+  }
+
   const mockFish = isRealSpecies ? {
     id: `fdex-${entry.speciesKey}`,
     stage: 'adult',
@@ -257,13 +274,24 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
 }
 
 // ── Main Fishdex ───────────────────────────────────────────
-export default function Fishdex({ fishdex, onGenerateLore, generatingLoreFor, aiError, onClearAiError }) {
+export default function Fishdex({ fishdex, onGenerateLore, generatingLoreFor, aiError, onClearAiError, legendFishUnlocked }) {
   const [selected, setSelected]   = useState(null);
   const [search, setSearch]       = useState('');
   const [filterRarity, setFilterRarity] = useState('all');
   const [sortBy, setSortBy]       = useState('date');
 
   const rarities = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'];
+
+  const LEGEND_FISH_ENTRY = {
+    name: 'The Leviathan',
+    rarity: 'legendary',
+    basePrice: 9999,
+    phenotype: { bodyShape: 'Eel', primaryColor: 'Violet', glow: 'Ultraviolet', mutation: 'Melanistic' },
+    firstDiscoveredAt: 0,
+    aiName: null, aiLore: null,
+    _isLegendLocked: !legendFishUnlocked,
+    _isLegend: true,
+  };
 
   const filtered = useMemo(() => {
     let list = [...(fishdex || [])];
@@ -280,8 +308,12 @@ export default function Fishdex({ fishdex, onGenerateLore, generatingLoreFor, ai
     if (sortBy === 'rarity') list.sort((a, b) => (['common','uncommon','rare','epic','legendary'].indexOf(b.rarity)) - (['common','uncommon','rare','epic','legendary'].indexOf(a.rarity)));
     if (sortBy === 'price')  list.sort((a, b) => b.basePrice - a.basePrice);
     if (sortBy === 'date')   list.sort((a, b) => (b.firstDiscoveredAt || 0) - (a.firstDiscoveredAt || 0));
+    // Always append the Legend Fish entry at the end (locked or unlocked)
+    if (filterRarity === 'all' || filterRarity === 'legendary') {
+      if (!list.some(e => e._isLegend)) list.push(LEGEND_FISH_ENTRY);
+    }
     return list;
-  }, [fishdex, search, filterRarity, sortBy]);
+  }, [fishdex, search, filterRarity, sortBy, legendFishUnlocked]);
 
   const selectedEntry = selected ? fishdex.find(e => e.name === selected) : null;
   const isGenerating = generatingLoreFor === selected;

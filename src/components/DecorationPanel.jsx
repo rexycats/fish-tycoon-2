@@ -3,7 +3,7 @@
 // Buy, place, move and remove tank decorations
 // ============================================================
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { DECOR_CATALOG, DECOR_CATEGORIES, getDecorById, TANK_THEMES, getThemeById } from '../data/decorations.js';
 
 const CAT_ORDER = ['substrate', 'plant', 'rock', 'coral', 'structure', 'special'];
@@ -218,18 +218,19 @@ export default function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceD
 
   const handlePlace = (type, x, y, scale) => {
     onPlaceDecor(activeTank.id, type, x, y, scale);
-    // Keep placing mode on for same item (place multiple)
-    // Shift to null after placing substrate (only one usually needed)
     const decor = getDecorById(type);
     if (decor?.category === 'substrate') setSelectedDecorType(null);
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Escape') setSelectedDecorType(null);
-  };
+  // ESC cancels placing mode from anywhere on the page — not just when the panel div is focused
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') setSelectedDecorType(null); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
 
   return (
-    <div className="decor-panel" tabIndex={0} onKeyDown={handleKeyDown}>
+    <div className="decor-panel">
       <div className="decor-header">
         <h2>🎨 Tank Decorations</h2>
         {activeTank && (

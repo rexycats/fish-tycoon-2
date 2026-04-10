@@ -116,9 +116,13 @@ function maybeSpreadDisease(tankFish, wq, capacity) {
 }
 
 // ── Process one tank's fish for one tick ───────────────────
-function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0) {
-  // tankFish is pre-filtered to this tank's fish by the caller — no filter needed here
+function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, playerBoosts = {}) {
   const bonuses  = getTankBonuses(tank.type);
+
+  // Active boost multipliers (boosts store expiry timestamps)
+  const boostActive = (key) => (playerBoosts[key] || 0) > now;
+  const growBoost      = boostActive('growSpeed')     ? 0.5  : 1.0; // 0.5 = 50% faster
+  const regenBoost     = boostActive('healthRegen')   ? 3.0  : 1.0;
 
   const wq        = Math.max(0, tank.waterQuality - WATER_DECAY_RATE * 1); // per-tick decay (1 tick = 1 second)
   const temp      = tank.temperature ?? 74;
@@ -173,7 +177,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0) {
       if (autoFeedUsed) f.hunger = Math.max(0, (f.hunger || 0) - 35);
       f.hunger = Math.min(100, (f.hunger || 0) + HUNGER_RATE);
 
-      const regen = HEALTH_REGEN * (bonuses.healthRegenMult || 1);
+      const regen = HEALTH_REGEN * (bonuses.healthRegenMult || 1) * regenBoost;
 
       // Additive damage — all active stressors compound, capped at 0.25/tick
       let dmg = 0;
@@ -195,8 +199,8 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0) {
     // Growth stage progression
     const stageDuration  = GROWTH_STAGES[f.stage]?.durationMs ?? Infinity;
     const timeInStage    = now - f.stageStartedAt;
-    const hatcheryMult   = 1 - hatcheryLevel * 0.15;           // -15 / -30 / -45% grow time
-    const growMult       = (bonuses.growSpeedMult || 1) * hatcheryMult;
+    const hatcheryMult   = 1 - hatcheryLevel * 0.15;
+    const growMult       = (bonuses.growSpeedMult || 1) * hatcheryMult * growBoost;
 
     if (f.stage === 'egg' && timeInStage >= stageDuration * growMult) {
       f.stage = 'juvenile'; f.stageStartedAt = now;
@@ -386,7 +390,7 @@ export function processTick(state) {
 
   for (const tank of next.tanks) {
     const tankFishList = fishByTank.get(tank.id) || [];
-    const { updatedTank, updatedTankFish } = processOneTank(tank, tankFishList, messages, now, hatcheryLevel);
+    const { updatedTank, updatedTankFish } = processOneTank(tank, tankFishList, messages, now, hatcheryLevel, next.player?.boosts);
     updatedTanks.push(updatedTank);
     for (const f of updatedTankFish) fishById.set(f.id, f);
   }
@@ -510,10 +514,11 @@ export function processTick(state) {
       tip += Math.floor((tank.happiness / 100) * decorMult * PASSIVE_INCOME_BASE);
     }
     if (tip > 0) {
-      next = { ...next, player: { ...next.player, coins: next.player.coins + tip, totalCoinsEarned: (next.player.totalCoinsEarned || 0) + tip } };
-      messages.push(`💰 Visitors left a ${tip}-coin tip!`);
-      // Passive tips count toward the daily earn coins challenge alongside sales.
-      next = updateChallengeProgress(next, 'earn_coins', { amount: tip });
+      const incomeBoost = (next.player?.boosts?.passiveIncome || 0) > now ? 2.0 : 1.0;
+      const boostedTip  = Math.round(tip * incomeBoost);
+      next = { ...next, player: { ...next.player, coins: next.player.coins + boostedTip, totalCoinsEarned: (next.player.totalCoinsEarned || 0) + boostedTip } };
+      messages.push(`💰 Visitors left a ${boostedTip}-coin tip!${incomeBoost > 1 ? ' (High Tide ×2!)' : ''}`);
+      next = updateChallengeProgress(next, 'earn_coins', { amount: boostedTip });
     }
     next = { ...next, passiveTick: 0 };
   } else {
@@ -665,7 +670,8 @@ function processCustomerVisit(state, messages) {
     priceNote = ` (bargain price!)`;
   }
 
-  const earnedCoins = Math.max(1, finalPrice);
+  const salePriceBoost = (state.player?.boosts?.salePrice || 0) > Date.now() ? 1.25 : 1.0;
+  const earnedCoins = Math.max(1, Math.round(finalPrice * salePriceBoost));
   const repGain     = Math.ceil((fish.species?.rarityScore ?? 5) / 10) + (askPrice > autoPrice ? 1 : 0);
 
   messages.push(`${customer.emoji} ${customer.name} bought your ${fish.species?.name || 'fish'} for 🪙${earnedCoins}${priceNote}!`);

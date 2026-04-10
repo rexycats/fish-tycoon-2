@@ -360,7 +360,8 @@ export function useEconomy(game, setGame, activeTankId, setSelectedFishId, setAc
       }
       if (item.type === 'booster') {
         const boosts = { ...(next.player.boosts || {}) };
-        boosts[item.boost] = (boosts[item.boost] || 0) + 1;
+        const expiresAt = Math.max(boosts[item.boost] || 0, Date.now()) + (item.boostDurationMs || 600_000);
+        boosts[item.boost] = expiresAt;
         next = { ...next, player: { ...next.player, boosts } };
       }
       playCoin();

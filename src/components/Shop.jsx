@@ -248,7 +248,7 @@ function useDebounced(fn, delayMs) {
   }, [fn]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuySupply, onBuyFish, onBuyRareItem }) {
+function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuySupply, onBuyFish, onBuyRareItem, onNavigate }) {
   // Debounce +/− button clicks so rapid clicking doesn't fire dozens of setGame
   // calls per second. PriceInput text entry still commits on every valid keystroke
   // (intentional — felt snappy in testing), but button presses are batched.
@@ -507,7 +507,14 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
               );
             })}
             {availableFish.length === 0 && (
-              <div className="fish-list-empty">No adult fish available to list.</div>
+              <div className="fish-list-empty">
+                No adult fish available to list.
+                {onNavigate && (
+                  <button className="btn btn-sm" style={{ marginTop: '8px', display: 'block' }} onClick={() => onNavigate('tank')}>
+                    🐠 View Tank
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -583,7 +590,12 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
         <div className="history-panel">
           <div className="section-title">Recent Sales</div>
           {(shop.salesHistory || []).length === 0 ? (
-            <p className="fish-list-empty">No sales yet. List some fish!</p>
+            <p className="fish-list-empty">
+              No sales yet.{' '}
+              <button className="btn btn-sm" style={{ marginTop: '6px', display: 'inline-block' }} onClick={() => setShopTab('sell')}>
+                List some fish →
+              </button>
+            </p>
           ) : (
             <div className="sales-list">
               {(shop.salesHistory || []).map((evt) => (

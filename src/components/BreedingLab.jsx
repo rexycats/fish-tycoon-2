@@ -108,13 +108,18 @@ function BreedFishRow({ fish, inSlot, onSelect, onDragStart }) {
         {fish.phenotype.glow !== 'Normal' ? ` · ${fish.phenotype.glow}` : ''}
         {fish.phenotype.mutation !== 'None' ? ` · ${fish.phenotype.mutation}` : ''}
       </div>
-      <button className="btn btn-sm">{inSlot ? '✓ Selected' : 'Select'}</button>
+      <button
+        className={`btn btn-sm${inSlot ? ' btn-warn' : ''}`}
+        onClick={e => { e.stopPropagation(); onSelect(fish.id); }}
+      >
+        {inSlot ? '✕ Remove' : 'Select'}
+      </button>
     </div>
   );
 }
 
 // ── Main component ─────────────────────────────────────────
-export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, onCollectEgg, onCancelBreeding }) {
+export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, onCollectEgg, onCancelBreeding, onNavigate }) {
   const slots = breedingTank?.slots || [null, null];
   const hasThirdSlot = slots.length >= 3;
   const fishA = (fish || []).find(f => f.id === slots[0]);
@@ -258,7 +263,14 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
             />
           ))}
           {availableFish.length === 0 && (
-            <div className="breed-no-fish">No adult fish available. Wait for juveniles to grow!</div>
+            <div className="breed-no-fish">
+              No adult fish available. Wait for juveniles to grow!
+              {onNavigate && (
+                <button className="btn btn-sm" style={{ marginTop: '8px', display: 'block' }} onClick={() => onNavigate('tank')}>
+                  🐠 View Tank
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
