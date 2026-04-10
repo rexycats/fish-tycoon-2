@@ -230,8 +230,8 @@ function PriceInput({ value, max, onCommit }) {
 
 // Bug 8: these were declared inside Shop() and re-created on every render.
 // Hoisting to module scope makes them true constants — zero allocation cost.
-const PRIMARY_TABS   = ['sell', 'fish', 'upgrades', 'supplies'];
-const SECONDARY_TABS = ['market', 'history'];
+const PRIMARY_TABS   = ['sell', 'fish', 'upgrades', 'supplies', 'market'];
+const SECONDARY_TABS = ['history'];
 const TAB_LABELS = {
   sell: '📋 Listings', fish: '🐠 Buy Fish', upgrades: '⬆️ Upgrades',
   supplies: '🛒 Supplies', market: '🌟 Market', history: '📜 Sales Log',

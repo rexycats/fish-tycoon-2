@@ -288,15 +288,47 @@ export const useGameStore = create(
           addLogDraft(state, `⬆️ Upgraded ${upg.label} to level ${upg.level}!`);
         }),
 
-        buyRareMarketItem: (itemId, cost) => set(state => {
-          if (state.player.coins < cost) {
+        buyRareMarketItem: (item, tankId) => set(state => {
+          if (!item || state.player.coins < item.cost) {
             playWarning();
             return;
           }
-          state.player.coins -= cost;
+          const today = Math.floor(Date.now() / 86_400_000);
+          const purchased = (state.rareMarket.purchased || []).filter(p => p.day === today);
+          const boughtCount = purchased.filter(p => p.itemId === item.id).length;
+          if (boughtCount >= (item.limit || 1)) {
+            playWarning();
+            return;
+          }
+
+          state.player.coins -= item.cost;
           if (!state.rareMarket.purchased) state.rareMarket.purchased = [];
-          state.rareMarket.purchased.push({ day: state.rareMarket.lastRefreshDay, itemId });
+          state.rareMarket.purchased.push({ day: today, itemId: item.id });
+
+          // Apply supplies to the active tank
+          if (item.supplies) {
+            const tank = state.tanks.find(t => t.id === tankId) || state.tanks[0];
+            if (tank) {
+              for (const [key, amount] of Object.entries(item.supplies)) {
+                tank.supplies[key] = (tank.supplies[key] || 0) + amount;
+              }
+            }
+          }
+
+          // Apply instant water restore
+          if (item.restoreWater) {
+            const tank = state.tanks.find(t => t.id === tankId) || state.tanks[0];
+            if (tank) tank.waterQuality = 100;
+          }
+
+          // Apply timed boosts
+          if (item.boost && item.boostDurationMs) {
+            if (!state.player.boosts) state.player.boosts = {};
+            state.player.boosts[item.boost] = Date.now() + item.boostDurationMs;
+          }
+
           playCoin();
+          addLogDraft(state, `🌟 Purchased ${item.label} from the Rare Market!`);
         }),
 
         buyDecoration: (decorId, tankId) => set(state => {
