@@ -28,7 +28,10 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm install
+
+      - name: Fix permissions
+        run: chmod -R +x node_modules/.bin node_modules/@esbuild/*/bin/* 2>/dev/null || true
 
       - name: Build
         run: npm run build
