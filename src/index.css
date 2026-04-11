@@ -11562,3 +11562,951 @@ h1, h2, h3, .section-title, .goals-section-title, .campaign-chapter-name {
   padding: 0.5rem;
   box-sizing: border-box;
 }
+/* ═══════════════════════════════════════════════════════════
+   FISH TYCOON 2 — CARTOONY POLISH OVERRIDES
+   Prepended to index.css for maximum cascade priority
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Palette: warm, saturated, friendly ─────────────── */
+  --ocean-deep:    #0b1630;
+  --ocean-mid:     #102040;
+  --ocean-surface: #163058;
+  --ocean-light:   #1e4478;
+  --water-blue:    #2680cc;
+  --teal:          #10a8a8;
+  --foam:          #80d8ff;
+  --gold:          #ffcc33;
+  --gold-light:    #ffe066;
+  --gold-dim:      rgba(255,204,51,0.18);
+  --crimson:       #ff5555;
+  --green:         #44dd99;
+  --text-primary:  #e8e0d0;
+  --text-bright:   #fff8ec;
+  --text-dim:      #a0b8d8;
+  --text-muted:    #6888aa;
+  --panel-bg:      rgba(12,22,48,0.94);
+  --panel-border:  rgba(60,110,200,0.35);
+  --panel-glow:    rgba(100,180,255,0.08);
+  --accent:        #ffcc33;
+  --accent-2:      #44ccff;
+  --radius:        16px;
+  --radius-sm:     10px;
+  --radius-xs:     6px;
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-glow:   0 0 30px rgba(40,120,255,0.15);
+  --font-display:  'Fredoka', 'Nunito', sans-serif;
+  --font-body:     'Nunito', sans-serif;
+  --font-mono:     'Space Mono', monospace;
+  --bounce:        cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:      cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Base ─────────────────────────────────────────────── */
+* { font-family: var(--font-body); }
+
+body {
+  background:
+    radial-gradient(ellipse 130% 70% at 50% -10%, rgba(20,60,140,0.5) 0%, transparent 65%),
+    radial-gradient(ellipse 90% 50% at 85% 105%, rgba(10,80,160,0.3) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 10% 90%, rgba(60,20,100,0.15) 0%, transparent 50%),
+    #0b1630 !important;
+  color: var(--text-primary) !important;
+}
+
+.app {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ── Typography ───────────────────────────────────────── */
+h1, h2, h3, .section-title, .goals-section-title,
+.campaign-chapter-name, .fdex-title-row h2, .ach-panel h2,
+.stats-title, .magic-title, .fish-show-title, .catch-title,
+.autopsy-title, .breeding-lab h2 {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+}
+
+.section-title, h2 {
+  font-family: var(--font-display) !important;
+  color: var(--gold) !important;
+  text-shadow: 0 2px 12px rgba(255,204,51,0.2) !important;
+}
+
+/* ── Buttons — bubbly, bouncy ─────────────────────────── */
+.btn, button.btn {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  font-size: 0.78rem !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  border-radius: 24px !important;
+  border: 2px solid rgba(80,140,255,0.4) !important;
+  background: linear-gradient(170deg, #1a3a78 0%, #0f2050 100%) !important;
+  color: #c8dcff !important;
+  padding: 7px 18px !important;
+  box-shadow:
+    0 3px 0 rgba(0,0,0,0.3),
+    0 6px 16px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.12) !important;
+  transition: all 0.2s var(--bounce) !important;
+  cursor: pointer;
+}
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.03) !important;
+  box-shadow:
+    0 5px 0 rgba(0,0,0,0.25),
+    0 10px 24px rgba(0,0,0,0.3),
+    0 0 20px rgba(60,140,255,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.15) !important;
+  border-color: rgba(100,170,255,0.6) !important;
+  background: linear-gradient(170deg, #2050a0 0%, #183068 100%) !important;
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98) !important;
+  box-shadow:
+    0 1px 0 rgba(0,0,0,0.3),
+    0 2px 4px rgba(0,0,0,0.2),
+    inset 0 2px 4px rgba(0,0,0,0.3) !important;
+}
+.btn-primary {
+  background: linear-gradient(170deg, #2878e0 0%, #1850b0 100%) !important;
+  border-color: rgba(80,180,255,0.5) !important;
+  color: #e0f0ff !important;
+  box-shadow:
+    0 3px 0 rgba(20,60,120,0.5),
+    0 6px 18px rgba(30,100,220,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.18) !important;
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(170deg, #3890ff 0%, #2068cc 100%) !important;
+  box-shadow:
+    0 5px 0 rgba(20,60,120,0.4),
+    0 10px 28px rgba(30,100,220,0.4),
+    0 0 24px rgba(60,150,255,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.2) !important;
+}
+.btn-danger {
+  background: linear-gradient(170deg, #cc3344 0%, #991a2a 100%) !important;
+  border-color: rgba(255,80,80,0.45) !important;
+  color: #ffcccc !important;
+  box-shadow: 0 3px 0 rgba(100,10,20,0.5), 0 6px 14px rgba(180,30,40,0.25), inset 0 1px 0 rgba(255,255,255,0.1) !important;
+}
+.btn-warn {
+  background: linear-gradient(170deg, #cc8800 0%, #996600 100%) !important;
+  border-color: rgba(255,180,40,0.45) !important;
+  color: #fff0cc !important;
+  box-shadow: 0 3px 0 rgba(80,50,0,0.5), 0 6px 14px rgba(180,120,20,0.25), inset 0 1px 0 rgba(255,255,255,0.1) !important;
+}
+.btn-collect {
+  background: linear-gradient(170deg, #22aa66 0%, #118844 100%) !important;
+  border-color: rgba(60,220,120,0.5) !important;
+  color: #ccffdd !important;
+  box-shadow: 0 3px 0 rgba(10,60,30,0.5), 0 6px 18px rgba(30,160,80,0.3), inset 0 1px 0 rgba(255,255,255,0.15) !important;
+  animation: collectBounce 1.2s var(--bounce) infinite !important;
+}
+@keyframes collectBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* ── Panels — soft glass cards with colored borders ────── */
+.goals-panel, .breeding-lab, .shop-panel, .fishdex-panel,
+.fish-panel, .log-panel, .ach-panel, .magic-panel,
+.stats-panel, .decor-panel, .autopsy-panel, .challenges-panel,
+.fish-show, .catch-game, .rare-market-panel {
+  background: linear-gradient(160deg, rgba(14,28,60,0.96) 0%, rgba(8,18,44,0.98) 100%) !important;
+  border: 2px solid rgba(60,120,220,0.25) !important;
+  border-radius: var(--radius) !important;
+  box-shadow:
+    0 4px 0 rgba(0,0,0,0.15),
+    0 8px 32px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(120,180,255,0.08) !important;
+  backdrop-filter: blur(16px) !important;
+  padding: 1rem !important;
+}
+
+/* ── Tab bar — rounded pills ──────────────────────────── */
+.tab-bar {
+  background: linear-gradient(180deg, rgba(10,20,48,0.98) 0%, rgba(6,14,36,0.99) 100%) !important;
+  border-top: 2px solid rgba(60,120,220,0.2) !important;
+  border-bottom: 2px solid rgba(60,120,220,0.2) !important;
+  padding: 6px 8px !important;
+  gap: 4px !important;
+}
+.tab-btn {
+  border-radius: 20px !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  border: 2px solid transparent !important;
+  padding: 5px 10px !important;
+  transition: all 0.25s var(--bounce) !important;
+}
+.tab-btn.active {
+  background: rgba(40,100,220,0.25) !important;
+  color: #80ccff !important;
+  border-color: rgba(60,140,255,0.4) !important;
+  box-shadow: 0 0 12px rgba(40,120,255,0.15) !important;
+  transform: scale(1.05);
+}
+.tab-btn:hover:not(.active) {
+  background: rgba(255,255,255,0.06) !important;
+  transform: scale(1.02);
+}
+.tab-pill {
+  background: rgba(40,100,220,0.2) !important;
+  border-radius: 20px !important;
+  border: 2px solid rgba(60,140,255,0.3) !important;
+}
+
+/* ── HUD — cleaner, rounder ───────────────────────────── */
+.hud2 {
+  background: linear-gradient(180deg, rgba(8,18,44,0.98) 0%, rgba(10,22,52,0.96) 100%) !important;
+  border-bottom: 2px solid rgba(60,120,220,0.2) !important;
+}
+.hud2-brand { gap: 6px !important; }
+.hud2-title {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  background: linear-gradient(135deg, #ffcc33, #ff9944) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+.hud2-coin {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  font-size: 1.05rem !important;
+}
+.hud2-pill {
+  border-radius: 20px !important;
+  border: 2px solid rgba(60,120,220,0.2) !important;
+  background: rgba(20,40,80,0.6) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  padding: 3px 10px !important;
+}
+.hud2-pill--alert {
+  border-color: rgba(255,80,80,0.4) !important;
+  background: rgba(100,20,20,0.3) !important;
+  animation: alertPulse 1.5s ease-in-out infinite !important;
+}
+@keyframes alertPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255,80,80,0); }
+  50% { box-shadow: 0 0 12px rgba(255,80,80,0.2); }
+}
+.hud2-btn {
+  border-radius: 20px !important;
+  border: 2px solid rgba(60,120,220,0.25) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.hud2-btn:hover {
+  transform: scale(1.06) !important;
+}
+.hud2-btn--active {
+  background: rgba(40,160,80,0.25) !important;
+  border-color: rgba(60,200,100,0.4) !important;
+}
+
+/* ── Tank tabs — bubbly pills ─────────────────────────── */
+.tank-tab-bar {
+  background: rgba(10,20,48,0.9) !important;
+  border-bottom: 2px solid rgba(60,120,220,0.15) !important;
+  padding: 6px 10px !important;
+  gap: 6px !important;
+}
+.tank-tab {
+  border-radius: 16px !important;
+  border: 2px solid rgba(60,110,200,0.2) !important;
+  padding: 5px 12px !important;
+  font-family: var(--font-display) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.tank-tab.active {
+  background: rgba(40,100,220,0.2) !important;
+  border-color: rgba(80,160,255,0.4) !important;
+  box-shadow: 0 0 16px rgba(40,120,255,0.12) !important;
+  transform: scale(1.04);
+}
+.tank-tab-name {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0 !important;
+}
+
+/* ── Fish Panel — card-style ──────────────────────────── */
+.fp-hero {
+  border-radius: var(--radius) !important;
+  border: 2px solid rgba(60,120,220,0.15) !important;
+}
+.fp-name {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+.fp-rarity-label {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  font-size: 0.7rem !important;
+}
+.fp-value-banner {
+  border-radius: 12px !important;
+  border: 2px solid rgba(255,204,51,0.2) !important;
+}
+.fp-action-btn {
+  border-radius: 16px !important;
+  border: 2px solid rgba(60,120,220,0.25) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.fp-action-btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.04) !important;
+}
+.fp-action-btn--highlight {
+  animation: highlightBounce 1.5s var(--bounce) infinite !important;
+}
+@keyframes highlightBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04) translateY(-1px); }
+}
+.fp-bar-track {
+  border-radius: 10px !important;
+  height: 10px !important;
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+.fp-bar-fill {
+  border-radius: 10px !important;
+}
+
+/* ── Shop ─────────────────────────────────────────────── */
+.shop-tabs, .shop-tab-btn {
+  font-family: var(--font-display) !important;
+}
+.shop-tab-btn {
+  border-radius: 16px !important;
+  border: 2px solid transparent !important;
+  font-weight: 600 !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.shop-tab-btn.active {
+  border-color: rgba(60,140,255,0.35) !important;
+  background: rgba(40,100,220,0.18) !important;
+}
+.upgrade-card, .supply-card {
+  border-radius: var(--radius) !important;
+  border: 2px solid rgba(60,120,220,0.18) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.upgrade-card:hover, .supply-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+  border-color: rgba(80,160,255,0.3) !important;
+}
+.upgrade-card.maxed {
+  border-color: rgba(60,200,100,0.25) !important;
+}
+.upgrade-title, .supply-name {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+.listing-card {
+  border-radius: var(--radius) !important;
+  border: 2px solid rgba(60,120,220,0.15) !important;
+}
+.listing-card.empty {
+  border-style: dashed !important;
+}
+
+/* ── Rare Market cards ────────────────────────────────── */
+.rare-market-card {
+  border-radius: var(--radius) !important;
+  border: 2px solid rgba(60,120,220,0.18) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.rare-market-card:hover {
+  transform: translateY(-3px) scale(1.01) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+}
+.rmc-deal-ribbon {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  border-radius: 0 12px 0 12px !important;
+}
+
+/* ── Goals panel sub-tabs ─────────────────────────────── */
+.goals-tab {
+  border-radius: 16px !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  border: 2px solid transparent !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.goals-tab.active {
+  border-color: rgba(60,140,255,0.35) !important;
+  background: rgba(40,100,220,0.18) !important;
+  color: #80ccff !important;
+  transform: scale(1.04);
+}
+.goals-weather {
+  border-radius: 12px !important;
+  border: 2px solid rgba(60,120,220,0.15) !important;
+}
+.goals-daily {
+  border-radius: 12px !important;
+  border: 2px solid rgba(255,204,51,0.3) !important;
+}
+.goals-streak {
+  border-radius: 12px !important;
+  font-family: var(--font-display) !important;
+}
+.goals-order {
+  border-radius: 12px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+}
+.goals-research-branch {
+  border-radius: 12px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+}
+.goals-loan-tier {
+  border-radius: 12px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+}
+.goals-bg-card {
+  border-radius: 12px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.goals-bg-card:hover {
+  transform: translateY(-2px) !important;
+}
+
+/* ── Campaign milestones ──────────────────────────────── */
+.campaign-chapter {
+  border-radius: 14px !important;
+  border: 2px solid rgba(60,120,220,0.1) !important;
+}
+.campaign-milestone {
+  border-radius: 10px !important;
+}
+.campaign-milestone.ready {
+  background: rgba(40,160,80,0.08) !important;
+  border: 1px solid rgba(60,200,100,0.15) !important;
+}
+.campaign-claim {
+  border-radius: 20px !important;
+  animation: collectBounce 1.2s var(--bounce) infinite !important;
+}
+.campaign-progress-bar, .campaign-overall-bar {
+  border-radius: 8px !important;
+  height: 10px !important;
+}
+.campaign-progress-fill, .campaign-overall-fill {
+  border-radius: 8px !important;
+}
+
+/* ── Achievements ─────────────────────────────────────── */
+.ach-card {
+  border-radius: 14px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.ach-card:hover {
+  transform: translateY(-2px) !important;
+}
+.ach-card.earned {
+  border-color: rgba(60,200,100,0.25) !important;
+}
+.ach-label {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+.ach-badge {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  border-radius: 50% !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(60,200,100,0.2) !important;
+  color: #66ee99 !important;
+}
+.ach-progress-bar-wrap {
+  border-radius: 8px !important;
+  height: 10px !important;
+}
+.ach-progress-bar-fill {
+  border-radius: 8px !important;
+}
+
+/* ── Stats panel ──────────────────────────────────────── */
+.stat-card {
+  border-radius: 14px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.stat-card:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  border-color: rgba(80,160,255,0.25) !important;
+}
+.stat-card-icon {
+  font-size: 1.6rem !important;
+}
+.stat-card-value {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  font-size: 1.3rem !important;
+}
+.stat-card-label {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+}
+
+/* ── Challenges panel ─────────────────────────────────── */
+.challenge-card {
+  border-radius: 14px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+  transition: all 0.25s var(--bounce) !important;
+}
+.challenge-card--done {
+  border-color: rgba(60,200,100,0.25) !important;
+}
+.challenge-bar-track {
+  border-radius: 8px !important;
+  height: 8px !important;
+}
+.challenge-bar-fill {
+  border-radius: 8px !important;
+}
+.challenges-title {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+.challenges-streak {
+  font-family: var(--font-display) !important;
+  border-radius: 14px !important;
+}
+
+/* ── Breeding lab ─────────────────────────────────────── */
+.breed-slot {
+  border-radius: 14px !important;
+  border: 2px dashed rgba(60,120,220,0.2) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.breed-slot.filled {
+  border-style: solid !important;
+  border-color: rgba(80,160,255,0.3) !important;
+}
+.breed-slot-name, .breed-slot-num {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+.breed-heart {
+  font-size: 1.6rem !important;
+  animation: heartBeat 1.5s ease-in-out infinite !important;
+}
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.15); }
+  50% { transform: scale(1); }
+  75% { transform: scale(1.1); }
+}
+.breed-progress-bar {
+  border-radius: 10px !important;
+  height: 12px !important;
+}
+.breed-progress-fill {
+  border-radius: 10px !important;
+}
+.breed-bay-tab {
+  border-radius: 14px !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+}
+
+/* ── Fishdex ──────────────────────────────────────────── */
+.fdex-card {
+  border-radius: 14px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.fdex-card:hover {
+  transform: translateY(-3px) scale(1.02) !important;
+}
+.fdex-card.selected {
+  border-color: rgba(255,204,51,0.4) !important;
+  box-shadow: 0 0 20px rgba(255,204,51,0.1) !important;
+}
+.fdex-card-name {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+.fdex-search {
+  border-radius: 20px !important;
+  border: 2px solid rgba(60,120,220,0.2) !important;
+  font-family: var(--font-body) !important;
+}
+.fdex-rarity-btn {
+  border-radius: 16px !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+}
+.fdex-detail {
+  border-radius: var(--radius) !important;
+  border: 2px solid rgba(60,120,220,0.15) !important;
+}
+
+/* ── Magic Fish panel ─────────────────────────────────── */
+.magic-card {
+  border-radius: 14px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.magic-card:hover {
+  transform: translateY(-2px) !important;
+}
+.magic-card-found {
+  border-color: rgba(255,204,51,0.25) !important;
+}
+.magic-card-title {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+.magic-progress-pip {
+  border-radius: 50% !important;
+}
+
+/* ── Decoration panel ─────────────────────────────────── */
+.decor-shop-card {
+  border-radius: 14px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.decor-shop-card:hover {
+  transform: translateY(-2px) !important;
+}
+.decor-theme-card {
+  border-radius: 14px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.decor-theme-card:hover {
+  transform: translateY(-2px) !important;
+}
+.decor-subtab {
+  border-radius: 16px !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+}
+
+/* ── Autopsy panel ────────────────────────────────────── */
+.autopsy-card {
+  border-radius: 14px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+}
+.autopsy-title {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+
+/* ── Fish Show & Catch of Day ─────────────────────────── */
+.fish-show-entry {
+  border-radius: 12px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.fish-show-entry.selected {
+  border-color: rgba(255,204,51,0.4) !important;
+  box-shadow: 0 0 16px rgba(255,204,51,0.1) !important;
+  transform: scale(1.02) !important;
+}
+.catch-pond {
+  border-radius: 16px !important;
+  border: 3px solid rgba(60,120,220,0.25) !important;
+}
+.catch-shadow {
+  transition: transform 0.1s var(--bounce) !important;
+  cursor: pointer !important;
+}
+.catch-shadow:hover {
+  transform: scale(1.3) !important;
+}
+
+/* ── Log panel ────────────────────────────────────────── */
+.log-panel {
+  border-radius: var(--radius) !important;
+}
+.log-panel-title {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+.log-entry {
+  font-family: var(--font-body) !important;
+  font-size: 0.78rem !important;
+  border-radius: 6px !important;
+}
+.log-filter-btn {
+  border-radius: 12px !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+}
+
+/* ── Toasts ───────────────────────────────────────────── */
+.toast {
+  border-radius: 14px !important;
+  border: 2px solid rgba(60,120,220,0.3) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+}
+
+/* ── Tooltips ─────────────────────────────────────────── */
+.fish-tooltip {
+  border-radius: 12px !important;
+  border: 2px solid rgba(60,120,220,0.25) !important;
+  font-family: var(--font-display) !important;
+}
+.fish-tooltip-name {
+  font-weight: 700 !important;
+}
+.fish-tooltip-bar {
+  border-radius: 6px !important;
+  height: 8px !important;
+}
+.fish-tooltip-fill {
+  border-radius: 6px !important;
+}
+
+/* ── Tank glass — softer ──────────────────────────────── */
+.tank-glass-shell {
+  border-radius: 18px !important;
+  border: 3px solid rgba(80,150,255,0.2) !important;
+  box-shadow:
+    0 0 30px rgba(20,80,200,0.1),
+    inset 0 0 40px rgba(20,80,200,0.05) !important;
+}
+
+/* ── Offline summary ──────────────────────────────────── */
+.offline-modal, .offline-modal-v2 {
+  border-radius: 20px !important;
+  border: 2px solid rgba(60,120,220,0.3) !important;
+}
+
+/* ── Settings modal ───────────────────────────────────── */
+.settings-modal, .win-modal, .credits-modal {
+  border-radius: 20px !important;
+  border: 2px solid rgba(60,120,220,0.25) !important;
+}
+
+/* ── Footer ───────────────────────────────────────────── */
+.app-footer {
+  font-family: var(--font-display) !important;
+  border-top: 2px solid rgba(60,120,220,0.15) !important;
+}
+
+/* ── Haggle popup ─────────────────────────────────────── */
+.haggle-popup {
+  border-radius: 20px !important;
+  border: 2px solid rgba(60,120,220,0.3) !important;
+}
+.haggle-accept, .haggle-counter, .haggle-decline {
+  border-radius: 20px !important;
+}
+
+/* ── Event popup ──────────────────────────────────────── */
+.event-popup {
+  border-radius: 16px !important;
+  border: 2px solid rgba(60,120,220,0.25) !important;
+}
+
+/* ── Rep bar ──────────────────────────────────────────── */
+.rep-bar {
+  border-radius: 8px !important;
+  height: 10px !important;
+}
+.rep-bar-fill {
+  border-radius: 8px !important;
+}
+
+/* ── Overview cards ───────────────────────────────────── */
+.overview-card {
+  border-radius: 14px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.overview-card:hover {
+  transform: translateY(-2px) !important;
+}
+.overview-card--active {
+  border-color: rgba(80,160,255,0.35) !important;
+  box-shadow: 0 0 16px rgba(40,120,255,0.1) !important;
+}
+
+/* ── Sale event rows ──────────────────────────────────── */
+.sale-event {
+  border-radius: 10px !important;
+}
+
+/* ── Market ticker ────────────────────────────────────── */
+.market-ticker {
+  border-radius: 12px !important;
+  border: 2px solid rgba(60,120,220,0.12) !important;
+}
+.market-tag {
+  border-radius: 10px !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+}
+
+/* ── Storefront ───────────────────────────────────────── */
+.shop-storefront {
+  border-radius: 14px !important;
+}
+
+/* ── Scrollbar — rounded ──────────────────────────────── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(60,120,220,0.25); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(80,150,255,0.35); }
+
+/* ── Stage badge on fish ──────────────────────────────── */
+.stage-badge {
+  border-radius: 10px !important;
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  font-size: 0.6rem !important;
+}
+
+/* ── Fish status icons ────────────────────────────────── */
+.fish-status-icon {
+  font-size: 0.85rem !important;
+}
+
+/* ── Day phase badge ──────────────────────────────────── */
+.day-phase-badge {
+  border-radius: 12px !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+}
+
+/* ── Empty tank text ──────────────────────────────────── */
+.empty-tank {
+  font-family: var(--font-display) !important;
+}
+
+/* ── Disease card in fish panel ────────────────────────── */
+.fp-disease {
+  border-radius: 12px !important;
+  border-width: 2px !important;
+}
+
+/* ── Tutorial ─────────────────────────────────────────── */
+.tutorial-card {
+  border-radius: 20px !important;
+  border: 2px solid rgba(60,140,255,0.3) !important;
+}
+.tutorial-title {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+
+/* ── Title screen ─────────────────────────────────────── */
+.title-logo-text {
+  font-family: var(--font-display) !important;
+}
+.title-btn {
+  border-radius: 24px !important;
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  border: 2px solid rgba(60,140,255,0.4) !important;
+  transition: all 0.2s var(--bounce) !important;
+}
+.title-btn:hover {
+  transform: scale(1.06) !important;
+}
+.title-btn-primary {
+  background: linear-gradient(170deg, #2878e0 0%, #1850b0 100%) !important;
+  border-color: rgba(80,180,255,0.5) !important;
+  box-shadow: 0 4px 0 rgba(20,60,120,0.5), 0 8px 24px rgba(30,100,220,0.35) !important;
+}
+
+/* ── Global micro-polish ──────────────────────────────── */
+input[type="number"], input[type="text"], input[type="password"], select {
+  border-radius: 10px !important;
+  border: 2px solid rgba(60,120,220,0.2) !important;
+  font-family: var(--font-body) !important;
+  background: rgba(10,20,48,0.8) !important;
+  color: var(--text-primary) !important;
+  padding: 6px 10px !important;
+}
+select {
+  border-radius: 10px !important;
+}
+
+/* ── Trait tags ────────────────────────────────────────── */
+.trait-tag {
+  border-radius: 10px !important;
+  font-family: var(--font-display) !important;
+}
+
+/* ── Breed fish list rows ─────────────────────────────── */
+.breed-fish-row {
+  border-radius: 10px !important;
+  transition: all 0.15s var(--bounce) !important;
+}
+.breed-fish-row:hover {
+  transform: translateX(3px) !important;
+}
+
+/* ── Boost pills in HUD ───────────────────────────────── */
+.hud2-boost-pill {
+  border-radius: 14px !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+}
+
+/* ── Low supply banner ────────────────────────────────── */
+.low-supply-banner {
+  border-radius: 0 !important;
+  font-family: var(--font-display) !important;
+  border: none !important;
+  border-bottom: 2px solid rgba(255,160,40,0.3) !important;
+}
+
+/* ── Coin delta animations ────────────────────────────── */
+.coin-delta {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+
+/* ── Seasonal banner ──────────────────────────────────── */
+.seasonal-banner {
+  border-radius: 12px !important;
+  font-family: var(--font-display) !important;
+}
+
+/* ── Pause overlay ────────────────────────────────────── */
+.pause-text {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  font-size: 3rem !important;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+}
