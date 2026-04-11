@@ -27,14 +27,16 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Fix permissions
-        run: chmod -R +x node_modules/.bin node_modules/@esbuild/*/bin/* 2>/dev/null || true
+      - name: Clean install
+        run: |
+          rm -rf node_modules
+          npm install
+          chmod -R +x node_modules/.bin/ || true
+          chmod +x node_modules/@esbuild/*/bin/esbuild || true
+          chmod +x node_modules/esbuild/bin/esbuild || true
 
       - name: Build
-        run: npm run build
+        run: npx --yes vite build
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
