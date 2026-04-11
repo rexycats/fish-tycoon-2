@@ -349,6 +349,7 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
   const C       = BODY_COLORS[phenotype.primaryColor] || BODY_COLORS.Crimson;
   const isGlow  = phenotype.glow     === 'Luminous';
   const isGiant = phenotype.size      === 'Giant';
+  const isSpot  = phenotype.pattern   === 'Spotted';
   const rarity  = species?.rarity || 'common';
   const aura    = RARITY_AURA[rarity];
   const uid     = (fish.id || 'x').slice(0, 8);
@@ -412,7 +413,6 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
 
   // Pattern type
   const pattern = phenotype.pattern;
-  const isSpot   = pattern === 'Spotted';
   const isTiger  = pattern === 'Tiger';
   const isMarble = pattern === 'Marble';
   const isLined  = pattern === 'Lined';
