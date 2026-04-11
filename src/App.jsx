@@ -368,12 +368,12 @@ export default function App() {
           </>
         )}
         {activeTab === 'challenges' && (
-          <>
+          <div className="tab-content-scroll">
             <GoalsPanel />
             <FishShowPanel />
             <CatchOfDayPanel />
             <DailyChallengesPanel dailyChallenges={dailyChallenges} streak={player.challengeStreak || 0} />
-          </>
+          </div>
         )}
         {activeTab === 'shop' && (
           <MemoShop
