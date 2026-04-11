@@ -376,6 +376,7 @@ export default function App() {
           </div>
         )}
         {activeTab === 'shop' && (
+          <div className="tab-content-scroll">
           <MemoShop
             game={game}
             activeTank={activeTank}
@@ -387,8 +388,10 @@ export default function App() {
             onBuyRareItem={buyRareMarketItem}
             onNavigate={handleTabChange}
           />
+          </div>
         )}
         {activeTab === 'breed' && (
+          <div className="tab-content-scroll">
           <MemoBreedingLab
             fish={fish}
             breedingTank={breedingTank}
@@ -399,8 +402,10 @@ export default function App() {
             onCancelBreeding={cancelBreeding}
             onNavigate={handleTabChange}
           />
+          </div>
         )}
         {activeTab === 'fishdex' && (
+          <div className="tab-content-scroll">
           <MemoFishdex
             fishdex={player.fishdex || []}
             onGenerateLore={handleGenerateLore}
@@ -408,14 +413,20 @@ export default function App() {
             aiError={aiError}
             legendFishUnlocked={!!player.legendFishUnlocked}
           />
+          </div>
         )}
         {activeTab === 'achieve' && (
+          <div className="tab-content-scroll">
           <MemoAchievements achievements={player.achievements || []} player={player} onNavigate={handleTabChange} />
+          </div>
         )}
         {activeTab === 'magic' && (
+          <div className="tab-content-scroll">
           <MemoMagicFishPanel magicFishFound={player.magicFishFound || []} />
+          </div>
         )}
         {activeTab === 'decor' && (
+          <div className="tab-content-scroll">
           <MemoDecorationPanel
             game={game}
             activeTank={activeTank}
@@ -427,12 +438,17 @@ export default function App() {
             onBuyTheme={buyTheme}
             onApplyTheme={applyTheme}
           />
+          </div>
         )}
         {activeTab === 'autopsy' && (
+          <div className="tab-content-scroll">
           <MemoFishAutopsy autopsies={player.autopsies || []} />
+          </div>
         )}
         {activeTab === 'stats' && (
+          <div className="tab-content-scroll">
           <StatsPanel />
+          </div>
         )}
       </main>
 
