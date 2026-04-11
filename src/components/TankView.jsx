@@ -5,6 +5,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import FishSprite from './FishSprite.jsx';
 import { getDecorById, getThemeById } from '../data/decorations.js';
+import { getBackground } from '../data/tankBackgrounds.js';
 import { REAL_SPECIES_MAP } from '../data/realSpecies.js';
 
 const SWIM_SPEED  = 0.007;
@@ -321,6 +322,11 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   // it invisible to the render return, causing a ReferenceError when wq < 40.
   const wq = waterQuality;
   const waterBg = useMemo(() => {
+    // Custom background from tankBackgrounds system
+    if (tank?.backgroundId) {
+      const bg = getBackground(tank.backgroundId);
+      if (bg) return bg.gradient;
+    }
     const theme = getThemeById(tank?.themes?.active || 'tropical');
     const stops = theme.waterGradient;
     // Blend wq degradation: as quality drops the water shifts murky brown

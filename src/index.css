@@ -10086,3 +10086,30 @@ input:hover, select:hover {
 .goals-bg-desc { font-size: 0.65rem; opacity: 0.5; margin: 2px 0 6px; }
 .goals-bg-locked { font-size: 0.7rem; opacity: 0.5; }
 .goals-bg-owned { font-size: 0.7rem; color: #50c864; }
+
+/* ── Background apply dropdown ───────────────────────────── */
+.goals-bg-apply {
+  width: 100%;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.3);
+  color: var(--text);
+  font-size: 0.7rem;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+/* ── Fish rename button ──────────────────────────────────── */
+.fp-rename-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+  padding: 0 4px;
+}
+.fp-rename-btn:hover { opacity: 1; }
+.fp-nickname { color: var(--accent); margin-right: 6px; }
+.fp-species-sub { font-size: 0.75rem; opacity: 0.5; }

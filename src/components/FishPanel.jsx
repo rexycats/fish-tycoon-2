@@ -125,8 +125,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
               onClick={() => {
                 const name = prompt('Name this fish:', fish.nickname || '');
                 if (name !== null) {
-                  const { renameFish } = require('../store/gameStore.js').useGameStore.getState();
-                  renameFish(fish.id, name);
+                  useGameStore.getState().renameFish(fish.id, name);
                 }
               }}>✏️</button>
           </h2>

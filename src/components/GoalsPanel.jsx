@@ -216,6 +216,7 @@ export default function GoalsPanel() {
             {TANK_BACKGROUNDS.map(bg => {
               const owned = bg.cost === 0 || (player.unlockedBackgrounds || []).includes(bg.id);
               const locked = bg.minPrestige && (player.prestigeLevel || 0) < bg.minPrestige;
+              const tanks = useGameStore.getState().tanks || [];
               return (
                 <div key={bg.id} className={`goals-bg-card ${owned ? 'owned' : ''} ${locked ? 'locked' : ''}`}>
                   <div className="goals-bg-preview" style={{ background: bg.gradient }}/>
@@ -224,7 +225,11 @@ export default function GoalsPanel() {
                   {locked ? (
                     <div className="goals-bg-locked">🔒 Prestige {bg.minPrestige}</div>
                   ) : owned ? (
-                    <div className="goals-bg-owned">✅ Owned</div>
+                    <select className="goals-bg-apply" defaultValue=""
+                      onChange={e => { if (e.target.value) { useGameStore.getState().setTankBackground(e.target.value, bg.id); e.target.value = ''; } }}>
+                      <option value="">Apply to tank...</option>
+                      {tanks.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
                   ) : (
                     <button className="btn btn-sm" disabled={player.coins < bg.cost}
                       onClick={() => buyBackground(bg.id)}>
