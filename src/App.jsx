@@ -34,6 +34,19 @@ import { useGameStore } from './store/gameStore.js';
 import { useFishSelection } from './hooks/useFishSelection.js';
 import { useCoinDeltas }    from './hooks/useCoinDeltas.js';
 
+const TAB_LIST = [
+  ["tank",     "🐠", "Tank"],
+  ["shop",     "🏪", "Shop"],
+  ["breed",    "🧬", "Breed"],
+  ["challenges", "🎯", "Goals"],
+  ["fishdex",  "📖", "Fishdex"],
+  ["magic",    "🔮", "Magic"],
+  ["decor",    "🎨", "Decor"],
+  ["autopsy",  "🔬", "Autopsy"],
+  ["stats",    "📊", "Stats"],
+  ["achieve",  "🏆", "Awards"],
+];
+
 // ============================================================
 // Memoized tab content components — only re-render when their
 // specific props change, not on every tick.
@@ -190,18 +203,6 @@ export default function App() {
 
   const tabBarRef = useRef(null);
 
-  const TAB_LIST = [
-    ['tank',     '🐠', 'Tank'],
-    ['shop',     '🏪', 'Shop'],
-    ['breed',    '🧬', 'Breed'],
-    ['challenges', '🎯', 'Goals'],
-    ['fishdex',  '📖', 'Fishdex'],
-    ['magic',    '🔮', 'Magic'],
-    ['decor',    '🎨', 'Decor'],
-    ['autopsy',  '🔬', 'Autopsy'],
-    ['stats',    '📊', 'Stats'],
-    ['achieve',  '🏆', 'Awards'],
-  ];
   const VISIBLE_TAB_COUNT = TAB_LIST.length;
   const pillIdx = TAB_LIST.findIndex(([t]) => t === activeTab);
 
