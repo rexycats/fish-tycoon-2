@@ -221,7 +221,7 @@ export default function HUD({
         <div className="hud2-actions">
           <button
             className={`hud2-btn ${tank.autoFeed ? 'hud2-btn--active' : ''}`}
-            onClick={onToggleAutoFeed}
+            onClick={() => onToggleAutoFeed(tank.id)}
             title={tank.autoFeed ? 'Auto-feed ON' : 'Auto-feed OFF'}
           >
             🍤 <span className="hud2-btn-label">{tank.autoFeed ? 'Auto ✓' : 'Auto'}</span>
@@ -230,7 +230,7 @@ export default function HUD({
           {tempBad && (
             <button
               className="hud2-btn hud2-btn--warn"
-              onClick={onUseHeater}
+              onClick={() => onUseHeater(tank.id)}
               disabled={(tank.supplies?.heater || 0) <= 0}
               title={`Adjust temperature (${tank.supplies?.heater || 0} left)`}
             >
@@ -241,7 +241,7 @@ export default function HUD({
           {wqBad && (
             <button
               className="hud2-btn hud2-btn--warn"
-              onClick={onTreatWater}
+              onClick={() => onTreatWater(tank.id)}
               disabled={(tank.supplies?.waterTreatment || 0) <= 0}
               title={`Treat water (${tank.supplies?.waterTreatment || 0} left)`}
             >

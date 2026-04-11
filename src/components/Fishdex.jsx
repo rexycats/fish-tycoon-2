@@ -274,7 +274,8 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
 }
 
 // ── Main Fishdex ───────────────────────────────────────────
-export default function Fishdex({ fishdex, onGenerateLore, generatingLoreFor, aiError, legendFishUnlocked }) {
+export default function Fishdex({ fishdex: _fishdex, onGenerateLore, generatingLoreFor, aiError, legendFishUnlocked }) {
+  const fishdex = Array.isArray(_fishdex) ? _fishdex : [];
   const [selected, setSelected]   = useState(null);
   const [search, setSearch]       = useState('');
   const [filterRarity, setFilterRarity] = useState('all');
@@ -300,10 +301,10 @@ export default function Fishdex({ fishdex, onGenerateLore, generatingLoreFor, ai
       list = list.filter(e =>
         (e.aiName || e.name).toLowerCase().includes(q) ||
         e.name.toLowerCase().includes(q) ||
-        e.rarity.includes(q)
+        (e.rarity||'').includes(q)
       );
     }
-    if (filterRarity !== 'all') list = list.filter(e => e.rarity === filterRarity);
+    if (filterRarity !== 'all') list = list.filter(e => (e.rarity||'common') === filterRarity);
     if (sortBy === 'name')   list.sort((a, b) => (a.aiName || a.name).localeCompare(b.aiName || b.name));
     if (sortBy === 'rarity') list.sort((a, b) => (['common','uncommon','rare','epic','legendary'].indexOf(b.rarity)) - (['common','uncommon','rare','epic','legendary'].indexOf(a.rarity)));
     if (sortBy === 'price')  list.sort((a, b) => b.basePrice - a.basePrice);
@@ -330,7 +331,7 @@ export default function Fishdex({ fishdex, onGenerateLore, generatingLoreFor, ai
       <div className="fdex-header">
         <div className="fdex-title-row">
           <h2>📖 Fishdex</h2>
-          <div className="fdex-count">{fishdex.length} species discovered</div>
+          <div className="fdex-count">{(fishdex||[]).length} species discovered</div>
         <div className="fdex-diversity">
           <span className="fdex-diversity-bar" style={{ width: `${Math.min(100, (fishdex.length / 80) * 100)}%` }} />
           <span className="fdex-diversity-label">

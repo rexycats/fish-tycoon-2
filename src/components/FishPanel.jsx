@@ -51,14 +51,15 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
     );
   }
 
-  const rarity = RARITY[fish.species.rarity];
+  if (!fish.species) return <div className="fish-panel"><p>Fish data missing</p></div>;
+  const rarity = RARITY[fish.species?.rarity] || { label: 'Unknown', color: '#888', priceMultiplier: 1 };
   const market = useGameStore(s => s.market);
   const marketMult = getMarketMultiplier(fish, market);
-  const basePrice = Math.round(fish.species.basePrice * (fish.health / 100));
+  const basePrice = Math.round((fish.species?.basePrice || 100) * ((fish.health || 100) / 100));
   const salePrice = Math.round(basePrice * marketMult);
   const marketDelta = marketMult !== 1 ? Math.round((marketMult - 1) * 100) : 0;
   // Fix 2: human-readable age
-  const ageMin = Math.floor(fish.age / 60);
+  const ageMin = Math.floor((fish.age || 0) / 60);
   const ageLabel = ageMin < 60
     ? `${ageMin} min`
     : `${Math.floor(ageMin / 60)}h ${ageMin % 60}m`;
@@ -71,7 +72,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
   const satietyPct = Math.max(0, 100 - Math.round(fish.hunger));
   const healthColor = disease ? '#ff4455' : healthPct > 70 ? '#3ddba0' : healthPct > 40 ? '#f5c542' : '#ff6055';
   const satietyColor = satietyPct > 70 ? '#5db8e8' : satietyPct > 40 ? '#f5a742' : '#ff6055';
-  const hasGenetics = fish.genome && fish.species?.visualType !== 'species';
+  const hasGenetics = fish.genome && fish.phenotype && fish.species?.visualType !== 'species';
   const isLegendary = fish.species.rarity === 'legendary';
   const isEpic      = fish.species.rarity === 'epic';
   const rarityShimmer = isLegendary ? 'fp-hero--legendary' : isEpic ? 'fp-hero--epic' : '';
