@@ -1,8 +1,11 @@
-import React, { useState, useCallback, useRef, useMemo, memo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect, memo } from 'react';
 import ToastManager from './components/ToastManager.jsx';
 import { MAGIC_FISH } from './data/genetics.js';
 import { TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
 import { getApiKey, setApiKey } from './services/aiService.js';
+import { getActiveEvent } from './data/seasonal.js';
+import { canPrestige } from './data/prestige.js';
+import { startMusic,isMusicPlaying } from './services/soundService.js';
 import TankView       from './components/TankView.jsx';
 import FishPanel      from './components/FishPanel.jsx';
 import HUD            from './components/HUD.jsx';
@@ -15,6 +18,12 @@ import Achievements   from './components/Achievements.jsx';
 import MagicFishPanel from './components/MagicFish.jsx';
 import DecorationPanel from './components/DecorationPanel.jsx';
 import FishAutopsyPanel from './components/FishAutopsy.jsx';
+import SettingsPanel  from './components/SettingsPanel.jsx';
+import StatsPanel     from './components/StatsPanel.jsx';
+import { EventPopup, HagglePopup } from './components/EventPopup.jsx';
+import TitleScreen    from './components/TitleScreen.jsx';
+import Credits        from './components/Credits.jsx';
+import { formatCoins } from './utils/format.js';
 
 import { useGameStore } from './store/gameStore.js';
 import { useFishSelection } from './hooks/useFishSelection.js';
@@ -37,6 +46,8 @@ const MemoDecorationPanel = memo(DecorationPanel);
 const MemoFishAutopsy    = memo(FishAutopsyPanel);
 
 export default function App() {
+  const [showTitle, setShowTitle] = useState(true);
+
   // ── Store selectors — each subscribes to its own slice ─────
   const player          = useGameStore(s => s.player);
   const fish            = useGameStore(s => s.fish);
@@ -83,12 +94,12 @@ export default function App() {
   // ── Fish/tank selection (local UI state) ───────────────────
   const {
     selectedFishId, setSelectedFishId,
-    activeTankId,   setActiveTankId,
-    activeTank,     tankFish,
-    selectedFish,   isListed,
-    showWinModal,   setShowWinModal,
+    activeTankId, setActiveTankId,
+    activeTank,   tankFish,
+    selectedFish, isListed,
+    showWinModal, setShowWinModal,
     generatingLoreFor,
-    aiError,        setAiError,
+    aiError,      setAiError,
     handleGenerateLore,
   } = useFishSelection();
 
@@ -99,6 +110,50 @@ export default function App() {
   const [activeTab, setActiveTab]         = useState('tank');
   const [showApiSetup, setShowApiSetup]   = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
+  const [showSettings, setShowSettings]   = useState(false);
+  const saveFlash = useGameStore(s => s._saveFlash);
+  const paused = useGameStore(s => s.paused);
+  const togglePause = useGameStore(s => s.togglePause);
+  const renameFish = useGameStore(s => s.renameFish);
+  const performPrestige = useGameStore(s => s.performPrestige);
+  const seasonalEvent = useMemo(() => getActiveEvent(), []);
+
+  // ── Keyboard shortcuts ─────────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+      switch (e.key.toLowerCase()) {
+        case '1': case '2': case '3': case '4': case '5': case '6': {
+          const idx = parseInt(e.key) - 1;
+          if (tanks[idx]) setActiveTankId(tanks[idx].id);
+          break;
+        }
+        case 'f': if (selectedFish) feedFish(selectedFish.id); break;
+        case 'a': if (activeTank) useGameStore.getState().feedAllInTank(activeTank.id); break;
+        case 's': if (selectedFish?.stage === 'adult') toggleSellFish(selectedFish.id); break;
+        case 'm': if (selectedFish?.disease) useMedicine(selectedFish.id); break;
+        case ' ': e.preventDefault(); togglePause(); break;
+        case 'escape': setShowSettings(false); setShowResetConfirm(false); setShowApiSetup(false); break;
+        case 'tab': {
+          e.preventDefault();
+          const tabs = TAB_LIST.map(t => t[0]);
+          const idx2 = tabs.indexOf(activeTab);
+          handleTabChange(tabs[(idx2 + 1) % tabs.length]);
+          break;
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedFish, activeTank, activeTab, tanks]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Start music on first click ─────────────────────────
+  useEffect(() => {
+    const start = () => { if (!isMusicPlaying()) startMusic(); document.removeEventListener('click', start); };
+    document.addEventListener('click', start);
+    return () => document.removeEventListener('click', start);
+  }, []);
 
   const currentFishdexCount  = (player.fishdex || []).length;
   const currentShopFishCount = fish.filter(f => f.stage === 'adult').length;
@@ -108,6 +163,7 @@ export default function App() {
   const newAchCount          = Math.max(0, currentAchCount - (player.seenAchCount || 0));
 
   const handleTabChange = useCallback((tab) => {
+    playTabSwitch();
     setActiveTab(tab);
     if (tab === 'fishdex') {
       useGameStore.setState(state => {
@@ -129,15 +185,16 @@ export default function App() {
   const tabBarRef = useRef(null);
 
   const TAB_LIST = [
-    ['tank',       '🐠', 'Tank'],
-    ['shop',       '🏪', 'Shop'],
-    ['breed',      '🧬', 'Breed'],
+    ['tank',     '🐠', 'Tank'],
+    ['shop',     '🏪', 'Shop'],
+    ['breed',    '🧬', 'Breed'],
     ['challenges', '🎯', 'Goals'],
-    ['fishdex',    '📖', 'Fishdex'],
-    ['magic',      '🔮', 'Magic'],
-    ['decor',      '🎨', 'Decor'],
-    ['autopsy',    '🔬', 'Autopsy'],
-    ['achieve',    '🏆', 'Awards'],
+    ['fishdex',  '📖', 'Fishdex'],
+    ['magic',    '🔮', 'Magic'],
+    ['decor',    '🎨', 'Decor'],
+    ['autopsy',  '🔬', 'Autopsy'],
+    ['stats',    '📊', 'Stats'],
+    ['achieve',  '🏆', 'Awards'],
   ];
   const VISIBLE_TAB_COUNT = TAB_LIST.length;
   const pillIdx = TAB_LIST.findIndex(([t]) => t === activeTab);
@@ -153,6 +210,16 @@ export default function App() {
     () => ({ player, fish, tanks, shop, breedingTank, log, dailyChallenges, offlineSummary, market }),
     [player, fish, tanks, shop, breedingTank, log, dailyChallenges, offlineSummary, market]
   );
+
+  // ── Title screen ──────────────────────────────────────────
+  if (showTitle) {
+    return <TitleScreen onStart={(mode) => {
+      if (mode === 'new') {
+        useGameStore.getState().resetGame();
+      }
+      setShowTitle(false);
+    }} />;
+  }
 
   return (
     <div className="app">
@@ -198,6 +265,7 @@ export default function App() {
         playerCoins={player.coins}
         fish={fish}
         onRename={renameTank}
+        prestigeLevel={player.prestigeLevel || 0}
       />
 
       {activeTank && (activeTank.supplies?.food ?? 0) <= 5 && (
@@ -309,6 +377,8 @@ export default function App() {
           <MemoBreedingLab
             fish={fish}
             breedingTank={breedingTank}
+            extraBays={game.extraBays || []}
+            maxBays={game.maxBays || 1}
             onSelectForBreeding={selectForBreeding}
             onCollectEgg={collectEgg}
             onCancelBreeding={cancelBreeding}
@@ -346,8 +416,31 @@ export default function App() {
         {activeTab === 'autopsy' && (
           <MemoFishAutopsy autopsies={player.autopsies || []} />
         )}
+        {activeTab === 'stats' && (
+          <StatsPanel />
+        )}
       </main>
 
+      {/* Seasonal event banner */}
+      {seasonalEvent && (
+        <div className="seasonal-banner">
+          <span className="seasonal-name">{seasonalEvent.name}</span>
+          <span className="seasonal-desc">{seasonalEvent.desc}</span>
+        </div>
+      )}
+
+      {/* Pause overlay */}
+      {paused && (
+        <div className="pause-overlay" onClick={togglePause}>
+          <div className="pause-text">⏸ PAUSED</div>
+          <div className="pause-hint">Press Space or click to resume</div>
+        </div>
+      )}
+
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+      {showCredits && <Credits onClose={() => setShowCredits(false)} />}
+      <EventPopup />
+      <HagglePopup />
       {showApiSetup && <ApiKeyModal onClose={() => setShowApiSetup(false)} />}
 
       {showResetConfirm && (
@@ -366,13 +459,22 @@ export default function App() {
       )}
 
       <footer className="app-footer">
+        <button className="btn btn-sm" onClick={() => setShowSettings(true)} title="Settings">⚙️ Settings</button>
         <button className="btn btn-sm btn-danger" onClick={() => setShowResetConfirm(true)}>🔄 Reset</button>
         <button className="btn btn-sm" onClick={handleExportSave} title="Download your save as a JSON file">💾 Export</button>
         <label className="btn btn-sm" title="Load a previously exported save file" style={{ cursor: 'pointer' }}>
           📂 Import
           <input type="file" accept=".json" style={{ display: 'none' }} onChange={e => handleImportSave(e.target.files[0])} />
         </label>
+        <button className="btn btn-sm" onClick={() => setShowCredits(true)}>ℹ️ Credits</button>
         <span className="footer-tip">Auto-saves every 30s</span>
+        {saveFlash && <SaveIndicator key={saveFlash} />}
+        <button className="btn btn-sm" onClick={() => setShowCredits(true)} title="Credits">ℹ️</button>
+        {canPrestige(useGameStore.getState()) && (
+          <button className="btn btn-sm btn-prestige" onClick={performPrestige} title="Reset for permanent bonuses">
+            🌟 Prestige
+          </button>
+        )}
         <button className="btn btn-sm" onClick={() => setShowApiSetup(true)} title="Configure Anthropic API key for AI fish names">
           🤖 AI Key {getApiKey() ? '✅' : '⚠️'}
         </button>
@@ -528,7 +630,7 @@ function ApiKeyModal({ onClose }) {
 }
 
 // ── Tank selector bar ─────────────────────────────────────────
-function TankTabs({ tanks, activeTankId, onSelectTank, onUnlockTank, canUnlock, playerCoins, fish, onRename }) {
+function TankTabs({ tanks, activeTankId, onSelectTank, onUnlockTank, canUnlock, playerCoins, fish, onRename, prestigeLevel = 0 }) {
   const [unlocking, setUnlocking]   = useState(false);
   const [unlockType, setUnlockType] = useState('display');
   const [editingId, setEditingId]   = useState(null);
@@ -567,9 +669,13 @@ function TankTabs({ tanks, activeTankId, onSelectTank, onUnlockTank, canUnlock, 
           </div>
         );
       })}
-      {canUnlock && (
+      {canUnlock && (() => {
+        const needsPrestige = canUnlock.minPrestige && prestigeLevel < canUnlock.minPrestige;
+        return (
         <div className="tank-tab tank-tab-unlock">
-          {!unlocking ? (
+          {needsPrestige ? (
+            <div className="tank-unlock-locked">🔒 Requires Prestige {canUnlock.minPrestige}</div>
+          ) : !unlocking ? (
             <button className="btn btn-sm btn-unlock" onClick={() => setUnlocking(true)}>+ Unlock Tank (🪙{canUnlock.cost})</button>
           ) : (
             <div className="tank-unlock-picker" onClick={e => e.stopPropagation()}>
@@ -581,7 +687,8 @@ function TankTabs({ tanks, activeTankId, onSelectTank, onUnlockTank, canUnlock, 
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

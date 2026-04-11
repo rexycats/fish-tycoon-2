@@ -179,8 +179,14 @@ function BreedFishRow({ fish, inSlot, onSelect, onDragStart }) {
 }
 
 // ── Main component ─────────────────────────────────────────
-export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, onCollectEgg, onCancelBreeding, onNavigate }) {
-  const slots = breedingTank?.slots || [null, null];
+export default function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelectForBreeding, onCollectEgg, onCancelBreeding, onNavigate }) {
+  const [activeBay, setActiveBay] = useState(0);
+
+  // Build array of all bays
+  const allBays = [breedingTank, ...extraBays];
+  const bay = allBays[activeBay] || breedingTank;
+
+  const slots = bay?.slots || [null, null];
   const hasThirdSlot = slots.length >= 3;
   const fishA = (fish || []).find(f => f.id === slots[0]);
   const fishB = (fish || []).find(f => f.id === slots[1]);
@@ -195,10 +201,10 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
 
   const [, setTick] = useState(0);
   useEffect(() => {
-    if (!breedingTank.breedingStartedAt || breedingTank.eggReady) return;
+    if (!bay.breedingStartedAt || bay.eggReady) return;
     const id = setInterval(() => setTick(t => t + 1), 1000);
     return () => clearInterval(id);
-  }, [breedingTank.breedingStartedAt, breedingTank.eggReady]);
+  }, [bay.breedingStartedAt, bay.eggReady]);
 
   const predictions = useMemo(() => {
     if (!canPredict) return [];
@@ -207,15 +213,15 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
 
   let progress = 0;
   let timeRemainingLabel = null;
-  if (breedingTank.breedingStartedAt && !breedingTank.eggReady) {
-    const elapsed = Date.now() - breedingTank.breedingStartedAt;
-    progress = Math.min(100, (elapsed / breedingTank.breedingDurationMs) * 100);
-    const msLeft = Math.max(0, breedingTank.breedingDurationMs - elapsed);
+  if (bay.breedingStartedAt && !bay.eggReady) {
+    const elapsed = Date.now() - bay.breedingStartedAt;
+    progress = Math.min(100, (elapsed / bay.breedingDurationMs) * 100);
+    const msLeft = Math.max(0, bay.breedingDurationMs - elapsed);
     const secsLeft = Math.ceil(msLeft / 1000);
     timeRemainingLabel = secsLeft < 60
       ? `${secsLeft}s left`
       : `~${Math.ceil(secsLeft / 60)}m left`;
-  } else if (breedingTank.eggReady) {
+  } else if (bay.eggReady) {
     progress = 100;
   }
 
@@ -224,18 +230,34 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
   // Handle drop onto a slot: slot=1 → index 0, slot=2 → index 1
   const handleSlotDrop = useCallback((fishId, slot) => {
     // If already in the exact target slot, no-op
-    const inSlot0 = breedingTank.slots[0] === fishId;
-    const inSlot1 = breedingTank.slots[1] === fishId;
-    const inSlot2 = breedingTank.slots[2] === fishId;
+    const inSlot0 = bay.slots[0] === fishId;
+    const inSlot1 = bay.slots[1] === fishId;
+    const inSlot2 = bay.slots[2] === fishId;
     if ((slot === 1 && inSlot0) || (slot === 2 && inSlot1) || (slot === 3 && inSlot2)) return;
-    onSelectForBreeding(fishId); // toggle/place into next available or donor slot
-  }, [breedingTank.slots, onSelectForBreeding]);
+    onSelectForBreeding(fishId, activeBay); // toggle/place into next available or donor slot
+  }, [bay.slots, onSelectForBreeding]);
 
   return (
     <div className="breeding-lab">
+      {/* Bay tabs — only show if more than 1 bay unlocked */}
+      {maxBays > 1 && (
+        <div className="breed-bay-tabs">
+          {Array.from({ length: maxBays }, (_, i) => {
+            const b = allBays[i];
+            const hasEgg = b?.eggReady;
+            const busy = b?.breedingStartedAt && !b?.eggReady;
+            return (
+              <button key={i} className={`breed-bay-tab ${activeBay === i ? 'active' : ''} ${hasEgg ? 'has-egg' : ''} ${busy ? 'busy' : ''}`}
+                onClick={() => setActiveBay(i)}>
+                Bay {i + 1} {hasEgg ? '🥚' : busy ? '⏳' : ''}
+              </button>
+            );
+          })}
+        </div>
+      )}
       <div className="breed-top">
         {/* Parent slots */}
-        <div className={`breed-parents${breedingTank.breedingStartedAt && !breedingTank.eggReady ? ' breed-parents--breeding' : ''} ${hasThirdSlot ? 'breed-parents--trio' : ''}`}>
+        <div className={`breed-parents${bay.breedingStartedAt && !bay.eggReady ? ' breed-parents--breeding' : ''} ${hasThirdSlot ? 'breed-parents--trio' : ''}`}>
           <BreedSlot fish={fishA} slot={1} onRemove={() => onSelectForBreeding(fishA?.id)} onDrop={handleSlotDrop} />
           <div className="breed-heart">💕</div>
           <BreedSlot fish={fishB} slot={2} onRemove={() => onSelectForBreeding(fishB?.id)} onDrop={handleSlotDrop} />
@@ -255,11 +277,11 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
 
         {/* Progress / collect */}
         <div className="breed-status">
-          {breedingTank.eggReady ? (
+          {bay.eggReady ? (
             <button className="btn btn-collect pulse" onClick={onCollectEgg}>
               🥚 Collect Egg!
             </button>
-          ) : breedingTank.breedingStartedAt ? (
+          ) : bay.breedingStartedAt ? (
             <div className="breed-progress-wrap">
               <div className="breed-progress-header">
                 <div className="breed-progress-label">Breeding…</div>
@@ -323,7 +345,7 @@ export default function BreedingLab({ fish, breedingTank, onSelectForBreeding, o
             <BreedFishRow
               key={f.id}
               fish={f}
-              inSlot={breedingTank.slots.includes(f.id)}
+              inSlot={bay.slots.includes(f.id)}
               onSelect={onSelectForBreeding}
             />
           ))}

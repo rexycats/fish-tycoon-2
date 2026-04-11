@@ -25,6 +25,16 @@ const BettaSprite            = lazy(() => import('./sprites/BettaSprite.jsx'));
 const AngelFishSprite        = lazy(() => import('./sprites/AngelFishSprite.jsx'));
 const GoldfishSprite         = lazy(() => import('./sprites/GoldfishSprite.jsx'));
 const MandarinDragonetSprite = lazy(() => import('./sprites/MandarinDragonetSprite.jsx'));
+const NeonTetraSprite        = lazy(() => import('./sprites/NeonTetraSprite.jsx'));
+const DiscusSprite           = lazy(() => import('./sprites/DiscusSprite.jsx'));
+const LionfishSprite         = lazy(() => import('./sprites/LionfishSprite.jsx'));
+const SeahorseSprite         = lazy(() => import('./sprites/SeahorseSprite.jsx'));
+const PufferfishSprite       = lazy(() => import('./sprites/PufferfishSprite.jsx'));
+const JellyfishSprite        = lazy(() => import('./sprites/JellyfishSprite.jsx'));
+const KoiSprite              = lazy(() => import('./sprites/KoiSprite.jsx'));
+const MoorishIdolSprite      = lazy(() => import('./sprites/MoorishIdolSprite.jsx'));
+const TriggerSprite          = lazy(() => import('./sprites/TriggerSprite.jsx'));
+const ElectricEelSprite      = lazy(() => import('./sprites/ElectricEelSprite.jsx'));
 
 // ── Species sprite routing (Phase 12) ───────────────────────
 // Add new real-species entries here as they're built.
@@ -35,6 +45,16 @@ const SPECIES_SPRITE_MAP = {
   angelfish:         AngelFishSprite,
   goldfish:          GoldfishSprite,
   mandarin_dragonet: MandarinDragonetSprite,
+  neon_tetra:        NeonTetraSprite,
+  discus:            DiscusSprite,
+  lionfish:          LionfishSprite,
+  seahorse:          SeahorseSprite,
+  pufferfish:        PufferfishSprite,
+  jellyfish:         JellyfishSprite,
+  koi:               KoiSprite,
+  moorish_idol:      MoorishIdolSprite,
+  triggerfish:       TriggerSprite,
+  electric_eel:      ElectricEelSprite,
 };
 
 // ─── COLOR PALETTES ─────────────────────────────────────────────────────────
@@ -307,9 +327,6 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
   const { phenotype, species } = fish;
   const C       = BODY_COLORS[phenotype.primaryColor] || BODY_COLORS.Crimson;
   const isGlow  = phenotype.glow     === 'Luminous';
-  const isRound = phenotype.bodyShape === 'Round';
-  const isFlow  = phenotype.finType   === 'Flowing';
-  const isSpot  = phenotype.pattern   === 'Spotted';
   const isGiant = phenotype.size      === 'Giant';
   const rarity  = species?.rarity || 'common';
   const aura    = RARITY_AURA[rarity];
@@ -332,14 +349,52 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
   if (fish.stage === 'egg')      return <EggSprite      uid={uid} size={size} aura={aura} isGlow={isGlow} selected={selected} onClick={onClick}/>;
   if (fish.stage === 'juvenile') return <JuvenileSprite uid={uid} size={size} C={C} aura={aura} isGlow={isGlow} isSpot={isSpot} selected={selected} flipped={flipped} onClick={onClick}/>;
 
-  // ── Adult geometry ──────────────────────────────────────
-  const cx    = isRound ? 45 : 46;
-  const cy    = 30;
-  const rx    = isRound ? 28 : 22;
-  const ry    = isRound ? 20 : 15;
-  const tailX = cx - rx;
+  // ── Adult geometry — distinct shapes per body type ──────
   const W     = isGiant ? size * 1.35 : size;
   const H     = isGiant ? size * 0.85 : size * 0.65;
+  const shape = phenotype.bodyShape;
+  const fin   = phenotype.finType;
+
+  // Body center, radii, and SVG path vary by body shape
+  const BODY_GEOM = {
+    Orb:     { cx: 44, cy: 30, rx: 22, ry: 22, path: null }, // perfect circle
+    Round:   { cx: 45, cy: 30, rx: 28, ry: 20, path: null }, // wide ellipse
+    Delta:   { cx: 46, cy: 30, rx: 24, ry: 16, path: 'M70,30 C70,18 58,12 42,14 C28,16 18,22 18,30 C18,38 28,44 42,46 C58,48 70,42 70,30 Z' },
+    Slender: { cx: 48, cy: 30, rx: 30, ry: 11, path: 'M78,30 C78,22 65,16 48,16 C30,16 14,22 14,30 C14,38 30,44 48,44 C65,44 78,38 78,30 Z' },
+    Eel:     { cx: 50, cy: 30, rx: 38, ry: 8,  path: 'M88,30 C88,24 75,20 55,20 C35,20 15,24 10,30 C15,36 35,40 55,40 C75,40 88,36 88,30 Z' },
+  };
+  const geom = BODY_GEOM[shape] || BODY_GEOM.Round;
+  const { cx, cy, rx, ry } = geom;
+  const tailX = shape === 'Eel' ? 12 : cx - rx;
+
+  // Body clip path — either ellipse or custom path
+  const bodyClipContent = geom.path
+    ? <path d={geom.path}/>
+    : <ellipse cx={cx} cy={cy} rx={rx} ry={ry}/>;
+  const bodyFillContent = geom.path
+    ? <path d={geom.path} fill={`url(#body-${uid})`}/>
+    : <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={`url(#body-${uid})`}/>;
+  const bodyOverlay = (gradId) => geom.path
+    ? <path d={geom.path} fill={`url(#${gradId})`}/>
+    : <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={`url(#${gradId})`}/>;
+
+  // Fin parameters by type
+  const FIN_STYLE = {
+    Veil:    { dorsalH: 26, tailSpread: 28, pectoralRx: 13, pectoralRy: 5, flowing: true },
+    Flowing: { dorsalH: 22, tailSpread: 24, pectoralRx: 11, pectoralRy: 4.5, flowing: true },
+    Broad:   { dorsalH: 16, tailSpread: 18, pectoralRx: 10, pectoralRy: 5.5, flowing: false },
+    Angular: { dorsalH: 18, tailSpread: 16, pectoralRx: 8,  pectoralRy: 3, flowing: false },
+    Nub:     { dorsalH: 8,  tailSpread: 10, pectoralRx: 5,  pectoralRy: 2, flowing: false },
+  };
+  const finStyle = FIN_STYLE[fin] || FIN_STYLE.Broad;
+
+  // Pattern type
+  const pattern = phenotype.pattern;
+  const isSpot   = pattern === 'Spotted';
+  const isTiger  = pattern === 'Tiger';
+  const isMarble = pattern === 'Marble';
+  const isLined  = pattern === 'Lined';
+  const isPlain  = pattern === 'Plain';
 
   return (
     <svg width={W} height={H} viewBox="0 0 100 60" onClick={onClick}
@@ -442,7 +497,7 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
 
         {/* ── Clip path (scales + patterns) ── */}
         <clipPath id={`bc-${uid}`}>
-          <ellipse cx={cx} cy={cy} rx={rx} ry={ry}/>
+          {bodyClipContent}
         </clipPath>
 
       </defs>
@@ -464,14 +519,14 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
       {/* ══════════════════════════════════════════════
           LAYER 2 — TAIL FIN
           ══════════════════════════════════════════════ */}
-      {isFlow ? (
-        <g filter={`url(#finglow-${uid})`}>
-          {/* Upper lobe */}
-          <path d={`M${tailX + 4},${cy - 2} C${tailX - 10},${cy - 10} ${tailX - 26},${cy - 24} ${tailX - 16},${cy - 4} Z`}
+      {finStyle.flowing ? (
+        <g filter={`url(#finglow-${uid})`} className="fish-tail-flowing">
+          {/* Upper lobe — animated */}
+          <path d={`M${tailX + 4},${cy - 2} C${tailX - 10},${cy - 10} ${tailX - finStyle.tailSpread},${cy - finStyle.tailSpread} ${tailX - finStyle.tailSpread * 0.6},${cy - 4} Z`}
                 fill={`url(#fin-${uid})`}
                 stroke={C.accent} strokeWidth="0.9" strokeOpacity="0.75"/>
           {/* Lower lobe */}
-          <path d={`M${tailX + 4},${cy + 2} C${tailX - 10},${cy + 10} ${tailX - 26},${cy + 24} ${tailX - 16},${cy + 4} Z`}
+          <path d={`M${tailX + 4},${cy + 2} C${tailX - 10},${cy + 10} ${tailX - finStyle.tailSpread},${cy + finStyle.tailSpread} ${tailX - finStyle.tailSpread * 0.6},${cy + 4} Z`}
                 fill={`url(#fin-${uid})`}
                 stroke={C.accent} strokeWidth="0.9" strokeOpacity="0.75"/>
           {/* Central vein shimmer */}
@@ -480,45 +535,45 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
         </g>
       ) : (
         <path
-          d={`M${tailX + 3},${cy - 3} L${tailX - 14},${cy - 16} L${tailX - 14},${cy} L${tailX - 14},${cy + 16} L${tailX + 3},${cy + 3} Z`}
+          d={`M${tailX + 3},${cy - 3} L${tailX - finStyle.tailSpread * 0.8},${cy - finStyle.tailSpread} L${tailX - finStyle.tailSpread * 0.8},${cy} L${tailX - finStyle.tailSpread * 0.8},${cy + finStyle.tailSpread} L${tailX + 3},${cy + 3} Z`}
           fill={`url(#fin-${uid})`}
           stroke={C.accent} strokeWidth="0.8" strokeOpacity="0.65"
-          filter={`url(#finglow-${uid})`}/>
+          filter={`url(#finglow-${uid})`} className="fish-tail"/>
       )}
 
       {/* ══════════════════════════════════════════════
-          LAYER 3 — DORSAL FIN
+          LAYER 3 — DORSAL FIN (animated)
           ══════════════════════════════════════════════ */}
-      {isFlow
+      {finStyle.flowing
         ? <path
-            d={`M${cx - rx * 0.5},${cy - ry} C${cx - rx * 0.1},${cy - ry - 22} ${cx + rx * 0.2},${cy - ry - 18} ${cx + rx * 0.5},${cy - ry + 1}`}
+            d={`M${cx - rx * 0.5},${cy - ry} C${cx - rx * 0.1},${cy - ry - finStyle.dorsalH} ${cx + rx * 0.2},${cy - ry - finStyle.dorsalH * 0.8} ${cx + rx * 0.5},${cy - ry + 1}`}
             fill={`url(#fin-${uid})`}
             stroke={C.accent} strokeWidth="0.85" strokeOpacity="0.68"
             strokeLinecap="round" strokeLinejoin="round"
-            filter={`url(#finglow-${uid})`}/>
+            filter={`url(#finglow-${uid})`} className="fish-dorsal"/>
         : <path
-            d={`M${cx - rx * 0.4},${cy - ry} C${cx - rx * 0.1},${cy - ry - 14} ${cx + rx * 0.2},${cy - ry - 11} ${cx + rx * 0.4},${cy - ry + 1}`}
+            d={`M${cx - rx * 0.4},${cy - ry} C${cx - rx * 0.1},${cy - ry - finStyle.dorsalH} ${cx + rx * 0.2},${cy - ry - finStyle.dorsalH * 0.75} ${cx + rx * 0.4},${cy - ry + 1}`}
             fill={`url(#fin-${uid})`}
             stroke={C.accent} strokeWidth="0.75" strokeOpacity="0.62"
             strokeLinecap="round" strokeLinejoin="round"
-            filter={`url(#finglow-${uid})`}/>
+            filter={`url(#finglow-${uid})`} className="fish-dorsal"/>
       }
 
       {/* ══════════════════════════════════════════════
-          LAYER 4 — ANAL FIN (bottom)
+          LAYER 4 — ANAL FIN (bottom, animated)
           ══════════════════════════════════════════════ */}
-      <path
+      <path className="fish-anal-fin"
         d={`M${cx - rx * 0.1},${cy + ry} C${cx + rx * 0.1},${cy + ry + 11} ${cx + rx * 0.35},${cy + ry + 9} ${cx + rx * 0.4},${cy + ry}`}
         fill={`url(#fin-${uid})`}
         stroke={C.accent} strokeWidth="0.65" strokeOpacity="0.52"
         filter={`url(#finglow-${uid})`}/>
 
       {/* ══════════════════════════════════════════════
-          LAYER 5 — PECTORAL FIN
+          LAYER 5 — PECTORAL FIN (animated)
           ══════════════════════════════════════════════ */}
-      <ellipse
+      <ellipse className="fish-pectoral"
         cx={cx + rx * 0.05} cy={cy + ry * 0.55}
-        rx={isFlow ? 11 : 8} ry={isFlow ? 4.5 : 3.2}
+        rx={finStyle.pectoralRx} ry={finStyle.pectoralRy}
         fill={`url(#fin-${uid})`}
         stroke={C.accent} strokeWidth="0.65" strokeOpacity="0.55"
         transform={`rotate(-25,${cx + rx * 0.05},${cy + ry * 0.55})`}
@@ -528,11 +583,11 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
           LAYER 6 — BODY (3D gradient + drop shadow)
           ══════════════════════════════════════════════ */}
       <g filter={`url(#fshadow-${uid})`}>
-        <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={`url(#body-${uid})`}/>
+        {bodyFillContent}
       </g>
 
       {/* Dorsal shadow overlay */}
-      <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={`url(#dorsal-${uid})`}/>
+      {bodyOverlay(`dorsal-${uid}`)}
 
       {/* Scale texture — subtle, clipped to body */}
       <g clipPath={`url(#bc-${uid})`} opacity="0.13">
@@ -549,19 +604,37 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
         )}
       </g>
 
-      {/* Pattern — spots or stripes */}
-      {isSpot ? (
+      {/* Pattern — varies by phenotype */}
+      {isSpot && (
         <g clipPath={`url(#bc-${uid})`} opacity="0.36">
-          <circle cx={cx + 4}  cy={cy - 5} r={isRound ? 6   : 4.5} fill={C.fin}/>
-          <circle cx={cx - 6}  cy={cy + 4} r={isRound ? 5   : 3.5} fill={C.fin}/>
-          <circle cx={cx + 12} cy={cy + 5} r={isRound ? 4   : 3}   fill={C.fin}/>
-          <circle cx={cx - 2}  cy={cy - 2} r={isRound ? 3   : 2}   fill={C.fin} opacity="0.6"/>
+          <circle cx={cx + 4}  cy={cy - 5} r={rx * 0.22} fill={C.fin}/>
+          <circle cx={cx - 6}  cy={cy + 4} r={rx * 0.18} fill={C.fin}/>
+          <circle cx={cx + 12} cy={cy + 5} r={rx * 0.15} fill={C.fin}/>
+          <circle cx={cx - 2}  cy={cy - 2} r={rx * 0.10} fill={C.fin} opacity="0.6"/>
+          <circle cx={cx - 10} cy={cy - 6} r={rx * 0.12} fill={C.fin} opacity="0.5"/>
         </g>
-      ) : (
+      )}
+      {isTiger && (
+        <g clipPath={`url(#bc-${uid})`} opacity="0.35">
+          {[-0.4, -0.15, 0.1, 0.35].map((off, i) => (
+            <ellipse key={i} cx={cx + rx * off} cy={cy} rx={rx * 0.06} ry={ry * 0.85}
+              fill={C.fin} transform={`rotate(${10 - i * 5},${cx + rx * off},${cy})`}/>
+          ))}
+        </g>
+      )}
+      {isMarble && (
+        <g clipPath={`url(#bc-${uid})`} opacity="0.28">
+          <path d={`M${cx - rx * 0.6},${cy - ry * 0.3} Q${cx - rx * 0.2},${cy + ry * 0.4} ${cx + rx * 0.3},${cy - ry * 0.2} T${cx + rx * 0.7},${cy + ry * 0.1}`}
+            stroke={C.fin} strokeWidth={rx * 0.12} fill="none" strokeLinecap="round"/>
+          <path d={`M${cx - rx * 0.3},${cy + ry * 0.5} Q${cx},${cy - ry * 0.3} ${cx + rx * 0.5},${cy + ry * 0.3}`}
+            stroke={C.fin} strokeWidth={rx * 0.08} fill="none" strokeLinecap="round" opacity="0.6"/>
+        </g>
+      )}
+      {isLined && (
         <g clipPath={`url(#bc-${uid})`} opacity="0.25">
-          <ellipse cx={cx}     cy={cy - 5} rx={rx * 0.75} ry={2.2} fill={C.fin}/>
-          <ellipse cx={cx - 2} cy={cy + 4} rx={rx * 0.65} ry={1.8} fill={C.fin}/>
-          <ellipse cx={cx + 2} cy={cy - 1} rx={rx * 0.50} ry={1.2} fill={C.fin} opacity="0.7"/>
+          <ellipse cx={cx}     cy={cy - ry * 0.35} rx={rx * 0.75} ry={2.2} fill={C.fin}/>
+          <ellipse cx={cx - 2} cy={cy + ry * 0.25} rx={rx * 0.65} ry={1.8} fill={C.fin}/>
+          <ellipse cx={cx + 2} cy={cy - ry * 0.05} rx={rx * 0.50} ry={1.2} fill={C.fin} opacity="0.7"/>
         </g>
       )}
 
@@ -578,7 +651,7 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
                fill={`url(#belly-${uid})`}/>
 
       {/* Primary specular */}
-      <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={`url(#spec-${uid})`}/>
+      {bodyOverlay(`spec-${uid}`)}
 
       {/* Secondary glint — small bright ellipse */}
       <ellipse cx={cx + rx * 0.46} cy={cy - ry * 0.54}
@@ -592,9 +665,9 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
 
       {/* Luminous shimmer (additive) */}
       {isGlow && (
-        <ellipse cx={cx} cy={cy} rx={rx} ry={ry}
-                 fill="#ffffa0" opacity="0.12"
-                 filter={`url(#fglow-${uid})`}/>
+        geom.path
+          ? <path d={geom.path} fill="#ffffa0" opacity="0.12" filter={`url(#fglow-${uid})`}/>
+          : <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="#ffffa0" opacity="0.12" filter={`url(#fglow-${uid})`}/>
       )}
 
       {/* ══════════════════════════════════════════════

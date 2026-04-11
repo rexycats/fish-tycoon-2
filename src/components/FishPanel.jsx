@@ -1,7 +1,7 @@
 import React, { memo, useState, useEffect, useRef } from 'react';
 import FishSprite from './FishSprite.jsx';
 import { RARITY, GENES } from '../data/genetics.js';
-import { DISEASES, getMarketMultiplier } from '../systems/gameTick.js';
+import { DISEASES, getMarketMultiplier, getDiseaseStage, CURE_SUCCESS_RATE } from '../systems/gameTick.js';
 import { useGameStore } from '../store/gameStore.js';
 
 function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, foodStock = 0, tanks = [], onMoveFish, isFirstRun, onNavigate }) {
@@ -118,7 +118,18 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
             <span className="fp-stage-pill">{fish.stage}</span>
             {statusLabel && <span className="fp-status-label">{statusLabel}</span>}
           </div>
-          <h2 className="fp-name">{fish.species.name}</h2>
+          <h2 className="fp-name">
+            {fish.nickname ? <span className="fp-nickname">{fish.nickname}</span> : null}
+            <span className={fish.nickname ? 'fp-species-sub' : ''}>{fish.species.name}</span>
+            <button className="fp-rename-btn" title="Rename this fish"
+              onClick={() => {
+                const name = prompt('Name this fish:', fish.nickname || '');
+                if (name !== null) {
+                  const { renameFish } = require('../store/gameStore.js').useGameStore.getState();
+                  renameFish(fish.id, name);
+                }
+              }}>✏️</button>
+          </h2>
           <div className="fp-meta-row">
             <span className="fp-meta-chip">⏱ {ageLabel}</span>
           </div>
@@ -142,18 +153,40 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
         )}
       </div>
 
-      {disease && (
-        <div className="fp-disease">
-          <div className="fp-disease-icon">{disease.emoji}</div>
-          <div className="fp-disease-body">
-            <div className="fp-disease-name">{disease.name} Detected</div>
-            <div className="fp-disease-desc">{disease.desc}</div>
-            {disease.spreadChancePerSec > 0 && (
-              <div className="fp-disease-spread">⚠ Contagious — may spread!</div>
-            )}
+      {disease && (() => {
+        const stage = getDiseaseStage(fish.diseaseSince);
+        const isIncubating = stage === 'incubating';
+        const hasDiagnosis = fish.diagnosed || !isIncubating;
+        const symptomText = disease.symptoms?.[stage] || '';
+        const cureName = disease.treatmentName;
+        return (
+          <div className={`fp-disease fp-disease--${stage}`}>
+            <div className="fp-disease-icon">{hasDiagnosis ? disease.emoji : '❓'}</div>
+            <div className="fp-disease-body">
+              <div className="fp-disease-name">
+                {hasDiagnosis ? `${disease.name} — ${stage}` : 'Unknown Illness — Incubating'}
+              </div>
+              {hasDiagnosis ? (
+                <>
+                  <div className="fp-disease-desc">{disease.desc}</div>
+                  <div className="fp-disease-symptom">Symptoms: {symptomText || 'none visible yet'}</div>
+                  <div className="fp-disease-cure">Treatment: {cureName}</div>
+                  {stage === 'severe' || stage === 'critical' ? (
+                    <div className="fp-disease-warn">⚠ Cure success: {Math.round((CURE_SUCCESS_RATE[stage] || 0.5) * 100)}%</div>
+                  ) : null}
+                </>
+              ) : (
+                <div className="fp-disease-desc">
+                  Something seems wrong... Use a 🔬 Diagnostic Kit to identify, or wait for symptoms.
+                </div>
+              )}
+              {disease.spreadChancePerSec > 0 && (
+                <div className="fp-disease-spread">⚠ Contagious — isolate or treat quickly!</div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {recommendation && (
         <div className="fp-recommendation">

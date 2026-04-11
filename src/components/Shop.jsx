@@ -118,6 +118,13 @@ const UPGRADE_ICONS = {
   insurance:  '🛡️',
   fame:       '⭐',
   tempControl:'🌡️',
+  luckyCharm: '🍀',
+  bulkBuyer:  '📦',
+  whisperer:  '🐟',
+  genetics:   '🔬',
+  service:    '🤝',
+  deepSea:    '🌊',
+  breedBay:   '🧫',
 };
 
 function UpgradeCard({ id, upgrade, coins, onBuy }) {
@@ -557,7 +564,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
 
           <div className="section-title" style={{ margin: '1rem 0 0.5rem' }}>Expert Upgrades</div>
           <div className="upgrades-grid">
-            {['purifier', 'autoMedic', 'mutagen', 'insurance', 'fame', 'tempControl'].map(id => {
+            {['purifier', 'autoMedic', 'mutagen', 'insurance', 'fame', 'tempControl', 'luckyCharm', 'bulkBuyer', 'whisperer', 'genetics', 'service', 'deepSea', 'breedBay'].map(id => {
               const upg = shop.upgrades?.[id];
               return upg ? <UpgradeCard key={id} id={id} upgrade={upg} coins={player.coins} onBuy={onBuyUpgrade} /> : null;
             })}
@@ -582,6 +589,16 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
             <SupplyCard name="Angelfish"  emoji="🪸" stock="∞" cost={240} amount={1} coins={player.coins} desc="Pterophyllum scalare — silver with 3 black bars and trailing dorsal filaments. A stately vertical swimmer." onBuy={() => onBuyFish(240, null, 'angelfish')} />
             <SupplyCard name="Goldfish"   emoji="🟡" stock="∞" cost={120} amount={1} coins={player.coins} desc="Carassius auratus — fancy twin veil tail, lazy bottom-dweller. May spawn in kohaku, calico or black moor variants." onBuy={() => onBuyFish(120, null, 'goldfish')} />
             <SupplyCard name="Mandarin Dragonet" emoji="🌈" stock="∞" cost={1500} amount={1} coins={player.coins} desc="Synchiropus splendidus — psychedelic blue-orange maze pattern. The rarest and most striking fish in the ocean." onBuy={() => onBuyFish(1500, null, 'mandarin_dragonet')} />
+            <SupplyCard name="Neon Tetra"   emoji="💎" stock="∞" cost={60}   amount={1} coins={player.coins} desc="Paracheirodon innesi — tiny torpedo with an electric blue neon stripe. Best in groups." onBuy={() => onBuyFish(60, null, 'neon_tetra')} />
+            <SupplyCard name="Discus"       emoji="🔴" stock="∞" cost={500}  amount={1} coins={player.coins} desc="Symphysodon discus — the King of the Aquarium. A stunning disc-shaped cichlid with vivid striping." onBuy={() => onBuyFish(500, null, 'discus')} />
+            <SupplyCard name="Lionfish"     emoji="🦁" stock="∞" cost={600}  amount={1} coins={player.coins} desc="Pterois volitans — dramatic venomous beauty with radiating fan-like fin spines. Handle with care." onBuy={() => onBuyFish(600, null, 'lionfish')} />
+            <SupplyCard name="Seahorse"     emoji="🐴" stock="∞" cost={1000} amount={1} coins={player.coins} desc="Hippocampus kuda — an upright swimmer with a curled prehensile tail. Males carry the young." onBuy={() => onBuyFish(1000, null, 'seahorse')} />
+            <SupplyCard name="Pufferfish"   emoji="🐡" stock="∞" cost={200}  amount={1} coins={player.coins} desc="Tetraodon nigroviridis — round, spiky, and full of personality. Blinks its eyes!" onBuy={() => onBuyFish(200, null, 'pufferfish')} />
+            <SupplyCard name="Moon Jellyfish" emoji="🪼" stock="∞" cost={450} amount={1} coins={player.coins} desc="Aurelia aurita — translucent pulsing bell with trailing tentacles. 500 million years of evolution." onBuy={() => onBuyFish(450, null, 'jellyfish')} />
+            <SupplyCard name="Koi"          emoji="🎏" stock="∞" cost={250}  amount={1} coins={player.coins} desc="Cyprinus rubrofuscus — elegant pond royalty with vivid patches. Tancho, Showa, and Ogon variants." onBuy={() => onBuyFish(250, null, 'koi')} />
+            <SupplyCard name="Moorish Idol" emoji="🏛️" stock="∞" cost={550}  amount={1} coins={player.coins} desc="Zanclus cornutus — dramatic black-white-yellow stripes with a trailing dorsal filament." onBuy={() => onBuyFish(550, null, 'moorish_idol')} />
+            <SupplyCard name="Triggerfish"  emoji="🔫" stock="∞" cost={220}  amount={1} coins={player.coins} desc="Balistoides conspicillum — angular body, locking dorsal spine, vibrant blue patterns." onBuy={() => onBuyFish(220, null, 'triggerfish')} />
+            <SupplyCard name="Electric Eel" emoji="⚡" stock="∞" cost={1100} amount={1} coins={player.coins} desc="Electrophorus electricus — generates 860V. Animated electric glow spots pulse along its body." onBuy={() => onBuyFish(1100, null, 'electric_eel')} />
           </div>
         </div>
       )}
@@ -599,6 +616,8 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
               <SupplyCard name="Antiparasitic"      emoji="🔬" stock={tank.supplies?.antiparasitic ?? 0}      cost={50} amount={2}  coins={player.coins} desc="Cures Velvet (parasitic infection)"                  onBuy={() => onBuySupply('antiparasitic',    50,  2)} />
               <SupplyCard name="Digestive Remedy"   emoji="🟡" stock={tank.supplies?.digestiveRemedy ?? 0}    cost={30} amount={2}  coins={player.coins} desc="Cures Bloat (digestive illness)"                    onBuy={() => onBuySupply('digestiveRemedy',  30,  2)} />
               <SupplyCard name="Breeding Boost"     emoji="💉" stock={tank.supplies?.breedingBoost ?? 0}      cost={60} amount={1}  coins={player.coins} desc="Next breeding takes only 10 seconds"                 onBuy={() => onBuySupply('breedingBoost',    60,  1)} />
+              <SupplyCard name="Diagnostic Kit"     emoji="🔬" stock={tank.supplies?.diagnosticKit ?? 0}     cost={25} amount={2}  coins={player.coins} desc="Instantly identify an unknown illness during incubation"  onBuy={() => onBuySupply('diagnosticKit',    25,  2)} />
+              <SupplyCard name="Vitamins"            emoji="💊" stock={tank.supplies?.vitamins ?? 0}          cost={40} amount={2}  coins={player.coins} desc="10 minutes of disease immunity for one fish"              onBuy={() => onBuySupply('vitamins',          40,  2)} />
               <SupplyCard name="Heater Cartridge"   emoji="🌡" stock={tank.supplies?.heater ?? 0}             cost={30} amount={2}  coins={player.coins} desc="Nudges temperature 4°F toward 74°F"                 onBuy={() => onBuySupply('heater',           30,  2)} />
             </div>
           )}

@@ -18,8 +18,11 @@ export const TANK_TYPES = {
 // ── Tank unlock costs ──────────────────────────────────────
 export const TANK_UNLOCK = [
   null,
-  { cost: 500,  label: 'Unlock 2nd Tank', desc: 'A dedicated breeding or grow-out tank.' },
-  { cost: 2000, label: 'Unlock 3rd Tank', desc: 'Triple your capacity and specialisation.' },
+  { cost: 500,   label: 'Unlock 2nd Tank', desc: 'A dedicated breeding or grow-out tank.' },
+  { cost: 2000,  label: 'Unlock 3rd Tank', desc: 'Triple your capacity and specialisation.' },
+  { cost: 5000,  label: 'Unlock 4th Tank', desc: 'A premium habitat for your rarest specimens.', minPrestige: 1 },
+  { cost: 12000, label: 'Unlock 5th Tank', desc: 'Industrial-scale aquarium expansion.', minPrestige: 2 },
+  { cost: 25000, label: 'Unlock 6th Tank', desc: 'The ultimate aquarium baron setup.', minPrestige: 3 },
 ];
 
 // ── Achievement definitions ────────────────────────────────
@@ -94,6 +97,12 @@ export function createDefaultState() {
     player: {
       coins: 325,
       totalCoinsEarned: 0,
+      xp: 0,
+      research: { marine_biology: 0, genetics: 0, business: 0 },
+      activeLoan: { active: false },
+      dailyStreak: 0,
+      lastDailyClaimDate: null,
+      unlockedBackgrounds: ['tropical'],
       shopLevel: 1,
       fishdex: [],
       achievements: [],
@@ -159,6 +168,13 @@ export function createDefaultState() {
         insurance:  { level: 0, maxLevel: 3, cost: 350,  label: 'Aquarium Insurance',        description: 'Refund 20% of fish value on death per level' },
         fame:       { level: 0, maxLevel: 5, cost: 250,  label: 'Aquarium Fame',             description: '+15% passive income per level' },
         tempControl:{ level: 0, maxLevel: 3, cost: 300,  label: 'Climate Control',           description: '-30% temperature drift per level' },
+        luckyCharm: { level: 0, maxLevel: 3, cost: 550,  label: 'Lucky Charm',               description: '+5% chance of higher rarity from breeding per level' },
+        bulkBuyer:  { level: 0, maxLevel: 5, cost: 200,  label: 'Bulk Buyer',                description: '-10% supply costs per level' },
+        whisperer:  { level: 0, maxLevel: 3, cost: 350,  label: 'Fish Whisperer',             description: '+10% base happiness per level' },
+        genetics:   { level: 0, maxLevel: 3, cost: 400,  label: 'Genetics Lab',               description: 'More breeding prediction detail per level' },
+        service:    { level: 0, maxLevel: 5, cost: 280,  label: 'Customer Service',            description: '+15% customer tip bonus per level' },
+        deepSea:    { level: 0, maxLevel: 3, cost: 800,  label: 'Deep Sea Permit',             description: '+6 tank capacity per level (all tanks)' },
+        breedBay:   { level: 0, maxLevel: 2, cost: 1200, label: 'Extra Breeding Bay',           description: 'Unlock an additional breeding bay (up to 3 total)' },
       },
     },
 
@@ -172,6 +188,19 @@ export function createDefaultState() {
       storedGenomeC: null,
       storedTankId: null,
     },
+
+    // Extra breeding bays (bay 0 = breedingTank above, these are bays 1+)
+    extraBays: [],
+    maxBays: 1,
+
+    // ── New systems ──────────────────────────────────────
+    specialOrders: [],        // 3 daily rotating orders
+    lastOrderSeed: 0,
+    reviews: [],              // aquarium reviews history
+    lastReviewAt: 0,
+    discoveries: [],          // unique phenotype discovery keys
+    weather: null,            // current weather state
+    lastWeatherSeed: 0, // starts at 1 (just breedingTank), upgrade unlocks more
 
     log: [
       { time: Date.now(), message: '🐠 Welcome to Fish Tycoon 2! Your aquarium awaits.' },
@@ -248,7 +277,25 @@ function migrateSave(parsed, fromVersion) {
     if (!u.insurance)   u.insurance   = { level: 0, maxLevel: 3, cost: 350,  label: 'Aquarium Insurance',         description: 'Refund 20% of fish value on death per level' };
     if (!u.fame)        u.fame        = { level: 0, maxLevel: 5, cost: 250,  label: 'Aquarium Fame',              description: '+15% passive income per level' };
     if (!u.tempControl) u.tempControl = { level: 0, maxLevel: 3, cost: 300,  label: 'Climate Control',            description: '-30% temperature drift per level' };
+    if (!u.luckyCharm)  u.luckyCharm  = { level: 0, maxLevel: 3, cost: 550,  label: 'Lucky Charm',                description: '+5% chance of higher rarity from breeding per level' };
+    if (!u.bulkBuyer)   u.bulkBuyer   = { level: 0, maxLevel: 5, cost: 200,  label: 'Bulk Buyer',                 description: '-10% supply costs per level' };
+    if (!u.whisperer)   u.whisperer   = { level: 0, maxLevel: 3, cost: 350,  label: 'Fish Whisperer',              description: '+10% base happiness per level' };
+    if (!u.genetics)    u.genetics    = { level: 0, maxLevel: 3, cost: 400,  label: 'Genetics Lab',                description: 'More breeding prediction detail per level' };
+    if (!u.service)     u.service     = { level: 0, maxLevel: 5, cost: 280,  label: 'Customer Service',             description: '+15% customer tip bonus per level' };
+    if (!u.deepSea)     u.deepSea     = { level: 0, maxLevel: 3, cost: 800,  label: 'Deep Sea Permit',              description: '+6 tank capacity per level (all tanks)' };
+    if (!u.breedBay)    u.breedBay    = { level: 0, maxLevel: 2, cost: 1200, label: 'Extra Breeding Bay',            description: 'Unlock an additional breeding bay (up to 3 total)' };
   }
+  if (parsed.extraBays === undefined) parsed.extraBays = [];
+  if (parsed.maxBays === undefined) parsed.maxBays = 1 + (parsed.shop?.upgrades?.breedBay?.level || 0);
+  if (parsed.player.xp === undefined) parsed.player.xp = Math.round((parsed.player.totalCoinsEarned || 0) * 0.05);
+  // New system migrations
+  if (!parsed.specialOrders) parsed.specialOrders = [];
+  if (!parsed.reviews) parsed.reviews = [];
+  if (!parsed.discoveries) parsed.discoveries = [];
+  if (!parsed.player.research) parsed.player.research = { marine_biology: 0, genetics: 0, business: 0 };
+  if (!parsed.player.activeLoan) parsed.player.activeLoan = { active: false };
+  if (parsed.player.dailyStreak === undefined) parsed.player.dailyStreak = 0;
+  if (!parsed.player.unlockedBackgrounds) parsed.player.unlockedBackgrounds = ['tropical']; // Retroactive XP from earnings
   if (!parsed.player.magicFishFound) parsed.player.magicFishFound = [];
   if (!parsed.player.autopsies) parsed.player.autopsies = [];
   if (!parsed.shop?.fishPrices) {
@@ -323,23 +370,44 @@ function migrateSave(parsed, fromVersion) {
   return parsed;
 }
 
+// ── Platform detection ──────────────────────────────────
+const isElectron = () => typeof window !== 'undefined' && window.electronAPI?.isElectron;
+
+function cleanStateForSave(state) {
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      autopsies: (state.player.autopsies || []).map(({ _fishId, ...rest }) => rest),
+    },
+    lastSavedAt: Date.now(),
+    // Strip store functions/UI state that shouldn't be persisted
+    soundOn: undefined,
+    showOffline: undefined,
+  };
+}
+
 export function saveGame(state) {
   try {
-    // Strip transient _fishId fields from autopsies before saving
-    const cleanState = {
-      ...state,
-      player: {
-        ...state.player,
-        autopsies: (state.player.autopsies || []).map(({ _fishId, ...rest }) => rest),
-      },
-    };
-    localStorage.setItem(SAVE_KEY, JSON.stringify({ ...cleanState, lastSavedAt: Date.now() }));
+    const cleanState = cleanStateForSave(state);
+    const json = JSON.stringify(cleanState);
+    // Always save to localStorage (fast, synchronous)
+    localStorage.setItem(SAVE_KEY, json);
+    // Also save to filesystem in Electron (async, fire-and-forget)
+    if (isElectron()) {
+      window.electronAPI.saveGame(cleanState).catch(err =>
+        console.warn('[Electron] Filesystem save failed:', err)
+      );
+    }
     return true;
   } catch (e) { console.error('Save failed:', e); return false; }
 }
 
 export function loadGame() {
   try {
+    // In Electron, prefer filesystem save (loaded synchronously at startup
+    // via the preload — electronAPI.loadGame() is async but we call it
+    // during init and cache the result). For now, fall back to localStorage.
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
@@ -352,9 +420,28 @@ export function loadGame() {
   } catch (e) { console.error('Load failed:', e); return null; }
 }
 
+// Async load for Electron — called at startup to sync filesystem → localStorage
+export async function syncElectronSave() {
+  if (!isElectron()) return;
+  try {
+    const result = await window.electronAPI.loadGame();
+    if (result.ok && result.data) {
+      // Filesystem save is newer — write it to localStorage for fast access
+      const localRaw = localStorage.getItem(SAVE_KEY);
+      const localSave = localRaw ? JSON.parse(localRaw) : null;
+      if (!localSave || (result.data.lastSavedAt || 0) > (localSave.lastSavedAt || 0)) {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(result.data));
+        console.log('[Electron] Synced filesystem save → localStorage');
+      }
+    }
+  } catch (err) {
+    console.warn('[Electron] Failed to sync save:', err);
+  }
+}
+
 
 // ── Export / Import ────────────────────────────────────────
-export function exportSave(state) {
+export async function exportSave(state) {
   const clean = {
     ...state,
     player: {
@@ -364,6 +451,13 @@ export function exportSave(state) {
     _exportedAt: new Date().toISOString(),
     _exportVersion: SAVE_VERSION,
   };
+
+  if (isElectron()) {
+    // Use native file dialog
+    return window.electronAPI.exportSave(clean);
+  }
+
+  // Web: download via blob
   const blob = new Blob([JSON.stringify(clean, null, 2)], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -373,7 +467,20 @@ export function exportSave(state) {
   URL.revokeObjectURL(url);
 }
 
-export function importSave(file) {
+export async function importSave(fileOrNull) {
+  if (isElectron() && !fileOrNull) {
+    // Use native file dialog
+    const result = await window.electronAPI.importSave();
+    if (!result.ok) throw new Error('Import cancelled');
+    const parsed = result.data;
+    if (!parsed.player || !parsed.fish || !parsed.tanks) {
+      throw new Error('Invalid save file — missing required fields.');
+    }
+    const fromVersion = parsed.version ?? 0;
+    return fromVersion !== SAVE_VERSION ? migrateSave(parsed, fromVersion) : parsed;
+  }
+
+  // Web: read from File object
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -390,7 +497,7 @@ export function importSave(file) {
       }
     };
     reader.onerror = () => reject(new Error('Failed to read file.'));
-    reader.readAsText(file);
+    reader.readAsText(fileOrNull);
   });
 }
 

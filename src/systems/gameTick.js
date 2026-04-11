@@ -4,6 +4,11 @@
 
 import { GROWTH_STAGES, createFish } from '../data/genetics.js';
 import { addLog } from '../data/gameState.js';
+import { processRandomEvent } from './randomEvents.js';
+import { getDailyOrderSeed, generateOrders } from '../data/specialOrders.js';
+import { getWeatherSeed, getCurrentWeather } from '../data/weather.js';
+import { generateReview } from '../data/reviews.js';
+import { checkNewDiscovery } from '../data/discoveries.js';
 
 export const TICK_INTERVAL_MS = 1000;
 
@@ -143,6 +148,18 @@ const HEALTH_REGEN       = 0.025; // 50→100 in ~33 min (was 0.01 = ~83 min). N
 // 60 matches the new hunger midpoint — fish fed once per hour sit around 40-50 hunger and now heal.
 const HEALTH_REGEN_HUNGER_THRESHOLD = 60;
 
+// --- FISH AGING ---
+// Fish have a lifespan based on rarity. After maxAge, health slowly declines.
+// Common fish live shorter; rare fish live longer. In real seconds:
+const LIFESPAN_BY_RARITY = {
+  common:    60 * 60 * 8,     // 8 hours
+  uncommon:  60 * 60 * 16,    // 16 hours
+  rare:      60 * 60 * 24,    // 24 hours
+  epic:      60 * 60 * 48,    // 48 hours
+  legendary: 60 * 60 * 72,    // 72 hours
+};
+const ELDER_HEALTH_DECAY = 0.005; // health lost per second after max age
+
 // --- PASSIVE INCOME ---
 // Once per minute, tanks with adult fish trickle a small coin bonus
 // based on happiness + placed decoration count.
@@ -155,62 +172,119 @@ const AUTO_FEED_INTERVAL = 40;
 const PASSIVE_INCOME_BASE     = 4;    // coins/min at 100% happiness, 0 decor
 const PASSIVE_DECOR_BONUS     = 0.25; // +25% per placed decoration, capped at 10
 
-// --- DISEASE SYSTEM ---
+// --- DISEASE SYSTEM v2 ---
+// Stages: incubating → mild → severe → critical
+// Treatment success drops with stage. Immunity granted on recovery.
+const DISEASE_STAGES = ['incubating', 'mild', 'severe', 'critical'];
+const STAGE_DURATION = { incubating: 120, mild: 300, severe: 240, critical: 180 };
+const CURE_SUCCESS_RATE = { incubating: 0.95, mild: 0.85, severe: 0.55, critical: 0.25 };
+
 export const DISEASES = {
   ich: {
     id: 'ich', name: 'Ich', emoji: '🔴',
     desc: 'White-spot disease. Spreads quickly between fish.',
-    healthDmgPerSec: 0.02,
-    spreadChancePerSec: 0.0008,
-    color: '#ff4444',
-    curedBy: 'antibiotic',
-    treatmentName: 'Antibiotic',
+    healthDmgPerSec: { incubating: 0, mild: 0.012, severe: 0.025, critical: 0.05 },
+    spreadChancePerSec: 0.0008, color: '#ff4444',
+    curedBy: 'antibiotic', treatmentName: 'Antibiotic',
+    symptoms: { mild: 'white spots', severe: 'heavy spots, scratching', critical: 'gasping, lethargic' },
   },
   fin_rot: {
     id: 'fin_rot', name: 'Fin Rot', emoji: '🟤',
     desc: 'Bacterial infection. Caused by poor water quality.',
-    healthDmgPerSec: 0.01,
-    spreadChancePerSec: 0.0003,
-    color: '#a06020',
-    curedBy: 'antibiotic',
-    treatmentName: 'Antibiotic',
+    healthDmgPerSec: { incubating: 0, mild: 0.008, severe: 0.018, critical: 0.04 },
+    spreadChancePerSec: 0.0003, color: '#a06020',
+    curedBy: 'antibiotic', treatmentName: 'Antibiotic',
+    symptoms: { mild: 'ragged fins', severe: 'fins deteriorating', critical: 'fin loss, redness' },
   },
   bloat: {
     id: 'bloat', name: 'Bloat', emoji: '🟡',
     desc: 'Digestive illness. Linked to overfeeding.',
-    healthDmgPerSec: 0.015,
-    spreadChancePerSec: 0,
-    color: '#d4c020',
-    curedBy: 'digestiveRemedy',
-    treatmentName: 'Digestive Remedy',
+    healthDmgPerSec: { incubating: 0, mild: 0.010, severe: 0.022, critical: 0.045 },
+    spreadChancePerSec: 0, color: '#d4c020',
+    curedBy: 'digestiveRemedy', treatmentName: 'Digestive Remedy',
+    symptoms: { mild: 'swollen belly', severe: 'not eating', critical: 'floating sideways' },
   },
   velvet: {
     id: 'velvet', name: 'Velvet', emoji: '🟠',
     desc: 'Parasitic infection. Hard to spot until advanced.',
-    healthDmgPerSec: 0.025,
-    spreadChancePerSec: 0.001,
-    color: '#e06820',
-    curedBy: 'antiparasitic',
-    treatmentName: 'Antiparasitic',
+    healthDmgPerSec: { incubating: 0, mild: 0.015, severe: 0.030, critical: 0.06 },
+    spreadChancePerSec: 0.001, color: '#e06820',
+    curedBy: 'antiparasitic', treatmentName: 'Antiparasitic',
+    symptoms: { mild: 'gold dust coating', severe: 'clamped fins', critical: 'rapid breathing' },
+  },
+  swim_bladder: {
+    id: 'swim_bladder', name: 'Swim Bladder', emoji: '🔵',
+    desc: 'Buoyancy problems. Fish swims erratically or upside down.',
+    healthDmgPerSec: { incubating: 0, mild: 0.005, severe: 0.015, critical: 0.035 },
+    spreadChancePerSec: 0, color: '#4488cc',
+    curedBy: 'digestiveRemedy', treatmentName: 'Digestive Remedy',
+    symptoms: { mild: 'wobbly swimming', severe: 'floating upside down', critical: 'unable to move' },
+  },
+  gill_flukes: {
+    id: 'gill_flukes', name: 'Gill Flukes', emoji: '🟣',
+    desc: 'Parasitic worms in the gills. Reduces oxygen intake.',
+    healthDmgPerSec: { incubating: 0, mild: 0.012, severe: 0.028, critical: 0.055 },
+    spreadChancePerSec: 0.0006, color: '#9944cc',
+    curedBy: 'antiparasitic', treatmentName: 'Antiparasitic',
+    symptoms: { mild: 'flashing gills', severe: 'labored breathing', critical: 'gasping at surface' },
+  },
+  dropsy: {
+    id: 'dropsy', name: 'Dropsy', emoji: '🫧',
+    desc: 'Internal organ failure. Extremely dangerous. Often fatal.',
+    healthDmgPerSec: { incubating: 0, mild: 0.018, severe: 0.04, critical: 0.08 },
+    spreadChancePerSec: 0.0002, color: '#cc2060',
+    curedBy: 'antibiotic', treatmentName: 'Antibiotic',
+    symptoms: { mild: 'pine-cone scales', severe: 'bulging eyes', critical: 'extreme swelling' },
   },
 };
 
-// Disease outbreak chance factors (per second)
-const DISEASE_BASE_CHANCE  = 0.000015; // base chance per fish per second (~5%/hr; was 0.00008 = ~25%/hr)
-const DISEASE_WATER_MULT   = 2.0;      // multiplier when water quality < 30 (was 3.5)
-const DISEASE_CROWD_MULT   = 1.5;      // multiplier when tank is >80% full (was 2.0)
+export function getDiseaseStage(diseaseSince) {
+  if (!diseaseSince) return 'mild';
+  const elapsed = (Date.now() - diseaseSince) / 1000;
+  let total = 0;
+  for (const stage of DISEASE_STAGES) {
+    total += STAGE_DURATION[stage];
+    if (elapsed < total) return stage;
+  }
+  return 'critical';
+}
+
+export function getDiseaseDamage(diseaseId, stage) {
+  const d = DISEASES[diseaseId];
+  if (!d) return 0.02;
+  const dmg = d.healthDmgPerSec;
+  return typeof dmg === 'number' ? dmg : (dmg[stage] || dmg.mild || 0.02);
+}
+
+export { CURE_SUCCESS_RATE, DISEASE_STAGES };
+
+const DISEASE_BASE_CHANCE  = 0.000015;
+const DISEASE_WATER_MULT   = 2.0;
+const DISEASE_CROWD_MULT   = 1.5;
 
 const CUSTOMER_BASE_INTERVAL_MS  = 18_000;
 const BASE_OFFLINE_SECONDS       = 60 * 60 * 48;   // 48h base cap
 const TANK_SITTER_BONUS_SECONDS  = 60 * 60 * 24;   // +24h per Tank Sitter level
 
 const CUSTOMER_TYPES = [
-  { id: 'tourist',   name: 'Tourist',       budgetMult: 0.85, haggle: 0.0,  rarityBias: 'common',   emoji: '👒' },
-  { id: 'hobbyist',  name: 'Fish Hobbyist', budgetMult: 1.0,  haggle: 0.2,  rarityBias: 'uncommon', emoji: '🎣' },
-  { id: 'collector', name: 'Collector',     budgetMult: 1.3,  haggle: 0.05, rarityBias: 'rare',     emoji: '🧐' },
-  { id: 'breeder',   name: 'Pro Breeder',   budgetMult: 1.1,  haggle: 0.35, rarityBias: 'uncommon', emoji: '🔬' },
-  { id: 'rich',      name: 'Wealthy Patron',budgetMult: 1.8,  haggle: 0.0,  rarityBias: 'epic',     emoji: '💎' },
-  { id: 'kid',       name: 'Excited Kid',   budgetMult: 0.7,  haggle: 0.0,  rarityBias: 'common',   emoji: '👦' },
+  { id: 'tourist',   name: 'Tourist',        budgetMult: 0.85, haggle: 0.0,  rarityBias: 'common',   emoji: '👒',
+    greetings: ["Wow, what a cute shop!", "Do you ship internationally?", "I saw this place on TripAdvisor!"] },
+  { id: 'hobbyist',  name: 'Fish Hobbyist',  budgetMult: 1.0,  haggle: 0.2,  rarityBias: 'uncommon', emoji: '🎣',
+    greetings: ["Nice setup! What's your filtration?", "I've been keeping fish for years.", "Any new stock today?"] },
+  { id: 'collector', name: 'Collector',      budgetMult: 1.3,  haggle: 0.05, rarityBias: 'rare',     emoji: '🧐',
+    greetings: ["I'm looking for something... special.", "My collection needs a centerpiece.", "Money is no object for the right specimen."] },
+  { id: 'breeder',   name: 'Pro Breeder',    budgetMult: 1.1,  haggle: 0.35, rarityBias: 'uncommon', emoji: '🔬',
+    greetings: ["What's the genetic line on this one?", "I need good breeding stock.", "Let's talk price — I'm buying in bulk."] },
+  { id: 'rich',      name: 'Wealthy Patron', budgetMult: 1.8,  haggle: 0.0,  rarityBias: 'epic',     emoji: '💎',
+    greetings: ["I'll take your finest specimen.", "Price is irrelevant. Show me the best.", "My yacht needs a new aquarium piece."] },
+  { id: 'kid',       name: 'Excited Kid',    budgetMult: 0.7,  haggle: 0.0,  rarityBias: 'common',   emoji: '👦',
+    greetings: ["FISHIES! Mom, look!!", "Can I name it?? Please?!", "This one is SO COOL!"] },
+  { id: 'influencer', name: 'Influencer',    budgetMult: 1.2,  haggle: 0.15, rarityBias: 'rare',     emoji: '📱',
+    greetings: ["This would get SO many likes.", "Hold on, I need to film this.", "My followers will love this!"] },
+  { id: 'scientist', name: 'Marine Biologist', budgetMult: 0.95, haggle: 0.25, rarityBias: 'rare',   emoji: '🥼',
+    greetings: ["Fascinating morphology!", "I'm studying color mutations.", "This specimen shows interesting traits."] },
+  { id: 'grandma',   name: 'Kind Grandma',   budgetMult: 1.4,  haggle: 0.0,  rarityBias: 'common',   emoji: '👵',
+    greetings: ["My grandchild would love this!", "What a beautiful fish, dear.", "I'll take it — wrap it up nicely!"] },
 ];
 
 const RARITY_ORDER = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
@@ -227,20 +301,27 @@ function getTankBonuses(tankType) {
 
 // ── Spread disease within a tank ──────────────────────────
 function maybeSpreadDisease(tankFish, wq, capacity) {
-  const sickFish = tankFish.filter(f => f.stage !== 'egg' && f.disease);
+  const sickFish = tankFish.filter(f => f.stage !== 'egg' && f.disease && getDiseaseStage(f.diseaseSince) !== 'incubating');
   if (sickFish.length === 0) return tankFish;
 
   const crowded = tankFish.length / (capacity || 12) > 0.8;
   return tankFish.map(fish => {
     if (fish.disease || fish.stage === 'egg') return fish;
+    // Vitamin immunity prevents catching diseases
+    if (fish.vitaminUntil && fish.vitaminUntil > Date.now()) return fish;
+    // Immunity check — fish that recovered from a disease are immune to it
+    const immunities = fish.immunities || [];
     for (const sick of sickFish) {
+      if (immunities.includes(sick.disease)) continue; // immune!
       const disease = DISEASES[sick.disease];
       if (!disease || disease.spreadChancePerSec === 0) continue;
       let chance = disease.spreadChancePerSec;
       if (wq < 30) chance *= DISEASE_WATER_MULT;
       if (crowded) chance *= DISEASE_CROWD_MULT;
+      // Hardy fish resist disease
+      if (fish.personality === 'hardy') chance *= 0.4;
       if (Math.random() < chance) {
-        return { ...fish, disease: sick.disease, diseaseSince: Date.now() };
+        return { ...fish, disease: sick.disease, diseaseSince: Date.now(), diseaseStage: 'incubating' };
       }
     }
     return fish;
@@ -284,19 +365,24 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
   // Disease: random outbreaks
   let fishWithDisease = tankFish.map(fish => {
     if (fish.disease || fish.stage === 'egg') return fish;
+    // Vitamin immunity
+    if (fish.vitaminUntil && fish.vitaminUntil > Date.now()) return fish;
+    // Hardy personality resistance
     let chance = DISEASE_BASE_CHANCE;
+    if (fish.personality === 'hardy') chance *= 0.4;
     if (wq < 30) chance *= DISEASE_WATER_MULT;
     if (tankFish.length / (tank.capacity || 12) > 0.8) chance *= DISEASE_CROWD_MULT;
     if (Math.random() < chance) {
       const diseaseIds = Object.keys(DISEASES);
-      // Bias: fin_rot more likely with bad water, bloat more likely if hungry
       let pool = diseaseIds;
       if (wq < 30) pool = ['fin_rot', 'fin_rot', 'ich', 'velvet'];
       if ((fish.hunger || 0) > 70) pool = ['bloat', 'bloat', 'ich'];
       const diseaseId = pool[Math.floor(Math.random() * pool.length)];
-      const diseaseDef = DISEASES[diseaseId];
-      messages.push({ message: `🚨 ${fish.species?.name || 'A fish'} in ${tank.name} contracted ${diseaseDef?.name || diseaseId}! Use ${diseaseDef?.treatmentName || 'medicine'} to cure it.`, severity: 'critical' });
-      return { ...fish, disease: diseaseId, diseaseSince: Date.now() };
+      // Check immunity
+      if ((fish.immunities || []).includes(diseaseId)) return fish;
+      // During incubation, player doesn't know the disease yet
+      messages.push({ message: `🚨 ${fish.species?.name || 'A fish'} in ${tank.name} looks unwell! Keep an eye on symptoms.`, severity: 'critical' });
+      return { ...fish, disease: diseaseId, diseaseSince: Date.now(), diagnosed: false };
     }
     return fish;
   });
@@ -312,7 +398,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
     if (f.stage !== 'egg') {
       // Auto-feed effect
       if (autoFeedUsed) f.hunger = Math.max(0, (f.hunger || 0) - 35);
-      f.hunger = Math.min(100, (f.hunger || 0) + HUNGER_RATE);
+      f.hunger = Math.min(100, (f.hunger || 0) + HUNGER_RATE * (f.personality === 'gluttonous' ? 1.4 : 1.0));
 
       const regen = HEALTH_REGEN * (bonuses.healthRegenMult || 1) * regenBoost;
 
@@ -320,11 +406,26 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
       let dmg = 0;
       if (f.disease) {
         const disease = DISEASES[f.disease];
-        if (disease) dmg += disease.healthDmgPerSec;
+        if (disease) {
+          const stage = getDiseaseStage(f.diseaseSince);
+          f.diseaseStage = stage; // store for UI
+          dmg += getDiseaseDamage(f.disease, stage);
+        }
       }
       if (f.hunger >= 90) dmg += HEALTH_HUNGER_DMG;
       if (wq < 25)        dmg += HEALTH_WATER_DMG;
       if (tempStress)     dmg += 0.02;
+
+      // Aging: fish past their lifespan slowly decline
+      const maxAge = LIFESPAN_BY_RARITY[f.species?.rarity || 'common'] || LIFESPAN_BY_RARITY.common;
+      if (f.age > maxAge) {
+        const elderAge = f.age - maxAge;
+        dmg += ELDER_HEALTH_DECAY * Math.min(3, 1 + elderAge / maxAge); // accelerates over time
+        if (!f._elderLogged) {
+          f._elderLogged = true;
+          messages.push(`🕰️ ${f.species?.name || 'A fish'} in ${tank.name} is reaching old age.`);
+        }
+      }
 
       if (dmg > 0) {
         f.health = Math.max(0, f.health - Math.min(dmg, 0.25));
@@ -344,6 +445,11 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
       messages.push(`🐣 An egg in ${tank.name} hatched into a ${f.species?.name || 'fish'}!`);
     } else if (f.stage === 'juvenile' && timeInStage >= stageDuration * growMult) {
       f.stage = 'adult'; f.stageStartedAt = now;
+      // Assign personality on reaching adulthood (if not already set at creation)
+      if (!f.personality) {
+        const pList = ['playful','shy','curious','lazy','aggressive','social','gluttonous','hardy'];
+        f.personality = pList[Math.floor(Math.random() * pList.length)];
+      }
       messages.push(`🐟 A ${f.species?.name || 'fish'} in ${tank.name} grew into an adult!`);
     }
 
@@ -357,6 +463,9 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
     const avgHealth = adults.reduce((s, f) => s + (f.health || 100), 0) / adults.length;
     const avgHunger = adults.reduce((s, f) => s + (f.hunger || 0),   0) / adults.length;
     happiness = Math.round((avgHealth * 0.4) + (Math.max(0, 100 - avgHunger) * 0.35) + (wq * 0.25));
+    // Fish Whisperer: +10% happiness per level
+    const whispererBonus = (upgradeLevels.whisperer || 0) * 0.10;
+    happiness = Math.min(100, Math.round(happiness * (1 + whispererBonus)));
   }
 
   const updatedTank = {
@@ -521,6 +630,7 @@ export function updateChallengeProgress(state, eventType, payload = {}) {
 export function processTick(state) {
   // Guard against corrupt state — should never happen but prevents a total crash
   if (!state || !Array.isArray(state.fish) || !Array.isArray(state.tanks)) return state;
+  try {
   let next = { ...state };
   const messages = [];
   const now = Date.now();
@@ -546,6 +656,8 @@ export function processTick(state) {
     tempControl: upgrades.tempControl?.level || 0,
     fame:        upgrades.fame?.level        || 0,
     insurance:   upgrades.insurance?.level   || 0,
+    whisperer:   upgrades.whisperer?.level   || 0,
+    service:     upgrades.service?.level     || 0,
   };
 
   for (const tank of next.tanks) {
@@ -646,33 +758,28 @@ export function processTick(state) {
     deadFish.forEach((f, i) => messages.push(`💀 ${f.species?.name || 'A fish'} has died. (Cause: ${newAutopsies[i]?.cause || 'Unknown'})`));
   }
 
-  // Breeding tank timer
-  const bt = next.breedingTank;
-  if (bt.breedingStartedAt && !bt.eggReady) {
-    // Clear stored genome for any parent that died this tick so collectEgg()
-    // cannot silently produce offspring from a dead fish's DNA.
-    const deadIdSet = new Set(deadFish.map(f => f.id));
-    const genomeA = deadIdSet.has(bt.slots[0]) ? null : bt.storedGenomeA;
-    const genomeB = deadIdSet.has(bt.slots[1]) ? null : bt.storedGenomeB;
-    const btCurrent = (genomeA !== bt.storedGenomeA || genomeB !== bt.storedGenomeB)
-      ? { ...bt, storedGenomeA: genomeA, storedGenomeB: genomeB }
-      : bt;
-
-    const bothSlotsEmpty = !btCurrent.slots[0] && !btCurrent.slots[1];
-    const hasGenomes = btCurrent.storedGenomeA && btCurrent.storedGenomeB;
-    // Also cancel when one parent died before its genome was captured —
-    // the egg can never form and the slot would be stuck forever otherwise.
-    const oneGenomeMissing = !btCurrent.storedGenomeA || !btCurrent.storedGenomeB;
-    if ((bothSlotsEmpty && !hasGenomes) || oneGenomeMissing) {
-      // Parent(s) lost before genome capture — cancel to unblock the slot
-      next = { ...next, breedingTank: { ...btCurrent, breedingStartedAt: null, slots: [null, null], storedGenomeA: null, storedGenomeB: null } };
+  // Breeding tank timer — process all bays
+  function processBreedingBay(bay, deadIdSet, now) {
+    if (!bay.breedingStartedAt || bay.eggReady) return bay;
+    const genomeA = deadIdSet.has(bay.slots[0]) ? null : bay.storedGenomeA;
+    const genomeB = deadIdSet.has(bay.slots[1]) ? null : bay.storedGenomeB;
+    const updated = (genomeA !== bay.storedGenomeA || genomeB !== bay.storedGenomeB)
+      ? { ...bay, storedGenomeA: genomeA, storedGenomeB: genomeB } : bay;
+    const oneGenomeMissing = !updated.storedGenomeA || !updated.storedGenomeB;
+    if (oneGenomeMissing) {
       messages.push('💔 Breeding cancelled — a parent was lost.');
-    } else if (now - btCurrent.breedingStartedAt >= btCurrent.breedingDurationMs) {
-      next = { ...next, breedingTank: { ...btCurrent, eggReady: true } };
-      messages.push('🥚 A breeding egg is ready to collect!');
-    } else {
-      next = { ...next, breedingTank: btCurrent };
+      return { ...updated, breedingStartedAt: null, slots: [null, null], storedGenomeA: null, storedGenomeB: null };
     }
+    if (now - updated.breedingStartedAt >= updated.breedingDurationMs) {
+      messages.push('🥚 A breeding egg is ready to collect!');
+      return { ...updated, eggReady: true };
+    }
+    return updated;
+  }
+  const deadIdSet = new Set(deadFish.map(f => f.id));
+  next = { ...next, breedingTank: processBreedingBay(next.breedingTank, deadIdSet, now) };
+  if (next.extraBays?.length > 0) {
+    next = { ...next, extraBays: next.extraBays.map(bay => processBreedingBay(bay, deadIdSet, now)) };
   }
 
   // Customer visits
@@ -703,7 +810,8 @@ export function processTick(state) {
     }
     if (tip > 0) {
       const incomeBoost = (next.player?.boosts?.passiveIncome || 0) > now ? 2.0 : 1.0;
-      const boostedTip  = Math.round(tip * incomeBoost);
+      const serviceMult = 1 + (upgradeLevels.service || 0) * 0.15;
+      const boostedTip  = Math.round(tip * incomeBoost * serviceMult);
       next = { ...next, player: { ...next.player, coins: next.player.coins + boostedTip, totalCoinsEarned: (next.player.totalCoinsEarned || 0) + boostedTip } };
       messages.push(`💰 Visitors left a ${boostedTip}-coin tip!${incomeBoost > 1 ? ' (High Tide ×2!)' : ''}`);
       next = updateChallengeProgress(next, 'earn_coins', { amount: boostedTip });
@@ -790,6 +898,9 @@ export function processTick(state) {
     }
   }
 
+  // Random events (storms, celebrities, outbreaks, etc.)
+  next = processRandomEvent(next, messages);
+
   if (messages.length > 0) {
     const newEntries = messages.map(m =>
       typeof m === 'string' ? { time: Date.now(), message: m } : { time: Date.now(), ...m }
@@ -797,7 +908,65 @@ export function processTick(state) {
     next = { ...next, log: [...newEntries, ...next.log].slice(0, 60) };
   }
 
+  // ── Special Orders: refresh daily ──────────────────────────
+  const orderSeed = getDailyOrderSeed();
+  if (orderSeed !== (next.lastOrderSeed || 0)) {
+    next = { ...next, specialOrders: generateOrders(orderSeed), lastOrderSeed: orderSeed };
+  }
+
+  // ── Weather: changes every 3 hours ────────────────────────
+  const weatherSeed = getWeatherSeed();
+  if (weatherSeed !== (next.lastWeatherSeed || 0)) {
+    next = { ...next, weather: getCurrentWeather(weatherSeed), lastWeatherSeed: weatherSeed };
+  }
+
+  // ── Reviews: generate one every 15 minutes ────────────────
+  if (now - (next.lastReviewAt || 0) > 900_000 && next.fish.length > 0) {
+    const review = generateReview(next);
+    const reviews = [review, ...(next.reviews || [])].slice(0, 10);
+    next = { ...next, reviews, lastReviewAt: now };
+    if (review.stars >= 4) messages.push(`⭐ New review: "${review.headline}" — ${review.stars}/5 stars!`);
+    if (review.stars <= 2) messages.push(`📰 Bad review: "${review.headline}" — only ${review.stars}/5 stars.`);
+  }
+
+  // ── Loan enforcement: penalty for overdue loans ───────────
+  const loan = next.player?.activeLoan;
+  if (loan?.active) {
+    const elapsed = (now - loan.takenAt) / 1000;
+    if (elapsed > loan.repayBy) {
+      // Overdue! Seize most valuable fish
+      const sorted = [...next.fish].filter(f => f.stage === 'adult').sort((a, b) => (b.species?.basePrice || 0) - (a.species?.basePrice || 0));
+      if (sorted.length > 0) {
+        const seized = sorted[0];
+        next = {
+          ...next,
+          fish: next.fish.filter(f => f.id !== seized.id),
+          player: { ...next.player, activeLoan: { active: false } },
+        };
+        messages.push(`🏦 Loan overdue! The bank seized your ${seized.species?.name || 'fish'} as collateral!`);
+      } else {
+        next = { ...next, player: { ...next.player, activeLoan: { active: false } } };
+        messages.push('🏦 Loan overdue! Debt forgiven — no fish to seize.');
+      }
+    }
+  }
+
+  // ── Discovery tracking: check new fish for undiscovered phenotypes ──
+  for (const f of next.fish) {
+    if (f._discoveryChecked) continue;
+    const disc = checkNewDiscovery(f, next.discoveries || []);
+    if (disc) {
+      next = { ...next, discoveries: [...(next.discoveries || []), disc.key] };
+      messages.push(`🔍 NEW DISCOVERY: ${disc.fishName} — a unique phenotype combination!`);
+    }
+    f._discoveryChecked = true;
+  }
+
   return { ...next, lastTickAt: now };
+  } catch (err) {
+    console.error('[GameTick] Tick crashed — returning previous state:', err);
+    return state; // Return unchanged state instead of crashing
+  }
 }
 // ============================================================
 // CUSTOMER
@@ -905,22 +1074,48 @@ function processCustomerVisit(state, messages) {
     priceNote = ` (bargain price!)`;
   }
 
+  const greeting = customer.greetings?.[Math.floor(Math.random() * customer.greetings.length)] || '';
+
+  // ── Interactive haggling: ~25% of eligible customers trigger a popup ──
+  // Only if no pending haggle already and the customer type haggles
+  if (!state.pendingHaggle && customer.haggle > 0 && Math.random() < 0.35) {
+    const haggleOffer = Math.round(finalPrice * (0.75 + Math.random() * 0.2));
+    return {
+      ...state,
+      pendingHaggle: {
+        id: Date.now(),
+        fishId: fish.id,
+        fishName: fish.nickname || fish.species?.name || 'Unknown Fish',
+        askPrice,
+        offer: haggleOffer,
+        maxBudget: maxBudget,
+        customerName: customer.name,
+        customerEmoji: customer.emoji,
+        customerId: customer.id,
+        greeting,
+      },
+      shop: { ...state.shop, lastCustomerAt: Date.now() },
+    };
+  }
+
   const salePriceBoost = (state.player?.boosts?.salePrice || 0) > Date.now() ? 1.25 : 1.0;
   const earnedCoins = Math.max(1, Math.round(finalPrice * salePriceBoost));
   const repGain     = Math.ceil((fish.species?.rarityScore ?? 5) / 10) + (askPrice > autoPrice ? 1 : 0);
 
-  messages.push(`${customer.emoji} ${customer.name} bought your ${fish.species?.name || 'fish'} for 🪙${earnedCoins}${priceNote}!`);
+  messages.push(`${customer.emoji} ${customer.name}: "${greeting}" — bought your ${fish.species?.name || 'fish'} for 🪙${earnedCoins}${priceNote}!`);
 
   // Clean up ask price after sale
   const fishPrices = { ...(state.shop.fishPrices || {}) };
   delete fishPrices[fish.id];
 
+  const saleXp = (fish.species?.rarity === 'epic' ? 50 : fish.species?.rarity === 'rare' ? 25 : 10);
   const soldState = {
     ...state,
     player: {
       ...state.player,
       coins: state.player.coins + earnedCoins,
       totalCoinsEarned: (state.player.totalCoinsEarned || 0) + earnedCoins,
+      xp: (state.player.xp || 0) + saleXp,
     },
     fish: state.fish.filter(f => f.id !== fish.id),
     shop: {

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '../store/gameStore.js';
+import { getLevelFromXp, getLevelTitle } from '../data/levels.js';
+import { formatCoins } from '../utils/format.js';
 
 /* ── Animated coin counter ─────────────────────────────────── */
 function CoinDisplay({ value }) {
@@ -88,6 +90,36 @@ function HappinessBar({ value }) {
   );
 }
 
+/* ── Save indicator ─────────────────────────────────────────── */
+function SaveIndicator() {
+  const flash = useGameStore(s => s._saveFlash);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (!flash) return;
+    setVisible(true);
+    const t = setTimeout(() => setVisible(false), 2000);
+    return () => clearTimeout(t);
+  }, [flash]);
+  if (!visible) return null;
+  return <span className="hud2-save-indicator" title="Game saved">💾</span>;
+}
+
+/* ── Level / XP Bar ────────────────────────────────────────── */
+function LevelBar({ xp }) {
+  const { level, currentXp, nextLevelXp } = getLevelFromXp(xp || 0);
+  const pct = nextLevelXp > 0 ? Math.min(100, (currentXp / nextLevelXp) * 100) : 100;
+  const title = getLevelTitle(level);
+  return (
+    <div className="hud2-level" title={`${title}\n${currentXp} / ${nextLevelXp} XP to next level`}>
+      <span className="hud2-level-badge">Lv.{level}</span>
+      <div className="hud2-level-track">
+        <div className="hud2-level-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <span className="hud2-level-xp">{currentXp}/{nextLevelXp}</span>
+    </div>
+  );
+}
+
 /* ── Main HUD ──────────────────────────────────────────────── */
 export default function HUD({
   player, shop, tanks, activeTank, fish,
@@ -120,6 +152,8 @@ export default function HUD({
 
         <CoinDisplay value={player.coins} />
 
+        <LevelBar xp={player.xp} />
+
         <div className="hud2-spacer" />
 
         <div className="hud2-bars">
@@ -139,6 +173,7 @@ export default function HUD({
             </button>
           </>
         )}
+        <SaveIndicator />
       </div>
 
       {/* ── Row 2: tank stats · quick actions ────────────────── */}

@@ -8130,3 +8130,1800 @@ button:active, .btn:active, .action-btn:active {
   /* Override: selected fish uses the pulse ring instead */
   background: none;
 }
+
+/* ============================================================
+   INTERACTIVE EFFECTS
+   ============================================================ */
+
+/* ── 1. Click water ripple ───────────────────────────────── */
+.click-ripple {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 22;
+}
+.click-ripple-ring {
+  position: absolute;
+  border: 2px solid rgba(180,220,255,0.5);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: rippleExpand 1.2s ease-out forwards;
+}
+.click-ripple-ring-1 { width: 40px; height: 40px; animation-delay: 0s; }
+.click-ripple-ring-2 { width: 70px; height: 70px; animation-delay: 0.15s; border-color: rgba(180,220,255,0.35); }
+.click-ripple-ring-3 { width: 100px; height: 100px; animation-delay: 0.3s; border-color: rgba(180,220,255,0.2); }
+@keyframes rippleExpand {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+/* ── 2. Feed splash particles ────────────────────────────── */
+.feed-splash-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  pointer-events: none;
+  z-index: 23;
+}
+.feed-pellet-anim {
+  position: absolute;
+  top: -2%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #d4a040, #8c5a20);
+  box-shadow: 0 0 3px rgba(200,150,50,0.4);
+  animation: feedPelletDrop 2.2s ease-in forwards;
+  opacity: 0;
+}
+.feed-pellet-0 { left: 35%; animation-delay: 0s; }
+.feed-pellet-1 { left: 42%; animation-delay: 0.08s; width: 4px; height: 4px; }
+.feed-pellet-2 { left: 50%; animation-delay: 0.04s; }
+.feed-pellet-3 { left: 58%; animation-delay: 0.12s; width: 4px; height: 4px; }
+.feed-pellet-4 { left: 45%; animation-delay: 0.06s; width: 3px; height: 3px; }
+.feed-pellet-5 { left: 55%; animation-delay: 0.10s; width: 6px; height: 6px; }
+.feed-pellet-6 { left: 38%; animation-delay: 0.16s; width: 3px; height: 3px; }
+.feed-pellet-7 { left: 62%; animation-delay: 0.14s; width: 4px; height: 4px; }
+@keyframes feedPelletDrop {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+  5%   { opacity: 1; }
+  20%  { transform: translateY(15vh) rotate(45deg); }
+  50%  { transform: translateY(40vh) translateX(8px) rotate(120deg); opacity: 0.9; }
+  80%  { transform: translateY(70vh) translateX(-5px) rotate(200deg); opacity: 0.5; }
+  100% { transform: translateY(90vh) translateX(12px) rotate(280deg); opacity: 0; }
+}
+
+/* ── 3. Sale sparkle burst ───────────────────────────────── */
+.sale-sparkle {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 24;
+}
+.sparkle-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffd700;
+  box-shadow: 0 0 8px #ffd700, 0 0 16px rgba(255,215,0,0.4);
+  animation: sparkleBurst 1.4s ease-out forwards;
+  opacity: 0;
+}
+.sparkle-0 { animation-delay: 0s;    --sx: -30px; --sy: -40px; }
+.sparkle-1 { animation-delay: 0.05s; --sx:  30px; --sy: -35px; background: #fff; }
+.sparkle-2 { animation-delay: 0.10s; --sx: -40px; --sy:  10px; }
+.sparkle-3 { animation-delay: 0.07s; --sx:  35px; --sy:  15px; background: #fff; width: 4px; height: 4px; }
+.sparkle-4 { animation-delay: 0.12s; --sx:   0px; --sy: -50px; }
+.sparkle-5 { animation-delay: 0.15s; --sx:  10px; --sy:  40px; width: 4px; height: 4px; }
+@keyframes sparkleBurst {
+  0%   { transform: translate(0, 0) scale(0); opacity: 0; }
+  20%  { opacity: 1; transform: translate(calc(var(--sx) * 0.4), calc(var(--sy) * 0.4)) scale(1.2); }
+  50%  { opacity: 0.9; transform: translate(var(--sx), var(--sy)) scale(1); }
+  100% { opacity: 0; transform: translate(calc(var(--sx) * 1.3), calc(var(--sy) * 1.5)) scale(0.3); }
+}
+
+/* ── 4. Enhanced fish fin wave animation ─────────────────── */
+.fish-anim-inner .fish-fin,
+.fish-anim-inner .fish-tail {
+  transform-origin: center;
+  animation: finWave 1.5s ease-in-out infinite;
+}
+.fish-anim-inner.fish-swimming .fish-fin { animation-duration: 0.6s; }
+.fish-anim-inner.fish-swimming .fish-tail { animation-duration: 0.4s; }
+.fish-anim-inner.fish-idle .fish-fin { animation-duration: 2.5s; }
+.fish-anim-inner.fish-idle .fish-tail { animation-duration: 3s; }
+@keyframes finWave {
+  0%, 100% { transform: rotate(0deg) scaleY(1); }
+  25%      { transform: rotate(5deg) scaleY(1.05); }
+  75%      { transform: rotate(-5deg) scaleY(0.95); }
+}
+
+/* ── 5. Egg breathing pulse ──────────────────────────────── */
+.fish-container .egg-sprite {
+  animation: eggBreathe 3s ease-in-out infinite;
+}
+@keyframes eggBreathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04) translateY(-1px); }
+}
+
+
+/* ============================================================
+   NEW FEATURES CSS
+   ============================================================ */
+
+/* ── Settings Panel ──────────────────────────────────────── */
+.win-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; display:flex; align-items:center; justify-content:center; }
+.settings-modal { background:var(--bg,#1a1a2e); border:1px solid rgba(255,255,255,0.15); border-radius:12px; padding:1.5rem; width:min(420px,90vw); max-height:85vh; overflow-y:auto; }
+.settings-title { font-size:1.2rem; font-weight:700; margin-bottom:1rem; }
+.settings-section { margin-bottom:1rem; padding-bottom:0.8rem; border-bottom:1px solid rgba(255,255,255,0.08); }
+.settings-section-title { font-size:0.85rem; font-weight:600; margin-bottom:0.5rem; opacity:0.7; }
+.settings-row { display:flex; align-items:center; justify-content:space-between; gap:0.5rem; margin-bottom:0.4rem; font-size:0.85rem; }
+.settings-label { flex:1; }
+.settings-hint { display:block; font-size:0.7rem; opacity:0.5; }
+.settings-slider { width:100px; accent-color:#f0c040; }
+.settings-val { width:36px; text-align:right; font-size:0.75rem; opacity:0.6; }
+.settings-toggle { padding:2px 10px; border-radius:12px; font-size:0.75rem; font-weight:600; border:1px solid rgba(255,255,255,0.2); cursor:pointer; }
+.settings-toggle.on { background:#2a6040; color:#80ff80; }
+.settings-toggle.off { background:#603030; color:#ff8080; }
+.settings-keys { font-size:0.75rem; opacity:0.7; line-height:1.8; }
+.settings-keys kbd { background:rgba(255,255,255,0.1); padding:1px 6px; border-radius:3px; font-family:monospace; font-size:0.7rem; }
+.settings-footer { text-align:right; margin-top:1rem; }
+
+/* ── Stats Panel ─────────────────────────────────────────── */
+.stats-panel { padding:0.5rem; }
+.stats-title { font-size:1.1rem; margin-bottom:0.8rem; }
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:0.5rem; margin-bottom:1rem; }
+.stat-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:0.5rem; text-align:center; }
+.stat-card-icon { font-size:1.3rem; }
+.stat-card-value { font-size:1.1rem; font-weight:700; color:#f0c040; }
+.stat-card-label { font-size:0.65rem; opacity:0.6; }
+.stat-card-sub { font-size:0.6rem; opacity:0.4; font-style:italic; }
+.stats-section { margin-bottom:1rem; }
+.stats-section-title { font-size:0.85rem; font-weight:600; margin-bottom:0.4rem; opacity:0.7; }
+.stat-mini-bar { display:flex; align-items:center; gap:0.4rem; margin-bottom:0.3rem; font-size:0.75rem; }
+.stat-mini-label { width:70px; text-transform:capitalize; opacity:0.7; }
+.stat-mini-track { flex:1; height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; }
+.stat-mini-fill { height:100%; border-radius:4px; transition:width 0.3s; }
+.stat-mini-val { width:30px; text-align:right; opacity:0.6; }
+
+/* ── Seasonal Banner ─────────────────────────────────────── */
+.seasonal-banner { position:fixed; bottom:48px; left:50%; transform:translateX(-50%); background:linear-gradient(90deg,rgba(240,192,64,0.15),rgba(240,120,40,0.15)); border:1px solid rgba(240,192,64,0.3); border-radius:8px; padding:4px 16px; z-index:30; display:flex; gap:0.8rem; align-items:center; font-size:0.8rem; pointer-events:none; animation:seasonalPulse 4s ease-in-out infinite; }
+.seasonal-name { font-weight:700; white-space:nowrap; }
+.seasonal-desc { opacity:0.7; font-size:0.72rem; }
+@keyframes seasonalPulse { 0%,100%{opacity:0.85;} 50%{opacity:1;} }
+
+/* ── Pause Overlay ───────────────────────────────────────── */
+.pause-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:50; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; }
+.pause-text { font-size:3rem; font-weight:800; letter-spacing:0.2em; opacity:0.8; animation:pauseBlink 1.5s ease-in-out infinite; }
+.pause-hint { font-size:0.85rem; opacity:0.5; margin-top:0.5rem; }
+@keyframes pauseBlink { 0%,100%{opacity:0.8;} 50%{opacity:0.4;} }
+
+/* ── Prestige Button ─────────────────────────────────────── */
+.btn-prestige { background:linear-gradient(135deg,#d4a030,#f0c040) !important; color:#1a1a2e !important; font-weight:700; animation:prestigeGlow 2s ease-in-out infinite; }
+@keyframes prestigeGlow { 0%,100%{box-shadow:0 0 8px rgba(240,192,64,0.3);} 50%{box-shadow:0 0 16px rgba(240,192,64,0.6);} }
+
+/* ── Fish Naming ─────────────────────────────────────────── */
+.fp-nickname { display:block; font-size:1.1rem; font-weight:700; color:#f0c040; }
+.fp-species-sub { display:block; font-size:0.75rem; opacity:0.5; font-weight:400; }
+.fp-rename-btn { background:none; border:none; cursor:pointer; font-size:0.8rem; opacity:0.5; padding:0 4px; vertical-align:middle; }
+.fp-rename-btn:hover { opacity:1; }
+
+/* ── Breeding Bay Tabs ───────────────────────────────────── */
+.breed-bay-tabs { display:flex; gap:4px; margin-bottom:0.8rem; }
+.breed-bay-tab { padding:4px 12px; border-radius:6px 6px 0 0; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-bottom:none; cursor:pointer; font-size:0.8rem; color:rgba(255,255,255,0.6); transition:all 0.2s; }
+.breed-bay-tab.active { background:rgba(255,255,255,0.1); color:white; border-color:rgba(255,255,255,0.2); }
+.breed-bay-tab.has-egg { color:#f0c040; }
+.breed-bay-tab.busy { color:#78c8ff; }
+
+/* ── Random Event toast highlight ────────────────────────── */
+.toast-event { border-left: 3px solid #f0c040 !important; background: linear-gradient(135deg, rgba(240,192,64,0.15), rgba(30,30,50,0.95)) !important; }
+.toast-event .toast-icon { font-size: 1.4rem; animation: eventBounce 0.6s ease-out; }
+@keyframes eventBounce {
+  0%   { transform: scale(0) rotate(-10deg); }
+  50%  { transform: scale(1.3) rotate(5deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+/* ============================================================
+   EVENT POPUP + CUSTOMER HAGGLE UI
+   ============================================================ */
+
+/* ── Event Popup ─────────────────────────────────────────── */
+.event-popup {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(30,25,60,0.95), rgba(20,15,40,0.95));
+  border: 1px solid rgba(240,192,64,0.4);
+  border-radius: 12px;
+  padding: 12px 20px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 420px;
+  cursor: pointer;
+  animation: eventSlideIn 0.5s ease-out;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(240,192,64,0.15);
+}
+.event-popup-emoji { font-size: 2rem; }
+.event-popup-title { font-weight: 700; font-size: 0.95rem; color: #f0c040; margin-bottom: 2px; }
+.event-popup-desc { font-size: 0.8rem; opacity: 0.8; line-height: 1.3; }
+.event-popup-dismiss { opacity: 0.4; font-size: 0.8rem; margin-left: auto; }
+@keyframes eventSlideIn {
+  0% { transform: translateX(-50%) translateY(-30px); opacity: 0; }
+  100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* ── Haggle Popup ────────────────────────────────────────── */
+.haggle-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+.haggle-popup {
+  background: linear-gradient(145deg, #1e1a3a, #12102a);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: min(380px, 90vw);
+  animation: haggleSlideUp 0.4s ease-out;
+}
+.haggle-customer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0.8rem;
+}
+.haggle-emoji { font-size: 2.5rem; }
+.haggle-name { font-size: 1.1rem; font-weight: 700; }
+.haggle-speech {
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-style: italic;
+  font-size: 0.85rem;
+  margin-bottom: 0.8rem;
+  border-left: 3px solid rgba(255,255,255,0.15);
+}
+.haggle-fish-info { font-size: 0.85rem; margin-bottom: 0.8rem; opacity: 0.8; }
+.haggle-offer {
+  background: rgba(240,192,64,0.08);
+  border: 1px solid rgba(240,192,64,0.2);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.haggle-offer-label { display: block; font-size: 0.75rem; opacity: 0.6; margin-bottom: 4px; }
+.haggle-offer-price { font-size: 1.5rem; font-weight: 700; color: #f0c040; display: block; }
+.haggle-offer-vs { font-size: 0.75rem; opacity: 0.6; display: block; margin-top: 4px; }
+.haggle-actions { display: flex; gap: 8px; }
+.haggle-actions .btn { flex: 1; padding: 8px; font-size: 0.8rem; }
+.haggle-accept { background: rgba(80,200,100,0.2) !important; border-color: rgba(80,200,100,0.4) !important; }
+.haggle-decline { background: rgba(200,60,60,0.15) !important; border-color: rgba(200,60,60,0.3) !important; }
+.haggle-counter { background: rgba(100,150,255,0.15) !important; border-color: rgba(100,150,255,0.3) !important; }
+.haggle-counter-phase { margin-top: 0.5rem; }
+.haggle-counter-input { display: flex; align-items: center; gap: 8px; margin-bottom: 0.8rem; font-size: 1.1rem; font-weight: 700; color: #f0c040; }
+.haggle-input { width: 100px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(240,192,64,0.4); background: rgba(0,0,0,0.3); color: #f0c040; font-size: 1.1rem; font-weight: 700; text-align: center; }
+.haggle-result { text-align: center; padding: 1rem; border-radius: 10px; font-weight: 700; font-size: 1.1rem; }
+.haggle-result.success { background: rgba(80,200,100,0.1); color: #50c864; }
+.haggle-result.failed { background: rgba(200,60,60,0.1); color: #e05050; }
+.haggle-result-icon { font-size: 2rem; margin-bottom: 4px; }
+.haggle-result-sub { font-size: 0.75rem; font-weight: 400; opacity: 0.7; margin-top: 4px; }
+@keyframes haggleSlideUp {
+  0% { transform: translateY(40px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+
+/* ============================================================
+   AQUARIUM VISITORS — animated characters walking past tank
+   ============================================================ */
+.visitors-layer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  z-index: 19;
+  pointer-events: none;
+  overflow: hidden;
+}
+.visitor {
+  position: absolute;
+  bottom: 2px;
+  font-size: 1.6rem;
+  animation: visitorWalk linear forwards;
+  white-space: nowrap;
+}
+.visitor-speech {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.9);
+  color: #1a1a2e;
+  font-size: 0.55rem;
+  padding: 2px 6px;
+  border-radius: 8px;
+  white-space: nowrap;
+  animation: speechFade 3s ease-in-out forwards;
+  pointer-events: none;
+}
+@keyframes visitorWalk {
+  0%   { transform: translateX(-50px); }
+  100% { transform: translateX(calc(100vw + 50px)); }
+}
+.visitor.rtl { animation-name: visitorWalkRTL; }
+@keyframes visitorWalkRTL {
+  0%   { transform: translateX(calc(100vw + 50px)) scaleX(-1); }
+  100% { transform: translateX(-50px) scaleX(-1); }
+}
+@keyframes speechFade {
+  0%, 20%  { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  30%, 70% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100%     { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+}
+
+/* ── Fish personality badge ──────────────────────────────── */
+.fish-personality-badge {
+  font-size: 0.6rem;
+  opacity: 0.8;
+  margin-left: 4px;
+}
+.fish-bond-badge {
+  font-size: 0.55rem;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+/* ── Disease stage styling ───────────────────────────────── */
+.fp-disease--incubating { border-left: 3px solid #888; }
+.fp-disease--mild { border-left: 3px solid #e0c040; }
+.fp-disease--severe { border-left: 3px solid #e07020; }
+.fp-disease--critical { border-left: 3px solid #e02020; animation: criticalPulse 1s ease-in-out infinite; }
+@keyframes criticalPulse { 0%,100% { background: rgba(200,30,30,0.05); } 50% { background: rgba(200,30,30,0.15); } }
+.fp-disease-symptom { font-size: 0.75rem; opacity: 0.7; margin-top: 2px; font-style: italic; }
+.fp-disease-cure { font-size: 0.75rem; color: #50c864; margin-top: 2px; }
+.fp-disease-warn { font-size: 0.75rem; color: #e07020; margin-top: 2px; font-weight: 600; }
+
+/* ============================================================
+   UI OVERHAUL — STEAM-READY GAME SKIN
+   ============================================================ */
+
+/* ── Design tokens ───────────────────────────────────────── */
+:root {
+  --font-display: 'Fredoka', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --ocean-1: #060d1a;
+  --ocean-2: #0a1628;
+  --ocean-3: #0f1f38;
+  --ocean-4: #162848;
+  --panel-bg: rgba(12,20,40,0.85);
+  --panel-border: rgba(100,160,220,0.15);
+  --panel-glow: rgba(80,140,220,0.08);
+  --accent: #f0c040;
+  --accent-dim: rgba(240,192,64,0.15);
+  --accent-2: #40c8f0;
+  --danger: #e05050;
+  --success: #50c864;
+  --text: #d8e0f0;
+  --text-dim: rgba(200,210,230,0.55);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+/* ── Global reset ────────────────────────────────────────── */
+body {
+  font-family: var(--font-body) !important;
+  background: var(--ocean-1) !important;
+  color: var(--text) !important;
+}
+
+/* ── App shell ───────────────────────────────────────────── */
+.app {
+  font-family: var(--font-body);
+}
+
+/* ── Glass panel mixin ───────────────────────────────────── */
+.breeding-lab, .shop-panel, .fishdex-panel, .fish-panel,
+.log-panel, .achievements-panel, .magic-fish-panel,
+.stats-panel, .decoration-panel, .autopsy-panel,
+.supplies-panel {
+  background: var(--panel-bg) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--panel-border) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 var(--panel-glow) !important;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn {
+  font-family: var(--font-body) !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-sm) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  background: rgba(255,255,255,0.06) !important;
+  color: var(--text) !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer;
+}
+.btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.12) !important;
+  border-color: rgba(255,255,255,0.2) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.btn:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+.btn:disabled { opacity: 0.35 !important; cursor: not-allowed; }
+.btn-primary, .btn.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #d4a020) !important;
+  color: var(--ocean-1) !important;
+  border-color: rgba(240,192,64,0.4) !important;
+}
+.btn-danger, .btn.btn-danger {
+  background: rgba(200,50,50,0.2) !important;
+  border-color: rgba(200,50,50,0.3) !important;
+}
+
+/* ── Tab bar ─────────────────────────────────────────────── */
+.tab-bar, .tabs {
+  font-family: var(--font-body);
+  gap: 2px !important;
+}
+.tab-bar .tab, .tabs .tab, .tab-btn {
+  font-family: var(--font-body) !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
+  transition: all 0.2s ease !important;
+  border: 1px solid transparent !important;
+  border-bottom: none !important;
+}
+.tab-bar .tab.active, .tabs .tab.active, .tab-btn.active {
+  background: var(--panel-bg) !important;
+  border-color: var(--panel-border) !important;
+  color: var(--accent) !important;
+}
+
+/* ── Section titles ──────────────────────────────────────── */
+.section-title, .stats-title, .stats-section-title,
+.settings-title, .settings-section-title {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+}
+
+/* ── HUD ─────────────────────────────────────────────────── */
+.hud {
+  font-family: var(--font-body);
+  background: linear-gradient(180deg, rgba(6,13,26,0.95), rgba(6,13,26,0.8)) !important;
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--panel-border) !important;
+}
+.hud-coins, .coin-display {
+  font-family: var(--font-display) !important;
+  font-weight: 700;
+  color: var(--accent) !important;
+}
+
+/* ── Upgrade cards ───────────────────────────────────────── */
+.upgrade-card {
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid var(--panel-border) !important;
+  border-radius: var(--radius) !important;
+  transition: all 0.2s ease !important;
+}
+.upgrade-card:hover { background: rgba(255,255,255,0.06) !important; transform: translateY(-2px); }
+.upgrade-card.maxed { border-color: rgba(240,192,64,0.25) !important; }
+.upgrade-title { font-family: var(--font-display) !important; }
+
+/* ── Supply cards ────────────────────────────────────────── */
+.supply-card {
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid var(--panel-border) !important;
+  border-radius: var(--radius) !important;
+  transition: all 0.2s ease !important;
+}
+.supply-card:hover { background: rgba(255,255,255,0.06) !important; }
+
+/* ── Fish panel ──────────────────────────────────────────── */
+.fish-panel { font-family: var(--font-body); }
+.fp-name, .fp-species-name {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+}
+
+/* ── Stat cards ──────────────────────────────────────────── */
+.stat-card {
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid var(--panel-border) !important;
+  border-radius: var(--radius) !important;
+}
+.stat-card-value { font-family: var(--font-display) !important; font-weight: 700 !important; }
+
+/* ── Tab content transitions ─────────────────────────────── */
+main > * {
+  animation: tabFadeIn 0.3s ease-out;
+}
+@keyframes tabFadeIn {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.app-footer {
+  font-family: var(--font-body);
+  background: linear-gradient(0deg, rgba(6,13,26,0.95), rgba(6,13,26,0.8)) !important;
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--panel-border) !important;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Toast ───────────────────────────────────────────────── */
+.toast {
+  font-family: var(--font-body) !important;
+  border-radius: var(--radius) !important;
+  backdrop-filter: blur(12px);
+}
+
+/* ── Tank frame ──────────────────────────────────────────── */
+.tank-frame, .tank-wrapper {
+  border-radius: var(--radius) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.05) !important;
+}
+
+/* ============================================================
+   TITLE SCREEN
+   ============================================================ */
+.title-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(170deg, #030810, #081828 40%, #0a2040 70%, #061020);
+  z-index: 100;
+  overflow: hidden;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.title-fade-out {
+  opacity: 0;
+  transform: scale(1.05);
+}
+
+/* Title background effects */
+.title-bg { position: absolute; inset: 0; overflow: hidden; }
+.title-rays { position: absolute; inset: 0; }
+.title-ray {
+  position: absolute;
+  top: -20%;
+  width: 120px;
+  height: 140%;
+  background: linear-gradient(to bottom, rgba(80,160,255,0.08), transparent 60%);
+  transform-origin: top center;
+  animation: titleRaySway 15s ease-in-out infinite;
+}
+.title-ray-0 { left: 10%; animation-delay: 0s; width: 80px; }
+.title-ray-1 { left: 30%; animation-delay: 2s; }
+.title-ray-2 { left: 50%; animation-delay: 4s; width: 150px; opacity: 0.7; }
+.title-ray-3 { left: 70%; animation-delay: 1s; width: 90px; }
+.title-ray-4 { left: 85%; animation-delay: 3s; }
+@keyframes titleRaySway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+.title-bubble {
+  position: absolute;
+  bottom: -10%;
+  border-radius: 50%;
+  border: 1px solid rgba(120,180,255,0.3);
+  background: radial-gradient(circle at 30% 30%, rgba(180,220,255,0.15), transparent);
+  animation: titleBubbleRise linear infinite;
+}
+@keyframes titleBubbleRise {
+  0% { transform: translateY(0) translateX(0); }
+  25% { transform: translateY(-30vh) translateX(8px); }
+  50% { transform: translateY(-60vh) translateX(-5px); }
+  75% { transform: translateY(-85vh) translateX(6px); }
+  100% { transform: translateY(-110vh) translateX(0); opacity: 0; }
+}
+
+.title-caustics {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: repeating-conic-gradient(rgba(60,140,220,0.03) 0deg 10deg, transparent 10deg 20deg);
+  animation: titleCausticShift 12s linear infinite;
+  opacity: 0.5;
+}
+@keyframes titleCausticShift { 0% { transform: rotate(0deg) scale(2); } 100% { transform: rotate(360deg) scale(2); } }
+
+/* Logo */
+.title-logo-wrap {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  animation: titleLogoFloat 4s ease-in-out infinite;
+  margin-bottom: 2rem;
+}
+@keyframes titleLogoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.title-logo-glow {
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(circle, rgba(80,160,255,0.15), transparent 60%);
+  z-index: -1;
+}
+.title-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 0;
+}
+.title-logo-fish {
+  font-size: 3.5rem;
+  animation: titleFishBob 2s ease-in-out infinite;
+}
+@keyframes titleFishBob {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+.title-logo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1;
+}
+.title-word-fish {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--accent-2);
+  text-shadow: 0 0 20px rgba(64,200,240,0.3);
+}
+.title-word-tycoon {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 0 20px rgba(240,192,64,0.3);
+}
+.title-word-2 {
+  position: absolute;
+  right: -24px;
+  top: -8px;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ff7eb3;
+  text-shadow: 0 0 12px rgba(255,126,179,0.4);
+}
+.title-tagline {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-dim);
+  margin-top: 0.5rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Menu buttons */
+.title-menu {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 220px;
+}
+.title-btn {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 14px 32px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+.title-btn:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.title-btn-primary {
+  background: linear-gradient(135deg, var(--accent-2), #2090d0) !important;
+  color: white !important;
+  border-color: rgba(64,200,240,0.4) !important;
+  box-shadow: 0 4px 20px rgba(64,200,240,0.2);
+}
+.title-btn-primary:hover {
+  box-shadow: 0 8px 30px rgba(64,200,240,0.35) !important;
+}
+
+.title-footer {
+  position: absolute;
+  bottom: 16px;
+  display: flex;
+  gap: 24px;
+  font-size: 0.75rem;
+  opacity: 0.3;
+  z-index: 2;
+}
+
+/* ============================================================
+   UI POLISH PASS 2 — GAME FEEL
+   ============================================================ */
+
+/* ── 1. HUD — bigger, bolder, game-like ──────────────────── */
+.hud2 {
+  background: linear-gradient(180deg, rgba(4,8,20,0.96), rgba(8,16,32,0.92)) !important;
+  border-bottom: 2px solid rgba(64,200,240,0.12) !important;
+  padding: 8px 16px !important;
+  gap: 12px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+}
+.hud2-coin-icon { font-size: 1.4rem !important; }
+.hud2-coin-val {
+  font-family: var(--font-display) !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: var(--accent) !important;
+  text-shadow: 0 0 12px rgba(240,192,64,0.3);
+}
+.hud2-coin-val.flash-up { animation: coinFlashUp 0.6s ease-out !important; }
+@keyframes coinFlashUp {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.2); color: #ffe060; text-shadow: 0 0 20px rgba(255,224,96,0.5); }
+  100% { transform: scale(1); }
+}
+.hud2-pill {
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 20px !important;
+  padding: 3px 10px !important;
+}
+.hud2-rep-track {
+  background: rgba(255,255,255,0.06) !important;
+  border-radius: 4px !important;
+  overflow: hidden;
+}
+.hud2-rep-fill {
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* ── 2. Tab bar — game navigation feel ───────────────────── */
+.tab-bar {
+  background: linear-gradient(180deg, rgba(8,16,32,0.95), rgba(4,8,20,0.9)) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  padding: 4px 8px 0 !important;
+  gap: 2px !important;
+  position: relative;
+}
+.tab-btn {
+  font-family: var(--font-body) !important;
+  font-weight: 600 !important;
+  font-size: 0.78rem !important;
+  padding: 8px 12px 10px !important;
+  border-radius: 10px 10px 0 0 !important;
+  border: 1px solid transparent !important;
+  border-bottom: none !important;
+  background: transparent !important;
+  color: rgba(255,255,255,0.45) !important;
+  transition: all 0.25s ease !important;
+  position: relative;
+  cursor: pointer;
+}
+.tab-btn:hover {
+  color: rgba(255,255,255,0.7) !important;
+  background: rgba(255,255,255,0.03) !important;
+}
+.tab-btn.active {
+  color: white !important;
+  background: rgba(255,255,255,0.06) !important;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+  box-shadow: 0 0 8px var(--accent);
+}
+.tab-btn-icon { font-size: 1.1rem !important; }
+.tab-btn-label { font-size: 0.7rem !important; }
+.tab-pill { display: none !important; } /* Replace with ::after on active */
+
+/* Tab badge pulse */
+.tab-dot, .tab-new-badge {
+  animation: badgePulse 2s ease-in-out infinite !important;
+}
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* ── 3. Footer — game toolbar ────────────────────────────── */
+.app-footer {
+  background: linear-gradient(0deg, rgba(4,8,20,0.96), rgba(8,16,32,0.92)) !important;
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+  padding: 6px 16px !important;
+  gap: 6px !important;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.3) !important;
+}
+.app-footer .btn {
+  font-size: 0.75rem !important;
+  padding: 5px 10px !important;
+  border-radius: 6px !important;
+}
+.footer-tip {
+  font-size: 0.65rem !important;
+  opacity: 0.3 !important;
+  font-style: italic;
+}
+
+/* ── 4. Fish panel polish ────────────────────────────────── */
+.fish-panel {
+  border-radius: var(--radius) !important;
+}
+.fp-name {
+  font-family: var(--font-display) !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+}
+.fp-action-bar .btn {
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+.fp-action-bar .btn:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+}
+.fp-action-bar .fp-btn--sell {
+  background: linear-gradient(135deg, rgba(240,192,64,0.15), rgba(240,192,64,0.08)) !important;
+  border-color: rgba(240,192,64,0.3) !important;
+}
+.fp-action-bar .fp-btn--feed {
+  background: linear-gradient(135deg, rgba(80,200,100,0.15), rgba(80,200,100,0.08)) !important;
+  border-color: rgba(80,200,100,0.3) !important;
+}
+.fp-action-bar .fp-btn--medicine {
+  background: linear-gradient(135deg, rgba(100,150,255,0.15), rgba(100,150,255,0.08)) !important;
+  border-color: rgba(100,150,255,0.3) !important;
+}
+
+/* ── 5. Progress bars — animated fills ───────────────────── */
+.fp-stat-fill, .fp-bar-fill {
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  border-radius: 3px !important;
+  position: relative;
+  overflow: hidden;
+}
+.fp-stat-fill::after, .fp-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  animation: barShimmer 2s ease-in-out infinite;
+}
+@keyframes barShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ── 6. Empty states ─────────────────────────────────────── */
+.empty-tank, .empty-state {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  opacity: 0.5 !important;
+  font-family: var(--font-body) !important;
+  padding: 2rem !important;
+  text-align: center !important;
+}
+.empty-tank::before {
+  content: '🐠';
+  font-size: 3rem;
+  animation: emptyBob 3s ease-in-out infinite;
+}
+@keyframes emptyBob {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-10px) rotate(5deg); }
+}
+
+/* ── 7. Micro-interactions ───────────────────────────────── */
+.supply-card, .upgrade-card, .stat-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+.supply-card:hover, .upgrade-card:hover, .stat-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+}
+.supply-card:active, .upgrade-card:active {
+  transform: translateY(-1px) scale(0.98) !important;
+}
+
+/* ── 8. Coin delta animations ────────────────────────────── */
+.coin-delta-portal .coin-delta {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5) !important;
+}
+
+/* ── 9. Breeding lab polish ──────────────────────────────── */
+.breed-parents {
+  background: rgba(255,255,255,0.02) !important;
+  border: 1px dashed rgba(255,255,255,0.1) !important;
+  border-radius: var(--radius) !important;
+  transition: all 0.3s ease !important;
+}
+.breed-parents--breeding {
+  border-style: solid !important;
+  border-color: rgba(64,200,240,0.2) !important;
+  box-shadow: 0 0 20px rgba(64,200,240,0.05) !important;
+}
+.breed-progress-fill {
+  transition: width 0.5s ease !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* ── 10. Tank info overlay ───────────────────────────────── */
+.tank-col { position: relative; }
+.tank-status-bar {
+  font-family: var(--font-body) !important;
+  font-size: 0.72rem !important;
+  background: rgba(0,0,0,0.5) !important;
+  backdrop-filter: blur(6px) !important;
+  border-radius: 0 0 8px 8px !important;
+  padding: 4px 10px !important;
+  gap: 12px !important;
+}
+.tank-status-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── 11. Tooltip polish ──────────────────────────────────── */
+.fish-tooltip {
+  font-family: var(--font-body) !important;
+  background: rgba(8,16,32,0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+  padding: 8px 12px !important;
+}
+.fish-tooltip-name {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+}
+
+/* ── 12. Loading shimmer for panels ──────────────────────── */
+.panel-loading {
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  background-size: 200% 100%;
+  animation: panelShimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius);
+  min-height: 200px;
+}
+@keyframes panelShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── 13. Selection ring improvements ─────────────────────── */
+.fish-container.selected {
+  z-index: 30 !important;
+}
+.fish-container.selected > .fish-anim-inner {
+  filter: drop-shadow(0 0 12px rgba(240,192,64,0.5)) !important;
+}
+
+/* ── 14. Mobile responsive improvements ──────────────────── */
+@media (max-width: 768px) {
+  .hud2 { padding: 6px 10px !important; gap: 6px !important; }
+  .hud2-coin-val { font-size: 1.2rem !important; }
+  .tab-btn { padding: 6px 8px 8px !important; }
+  .tab-btn-label { display: none !important; }
+  .tab-btn-icon { font-size: 1.3rem !important; }
+  .app-footer { flex-wrap: wrap; justify-content: center; }
+  .side-col { max-width: 100% !important; }
+}
+
+/* ── Tank unlock locked state ────────────────────────────── */
+.tank-unlock-locked {
+  font-size: 0.75rem;
+  opacity: 0.4;
+  padding: 6px 12px;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ── Level / XP Bar in HUD ───────────────────────────────── */
+.hud2-level {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+}
+.hud2-level-badge {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--accent-2);
+  text-shadow: 0 0 8px rgba(64,200,240,0.3);
+  min-width: 36px;
+}
+.hud2-level-track {
+  width: 60px;
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.hud2-level-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-2), #80e0ff);
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 0 6px rgba(64,200,240,0.4);
+}
+.hud2-level-xp {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  opacity: 0.4;
+  min-width: 50px;
+}
+
+/* ── Level-up celebration ────────────────────────────────── */
+.level-up-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 60;
+  text-align: center;
+  animation: levelUpAppear 2.5s ease-out forwards;
+  pointer-events: none;
+}
+.level-up-level {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--accent-2);
+  text-shadow: 0 0 30px rgba(64,200,240,0.5), 0 0 60px rgba(64,200,240,0.2);
+}
+.level-up-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--accent);
+  margin-top: 4px;
+}
+@keyframes levelUpAppear {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  30% { transform: translate(-50%, -50%) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -60%) scale(1.05); }
+}
+
+/* ============================================================
+   GRAPHICS UPGRADE — ANIMATED FISH + ENHANCED ENVIRONMENT
+   ============================================================ */
+
+/* ── 1. Tail fin wag ─────────────────────────────────────── */
+.fish-tail {
+  transform-origin: right center;
+  animation: tailWag 0.8s ease-in-out infinite;
+}
+.fish-tail-flowing {
+  transform-origin: right center;
+  animation: tailWagFlowing 1.2s ease-in-out infinite;
+}
+@keyframes tailWag {
+  0%, 100% { transform: scaleX(1) skewY(0deg); }
+  25%      { transform: scaleX(0.92) skewY(3deg); }
+  75%      { transform: scaleX(0.92) skewY(-3deg); }
+}
+@keyframes tailWagFlowing {
+  0%, 100% { transform: scaleX(1) rotate(0deg); }
+  25%      { transform: scaleX(0.95) rotate(4deg); }
+  75%      { transform: scaleX(0.95) rotate(-4deg); }
+}
+
+/* ── 2. Dorsal fin wave ──────────────────────────────────── */
+.fish-dorsal {
+  transform-origin: center bottom;
+  animation: dorsalWave 2.5s ease-in-out infinite;
+}
+@keyframes dorsalWave {
+  0%, 100% { transform: scaleY(1) skewX(0deg); }
+  30%      { transform: scaleY(1.08) skewX(2deg); }
+  70%      { transform: scaleY(0.95) skewX(-2deg); }
+}
+
+/* ── 3. Pectoral fin flutter ─────────────────────────────── */
+.fish-pectoral {
+  transform-origin: left center;
+  animation: pectoralFlutter 1.8s ease-in-out infinite;
+}
+@keyframes pectoralFlutter {
+  0%, 100% { transform: rotate(-25deg) scaleX(1); }
+  50%      { transform: rotate(-25deg) scaleX(0.7) scaleY(1.15); }
+}
+
+/* ── 4. Anal fin sway ────────────────────────────────────── */
+.fish-anal-fin {
+  transform-origin: center top;
+  animation: analFinSway 2s ease-in-out infinite;
+}
+@keyframes analFinSway {
+  0%, 100% { transform: skewX(0deg); }
+  50%      { transform: skewX(3deg); }
+}
+
+/* ── 5. Speed-based fin animation ────────────────────────── */
+/* When fish is actively swimming, fins move faster */
+.fish-container:not(.fish-idle) .fish-tail { animation-duration: 0.5s; }
+.fish-container:not(.fish-idle) .fish-tail-flowing { animation-duration: 0.7s; }
+.fish-container:not(.fish-idle) .fish-pectoral { animation-duration: 0.9s; }
+/* Idle fish have slower, lazier fin movement */
+.fish-container.fish-idle .fish-tail { animation-duration: 1.5s; }
+.fish-container.fish-idle .fish-tail-flowing { animation-duration: 2s; }
+.fish-container.fish-idle .fish-dorsal { animation-duration: 4s; }
+.fish-container.fish-idle .fish-pectoral { animation-duration: 3s; }
+
+/* ── 6. Enhanced tank sand floor ─────────────────────────── */
+.tank-sand-detail {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 15%;
+  background:
+    radial-gradient(ellipse at 15% 80%, rgba(200,160,100,0.12) 0%, transparent 40%),
+    radial-gradient(ellipse at 45% 70%, rgba(180,140,80,0.08) 0%, transparent 35%),
+    radial-gradient(ellipse at 75% 85%, rgba(200,160,100,0.10) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ── 7. Underwater dust motes ────────────────────────────── */
+.dust-motes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+.dust-mote {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  border-radius: 50%;
+  background: rgba(220,240,255,0.35);
+  animation: dustFloat linear infinite;
+}
+@keyframes dustFloat {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  10%  { opacity: 0.4; }
+  50%  { transform: translate(15px, -30px); opacity: 0.3; }
+  90%  { opacity: 0.1; }
+  100% { transform: translate(-10px, -60px); opacity: 0; }
+}
+
+/* ── 8. Tank glass highlights ────────────────────────────── */
+.tank-highlight-top {
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.08) 70%, transparent);
+  pointer-events: none;
+  z-index: 19;
+  border-radius: 0 0 2px 2px;
+}
+
+/* ── 9. Improved caustic floor pattern ───────────────────── */
+.caustic-floor {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 25%;
+  background:
+    repeating-linear-gradient(60deg, transparent, transparent 20px, rgba(120,180,255,0.03) 20px, rgba(120,180,255,0.03) 22px),
+    repeating-linear-gradient(-60deg, transparent, transparent 25px, rgba(120,180,255,0.02) 25px, rgba(120,180,255,0.02) 27px);
+  animation: causticFloorShift 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+@keyframes causticFloorShift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(10px); }
+}
+
+/* ── 10. Species sprite fin animation ────────────────────── */
+/* Apply to hand-crafted species sprites too */
+.fish-container svg path[class*="tentacle"],
+.fish-container svg .anemone-tentacle {
+  animation: tentacleSway 3s ease-in-out infinite;
+}
+@keyframes tentacleSway {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(5deg); }
+}
+
+/* ============================================================
+   FINAL POLISH
+   ============================================================ */
+
+/* ── 1. Number formatting large values ───────────────────── */
+.coin-compact { font-variant-numeric: tabular-nums; }
+
+/* ── 2. Smooth panel mount animation ─────────────────────── */
+.fish-panel, .shop-panel, .breeding-lab, .fishdex-panel,
+.achievements-panel, .magic-fish-panel, .decoration-panel,
+.stats-panel, .autopsy-panel {
+  animation: panelSlideIn 0.35s ease-out;
+}
+@keyframes panelSlideIn {
+  0% { opacity: 0; transform: translateX(10px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* ── 3. Button click feedback ────────────────────────────── */
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.96) !important;
+  transition: transform 0.05s !important;
+}
+
+/* ── 4. Coin counter flash enhancement ───────────────────── */
+.hud2-coin-val.flash-up {
+  animation: coinBounceUp 0.6s ease-out !important;
+}
+.hud2-coin-val.flash-down {
+  animation: coinBounceDown 0.5s ease-out !important;
+}
+@keyframes coinBounceUp {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.25); color: #ffe060; text-shadow: 0 0 20px rgba(255,224,96,0.6); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+@keyframes coinBounceDown {
+  0% { transform: scale(1); }
+  25% { transform: scale(0.9); color: #ff6050; }
+  100% { transform: scale(1); }
+}
+
+/* ── 5. Supply/upgrade card purchase flash ────────────────── */
+.supply-card.just-bought, .upgrade-card.just-bought {
+  animation: purchaseFlash 0.4s ease-out;
+}
+@keyframes purchaseFlash {
+  0% { box-shadow: 0 0 0 0 rgba(240,192,64,0.5); }
+  50% { box-shadow: 0 0 20px 4px rgba(240,192,64,0.3); }
+  100% { box-shadow: none; }
+}
+
+/* ── 6. Fish panel action button icons ───────────────────── */
+.fp-btn--feed::before { content: '🍤 '; }
+.fp-btn--sell::before { content: '💰 '; }
+.fp-btn--medicine::before { content: '💊 '; }
+
+/* ── 7. Better scrollbar for panels ──────────────────────── */
+.side-col::-webkit-scrollbar { width: 4px; }
+.side-col::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+.main-layout::-webkit-scrollbar { display: none; }
+
+/* ── 8. Tank name label polish ───────────────────────────── */
+.tank-tab.active .tank-tab-name {
+  color: var(--accent) !important;
+  font-weight: 700 !important;
+}
+.tank-tab .tank-tab-fish-count {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  opacity: 0.5;
+}
+
+/* ── 9. Achievement unlock sparkle ───────────────────────── */
+.toast-achieve {
+  border-color: rgba(240,192,64,0.3) !important;
+  background: linear-gradient(135deg, rgba(30,25,50,0.95), rgba(40,30,20,0.95)) !important;
+  box-shadow: 0 0 20px rgba(240,192,64,0.15) !important;
+}
+
+/* ── 10. Breathing pulse on eggs in tank ──────────────────── */
+.fish-container svg ellipse[fill*="eg-"],
+.fish-container .egg-sprite {
+  animation: eggPulse 3s ease-in-out infinite;
+}
+@keyframes eggPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); filter: brightness(1.1); }
+}
+
+/* ── 11. Market ticker animation ─────────────────────────── */
+.market-ticker {
+  overflow: hidden;
+  white-space: nowrap;
+}
+.market-ticker-inner {
+  display: inline-block;
+  animation: tickerScroll 30s linear infinite;
+}
+@keyframes tickerScroll {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* ── 12. Prestige button shimmer ─────────────────────────── */
+.btn-prestige::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: prestigeShimmer 3s ease-in-out infinite;
+  border-radius: inherit;
+}
+@keyframes prestigeShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* ── 13. Focus ring for accessibility ────────────────────── */
+.btn:focus-visible, .tab-btn:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent-2) !important;
+  outline-offset: 2px;
+}
+
+/* ── 14. Responsive tank on narrow screens ───────────────── */
+@media (max-width: 600px) {
+  .tank-col { min-height: 250px !important; }
+  .main-layout { flex-direction: column !important; }
+  .side-col { max-height: 40vh !important; overflow-y: auto !important; }
+}
+
+/* ============================================================
+   FINAL POLISH PASS
+   ============================================================ */
+
+/* ── 1. Rarity color coding everywhere ───────────────────── */
+.rarity-common   { color: #7ec8a0; }
+.rarity-uncommon { color: #6ab0de; }
+.rarity-rare     { color: #b07ee8; }
+.rarity-epic     { color: #f0c040; }
+.rarity-legendary { color: #ff7eb3; }
+.rarity-border-common   { border-left: 3px solid #7ec8a0; }
+.rarity-border-uncommon { border-left: 3px solid #6ab0de; }
+.rarity-border-rare     { border-left: 3px solid #b07ee8; }
+.rarity-border-epic     { border-left: 3px solid #f0c040; }
+.rarity-border-legendary { border-left: 3px solid #ff7eb3; }
+
+/* ── 2. Fish name with rarity glow ───────────────────────── */
+.fp-name.rarity-uncommon { text-shadow: 0 0 8px rgba(106,176,222,0.3); }
+.fp-name.rarity-rare     { text-shadow: 0 0 8px rgba(176,126,232,0.3); }
+.fp-name.rarity-epic     { text-shadow: 0 0 10px rgba(240,192,64,0.4); }
+.fp-name.rarity-legendary { text-shadow: 0 0 12px rgba(255,126,179,0.4); }
+
+/* ── 3. Better focus states for keyboard nav ─────────────── */
+.btn:focus-visible, .tab-btn:focus-visible, button:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(64,200,240,0.15);
+}
+input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 1px;
+}
+
+/* ── 4. Auto-save flash indicator ────────────────────────── */
+.save-flash {
+  position: fixed;
+  bottom: 48px;
+  right: 16px;
+  font-size: 0.7rem;
+  color: var(--success);
+  opacity: 0;
+  animation: saveFlash 2s ease-out;
+  pointer-events: none;
+  z-index: 35;
+  font-family: var(--font-body);
+}
+@keyframes saveFlash {
+  0% { opacity: 0; transform: translateY(4px); }
+  15% { opacity: 0.8; transform: translateY(0); }
+  70% { opacity: 0.5; }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+
+/* ── 5. Smooth panel height transitions ──────────────────── */
+.fish-panel, .breeding-lab, .shop-panel {
+  transition: height 0.3s ease, opacity 0.3s ease;
+}
+
+/* ── 6. Better disabled button state ─────────────────────── */
+.btn:disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(0.5);
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ── 7. Sale listing visual feedback ─────────────────────── */
+.fp-btn--selling {
+  background: linear-gradient(135deg, rgba(240,192,64,0.25), rgba(240,192,64,0.12)) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  position: relative;
+}
+.fp-btn--selling::after {
+  content: 'LISTED';
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  font-size: 0.5rem;
+  background: var(--accent);
+  color: var(--ocean-1);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 700;
+}
+
+/* ── 8. Upgrade maxed celebration ─────────────────────────── */
+.upgrade-card.maxed {
+  background: linear-gradient(135deg, rgba(240,192,64,0.06), rgba(240,192,64,0.02)) !important;
+  border-color: rgba(240,192,64,0.2) !important;
+}
+.upgrade-card.maxed .upgrade-maxed {
+  font-family: var(--font-display);
+  color: var(--accent);
+  text-shadow: 0 0 8px rgba(240,192,64,0.3);
+  letter-spacing: 0.1em;
+}
+
+/* ── 9. Better log entries ───────────────────────────────── */
+.log-entry {
+  border-left: 2px solid rgba(255,255,255,0.05);
+  padding-left: 8px;
+  transition: background 0.2s ease;
+}
+.log-entry:hover {
+  background: rgba(255,255,255,0.02);
+  border-left-color: rgba(255,255,255,0.15);
+}
+.log-entry--critical { border-left-color: var(--danger) !important; }
+.log-entry--success  { border-left-color: var(--success) !important; }
+.log-entry--sale     { border-left-color: var(--accent) !important; }
+
+/* ── 10. Achievement unlock celebration ──────────────────── */
+.toast--achieve {
+  border-left: 3px solid var(--accent) !important;
+  background: linear-gradient(135deg, rgba(240,192,64,0.12), rgba(12,20,40,0.9)) !important;
+}
+
+/* ── 11. Smooth number counter ───────────────────────────── */
+.coin-counter-animate {
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+.coin-counter-animate.bump { transform: scale(1.15); }
+
+/* ── 12. Better modal backdrop ───────────────────────────── */
+.win-modal-overlay, .haggle-overlay {
+  backdrop-filter: blur(4px);
+}
+
+/* ── 13. Breeding slot empty state ───────────────────────── */
+.breed-slot-empty {
+  border: 2px dashed rgba(255,255,255,0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  opacity: 0.4;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.breed-slot-empty:hover {
+  border-color: rgba(64,200,240,0.3);
+  opacity: 0.7;
+  background: rgba(64,200,240,0.03);
+}
+
+/* ── 14. Fish personality badge ──────────────────────────── */
+.personality-badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 1px 6px;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* ── 15. Loading skeleton for lazy sprites ────────────────── */
+.sprite-loading {
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  background-size: 200% 100%;
+  animation: panelShimmer 1.5s ease-in-out infinite;
+  border-radius: 50%;
+}
+
+/* ── 16. Prestige button glow ────────────────────────────── */
+.btn-prestige {
+  position: relative;
+  overflow: hidden;
+}
+.btn-prestige::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(45deg, #f0c040, #ff7eb3, #40c8f0, #f0c040);
+  background-size: 300% 300%;
+  animation: prestigeRainbow 3s linear infinite;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.4;
+}
+@keyframes prestigeRainbow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* ── 17. Smooth scrolling everywhere ─────────────────────── */
+main, .shop-panel, .fishdex-panel, .log-panel, .stats-panel,
+.achievements-panel, .settings-modal {
+  scroll-behavior: smooth;
+}
+
+/* ── 18. Better input styling ────────────────────────────── */
+input[type="number"], input[type="text"], select {
+  font-family: var(--font-body);
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 4px 8px;
+  transition: border-color 0.2s ease;
+}
+input:hover, select:hover {
+  border-color: rgba(255,255,255,0.2);
+}
+
+/* ── 19. Coin delta floating numbers ─────────────────────── */
+.coin-delta {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  pointer-events: none;
+}
+.coin-delta-up { color: var(--success) !important; text-shadow: 0 1px 4px rgba(80,200,100,0.4) !important; }
+.coin-delta-down { color: var(--danger) !important; text-shadow: 0 1px 4px rgba(200,60,60,0.4) !important; }
+
+/* ── 20. Tank name with tank type icon ───────────────────── */
+.tank-tab-name {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+.tank-tab.active .tank-tab-name {
+  color: var(--accent);
+}
+
+/* ============================================================
+   FINAL POLISH
+   ============================================================ */
+
+/* ── Save indicator ──────────────────────────────────────── */
+.hud2-save-indicator {
+  font-size: 0.8rem;
+  animation: saveFlash 2s ease-out forwards;
+  opacity: 0;
+}
+@keyframes saveFlash {
+  0% { opacity: 0; transform: scale(0.5); }
+  15% { opacity: 1; transform: scale(1.2); }
+  30% { opacity: 1; transform: scale(1); }
+  70% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+
+/* ── Credits modal ───────────────────────────────────────── */
+.credits-modal {
+  background: linear-gradient(145deg, #1e1a3a, #12102a);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 16px;
+  padding: 2rem;
+  width: min(440px, 90vw);
+  max-height: 80vh;
+  overflow-y: auto;
+  text-align: center;
+}
+.credits-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent-2);
+  text-shadow: 0 0 20px rgba(64,200,240,0.3);
+  margin-bottom: 4px;
+}
+.credits-version {
+  font-size: 0.75rem;
+  opacity: 0.4;
+  margin-bottom: 1.5rem;
+}
+.credits-section {
+  margin-bottom: 1.2rem;
+}
+.credits-section-title {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+.credits-entry {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  line-height: 1.6;
+}
+.credits-close {
+  margin-top: 1rem;
+}
+
+/* ── Confirm dialog ──────────────────────────────────────── */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.confirm-dialog {
+  background: linear-gradient(145deg, #1e1a3a, #12102a);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: min(340px, 85vw);
+  text-align: center;
+}
+.confirm-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.confirm-desc {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+.confirm-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.confirm-actions .btn { min-width: 100px; }
+
+/* ── Button click feedback ───────────────────────────────── */
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.96) !important;
+  transition-duration: 0.05s !important;
+}
+
+/* ── Improved modal overlay ──────────────────────────────── */
+.win-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+/* ── Fish death fade-out ─────────────────────────────────── */
+.fish-container.fish-dying {
+  animation: fishDeath 1.2s ease-out forwards !important;
+}
+@keyframes fishDeath {
+  0% { opacity: 1; transform: scale(1); }
+  30% { opacity: 0.8; transform: scale(1.05) rotate(5deg); }
+  70% { opacity: 0.4; transform: scale(0.9) rotate(15deg) translateY(10px); }
+  100% { opacity: 0; transform: scale(0.7) rotate(25deg) translateY(30px); }
+}
+
+/* ── Notification dot on tabs ────────────────────────────── */
+.tab-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0 4px;
+}
+.tab-dot--magic { background: rgba(160,100,255,0.3); color: #c888ff; }
+.tab-dot--warn { background: rgba(255,80,80,0.3); color: #ff6060; }
+.tab-dot--gold { background: rgba(240,192,64,0.3); color: #f0c040; }
+.tab-new-badge {
+  background: rgba(80,200,100,0.3) !important;
+  color: #50c864 !important;
+  font-size: 0.55rem !important;
+  padding: 1px 4px !important;
+  border-radius: 4px !important;
+}
+
+/* ── Better coin delta animation ─────────────────────────── */
+.coin-delta {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6) !important;
+  pointer-events: none;
+}
+.coin-delta--up { color: #50c864 !important; }
+.coin-delta--down { color: #ff5050 !important; }
+
+/* ── Tank name styling ───────────────────────────────────── */
+.tank-tab-name {
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+.tank-tab.active .tank-tab-name {
+  color: var(--accent-2);
+}

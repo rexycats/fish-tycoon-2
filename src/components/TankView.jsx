@@ -123,12 +123,66 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
 
   const [dayPhase, setDayPhase] = useState(getDayPhase);
   const [hoveredFishId, setHoveredFishId] = useState(null);
+  const [ripples, setRipples] = useState([]);      // click ripple effects
+  const [feedSplash, setFeedSplash] = useState(0);  // feed particle trigger
+  const [sparkles, setSparkles] = useState([]);     // sale sparkle effects
+  const cursorRef = useRef({ x: -100, y: -100 });   // cursor position in % coords
+  const tankElRef = useRef(null);
   const tickRef = useRef(0);
 
   useEffect(() => {
     const t = setInterval(() => setDayPhase(getDayPhase()), 60_000);
     return () => clearInterval(t);
   }, []);
+
+  // ── Cursor tracking (convert pixel → % of tank) ────────
+  const handleTankMouseMove = (e) => {
+    const rect = tankElRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    cursorRef.current = {
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    };
+  };
+  const handleTankMouseLeave = () => {
+    cursorRef.current = { x: -100, y: -100 };
+  };
+
+  // ── Click ripple ───────────────────────────────────────
+  const handleTankClick = (e) => {
+    const rect = tankElRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    const id = Date.now();
+    setRipples(prev => [...prev.slice(-4), { id, x, y }]);
+    setTimeout(() => setRipples(prev => prev.filter(r => r.id !== id)), 1200);
+  };
+
+  // ── Feed splash trigger (listen for food changes) ──────
+  const prevFoodRef = useRef(tank?.supplies?.food ?? 0);
+  useEffect(() => {
+    const food = tank?.supplies?.food ?? 0;
+    if (food < prevFoodRef.current) {
+      setFeedSplash(Date.now());
+    }
+    prevFoodRef.current = food;
+  }, [tank?.supplies?.food]);
+
+  // ── Sale sparkle trigger (listen for fish removal) ──────
+  const prevFishIdsRef = useRef(new Set(fish.map(f => f.id)));
+  useEffect(() => {
+    const currentIds = new Set(fish.map(f => f.id));
+    for (const id of prevFishIdsRef.current) {
+      if (!currentIds.has(id) && positions[id]) {
+        const pos = positions[id];
+        const sparkleId = Date.now() + Math.random();
+        setSparkles(prev => [...prev.slice(-3), { id: sparkleId, x: pos.x, y: pos.y }]);
+        setTimeout(() => setSparkles(prev => prev.filter(s => s.id !== sparkleId)), 1500);
+      }
+    }
+    prevFishIdsRef.current = currentIds;
+  }, [fishIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let frameId;
@@ -173,6 +227,63 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           } else {
             y += Math.sin(phase + t * BOB_FREQ * 0.35) * bobAmp * 0.45;
             tilt = tilt * 0.94;
+          }
+
+          // ── Personality + cursor interaction ─────────────────
+          const personality = fishObj?.personality || 'shy';
+          const cursor = cursorRef.current;
+          const cdx = x - cursor.x;
+          const cdy = y - cursor.y;
+          const cDist = Math.sqrt(cdx * cdx + cdy * cdy);
+
+          if (personality === 'curious' && cDist < 25 && cDist > 2) {
+            // Curious fish FOLLOW the cursor
+            const force = (25 - cDist) / 25 * 0.04;
+            vx -= (cdx / cDist) * force;
+            vy -= (cdy / cDist) * force * 0.5;
+          } else if (cDist < 15 && cDist > 0.5) {
+            // All others flee
+            const force = (15 - cDist) / 15 * (personality === 'shy' ? 0.12 : 0.08);
+            vx += (cdx / cDist) * force;
+            vy += (cdy / cDist) * force * 0.5;
+          }
+
+          // Aggressive: chase nearest fish
+          if (personality === 'aggressive' && t % 30 === 0) {
+            let closest = null, closestDist = 20;
+            for (const otherId of Object.keys(pos)) {
+              if (otherId === id) continue;
+              const o = pos[otherId];
+              const d = Math.sqrt((x - o.x) ** 2 + (y - o.y) ** 2);
+              if (d < closestDist) { closest = o; closestDist = d; }
+            }
+            if (closest) {
+              vx += (closest.x - x) * 0.003;
+              vy += (closest.y - y) * 0.002;
+            }
+          }
+
+          // Social: drift toward cluster center
+          if (personality === 'social' && t % 60 === 0) {
+            let sumX = 0, sumY = 0, n = 0;
+            for (const otherId of Object.keys(pos)) {
+              if (otherId === id) continue;
+              sumX += pos[otherId].x; sumY += pos[otherId].y; n++;
+            }
+            if (n > 0) {
+              vx += (sumX / n - x) * 0.002;
+              vy += (sumY / n - y) * 0.001;
+            }
+          }
+
+          // Playful: occasional speed burst
+          if (personality === 'playful' && Math.random() < 0.003) {
+            vx *= 2.5;
+          }
+
+          // Lazy: override idle probability
+          if (personality === 'lazy') {
+            if (!isIdle && Math.random() < 0.01) { isIdle = true; idleTimer = 200; }
           }
 
           if (x > 90) { vx = -Math.abs(vx) * (0.9 + Math.random() * 0.2); flipped = true;  x = 90; }
@@ -304,7 +415,11 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
         <div className="tank-glass-shimmer"/>
       </div>
 
-      <div className="tank" style={{ background: waterBg }}>
+      <div className="tank" ref={tankElRef} style={{ background: waterBg }}
+        onMouseMove={handleTankMouseMove}
+        onMouseLeave={handleTankMouseLeave}
+        onClick={handleTankClick}
+      >
 
         {/* ── SVG water distortion filter (applied to entire tank content) ── */}
         <svg className="tank-distortion-defs" width="0" height="0" style={{ position: 'absolute' }}>
@@ -366,6 +481,21 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
 
         {/* Water depth fog */}
         <div className="water-depth-fog"/>
+
+        {/* Enhanced environment layers */}
+        <div className="tank-sand-detail"/>
+        <div className="caustic-floor"/>
+        <div className="tank-highlight-top"/>
+        <div className="dust-motes">
+          {Array.from({ length: 12 }, (_, i) => (
+            <div key={i} className="dust-mote" style={{
+              left: `${(i * 29 + 7) % 95}%`,
+              top: `${(i * 43 + 15) % 80 + 10}%`,
+              animationDelay: `${(i * 1.7) % 10}s`,
+              animationDuration: `${8 + (i % 5) * 3}s`,
+            }}/>
+          ))}
+        </div>
         <div className="surface-shimmer"/>
 
         {/* Caustics — 4 staggered layers */}
@@ -550,7 +680,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
 
           return (
             <div key={f.id}
-              className={`fish-container ${isSelected ? 'selected' : ''} depth-layer-${depthLayer}${f.disease ? ' fish-diseased' : ''}`}
+              className={`fish-container ${isSelected ? 'selected' : ''} depth-layer-${depthLayer}${f.disease ? ' fish-diseased' : ''}${pos.isIdle ? ' fish-idle' : ''}`}
               style={{
                 left: `${pos.x}%`,
                 top:  `${pos.y}%`,
@@ -611,6 +741,10 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
                     <span className="fish-tooltip-val">{satiety}%</span>
                   </div>
                   {f.disease && <div className="fish-tooltip-disease">🦠 {f.disease}</div>}
+                  {f.personality && <div className="fish-tooltip-personality" style={{fontSize:'0.65rem',opacity:0.6,marginTop:2}}>
+                    {f.personality === 'playful' ? '🎭' : f.personality === 'shy' ? '🫣' : f.personality === 'curious' ? '🔍' : f.personality === 'lazy' ? '😴' : f.personality === 'aggressive' ? '😤' : f.personality === 'social' ? '🤝' : f.personality === 'gluttonous' ? '🍽️' : f.personality === 'hardy' ? '💪' : ''}
+                    {' '}{f.personality}
+                  </div>}
                 </div>
               )}
             </div>
@@ -651,6 +785,33 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
             />
           ))}
         </div>
+
+        {/* ── Click ripple effects ──────────────────────── */}
+        {ripples.map(r => (
+          <div key={r.id} className="click-ripple" style={{ left: `${r.x}%`, top: `${r.y}%` }}>
+            <div className="click-ripple-ring click-ripple-ring-1"/>
+            <div className="click-ripple-ring click-ripple-ring-2"/>
+            <div className="click-ripple-ring click-ripple-ring-3"/>
+          </div>
+        ))}
+
+        {/* ── Feed splash particles ───────────────────── */}
+        {feedSplash > 0 && (
+          <div key={feedSplash} className="feed-splash-container">
+            {Array.from({ length: 8 }, (_, i) => (
+              <div key={i} className={`feed-pellet-anim feed-pellet-${i}`}/>
+            ))}
+          </div>
+        )}
+
+        {/* ── Sale sparkle effects ────────────────────── */}
+        {sparkles.map(s => (
+          <div key={s.id} className="sale-sparkle" style={{ left: `${s.x}%`, top: `${s.y}%` }}>
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className={`sparkle-particle sparkle-${i}`}/>
+            ))}
+          </div>
+        ))}
 
         {/* Step 4: Glass reflections */}
         <div className="tank-glass-left"/>

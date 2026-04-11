@@ -114,60 +114,60 @@ export function phenotypeKey(ph) {
 
 const NAMED_SPECIES = {
   'Orb-Veil-Marble-Crimson-Orange-Normal-Giant-None':      'Vermillion Veil',
-  'Orb-Veil-Marble-Crimson-Orange-Normal-Medium-None':     'Coral Orb',
-  'Orb-Veil-Marble-Crimson-Rose-Normal-Giant-None':        'Blushing Globe',
-  'Orb-Veil-Marble-Crimson-Rose-Normal-Medium-None':       'Rose Lantern',
-  'Orb-Veil-Spotted-Crimson-Orange-Normal-Giant-None':     'Ember Globe',
-  'Orb-Veil-Spotted-Crimson-Rose-Normal-Giant-None':       'Cherry Blossom Orb',
-  'Orb-Veil-Tiger-Crimson-Orange-Normal-Giant-None':       'Tiger Lantern',
-  'Orb-Veil-Lined-Crimson-Orange-Normal-Medium-None':      'Striped Ember',
+  'Orb-Veil-Marble-Crimson-Orange-Normal-Medium-None':     'Coral Puffer',
+  'Orb-Veil-Marble-Crimson-Rose-Normal-Giant-None':        'Blushing Gourami',
+  'Orb-Veil-Marble-Crimson-Rose-Normal-Medium-None':       'Rose Molly',
+  'Orb-Veil-Spotted-Crimson-Orange-Normal-Giant-None':     'Ember Goby',
+  'Orb-Veil-Spotted-Crimson-Rose-Normal-Giant-None':       'Cherry Blossom Guppy',
+  'Orb-Veil-Tiger-Crimson-Orange-Normal-Giant-None':       'Tiger Goby',
+  'Orb-Veil-Lined-Crimson-Orange-Normal-Medium-None':      'Striped Ember Platy',
   'Orb-Veil-Plain-Crimson-Orange-Normal-Medium-None':      'Fireball',
-  'Orb-Flowing-Marble-Crimson-Orange-Normal-Giant-None':   'Magma Drifter',
-  'Orb-Flowing-Marble-Crimson-Rose-Normal-Giant-None':     'Petal Drifter',
-  'Orb-Flowing-Spotted-Crimson-Orange-Normal-Giant-None':  'Speckled Ember',
+  'Orb-Flowing-Marble-Crimson-Orange-Normal-Giant-None':   'Magma Gourami',
+  'Orb-Flowing-Marble-Crimson-Rose-Normal-Giant-None':     'Petal Gourami',
+  'Orb-Flowing-Spotted-Crimson-Orange-Normal-Giant-None':  'Speckled Ember Puffer',
   'Orb-Flowing-Tiger-Crimson-Orange-Normal-Giant-None':    'Flame Tiger',
-  'Orb-Broad-Marble-Crimson-Orange-Normal-Giant-None':     'Ruby Barrel',
-  'Orb-Angular-Marble-Crimson-Orange-Normal-Giant-None':   'Crimson Shard',
-  'Round-Veil-Marble-Crimson-Orange-Normal-Giant-None':    'Crimson Orb',
-  'Round-Veil-Marble-Crimson-Orange-Normal-Medium-None':   'Ruby Puff',
-  'Round-Veil-Spotted-Crimson-Orange-Normal-Giant-None':   'Speckled Ruby',
-  'Round-Veil-Tiger-Crimson-Orange-Normal-Giant-None':     'Tiger Ruby',
-  'Round-Flowing-Marble-Crimson-Orange-Normal-Giant-None': 'Magma Sphere',
-  'Round-Broad-Marble-Crimson-Orange-Normal-Giant-None':   'Red Boulder',
-  'Round-Broad-Marble-Crimson-Rose-Normal-Giant-None':     'Rosy Boulder',
-  'Delta-Veil-Marble-Crimson-Orange-Normal-Giant-None':    'Crimson Delta',
+  'Orb-Broad-Marble-Crimson-Orange-Normal-Giant-None':     'Ruby Cichlid',
+  'Orb-Angular-Marble-Crimson-Orange-Normal-Giant-None':   'Crimson Darter',
+  'Round-Veil-Marble-Crimson-Orange-Normal-Giant-None':    'Crimson Sunfish',
+  'Round-Veil-Marble-Crimson-Orange-Normal-Medium-None':   'Ruby Danio',
+  'Round-Veil-Spotted-Crimson-Orange-Normal-Giant-None':   'Speckled Ruby Barb',
+  'Round-Veil-Tiger-Crimson-Orange-Normal-Giant-None':     'Tiger Ruby Barb',
+  'Round-Flowing-Marble-Crimson-Orange-Normal-Giant-None': 'Magma Perch',
+  'Round-Broad-Marble-Crimson-Orange-Normal-Giant-None':   'Red Cichlid',
+  'Round-Broad-Marble-Crimson-Rose-Normal-Giant-None':     'Rosy Cichlid',
+  'Delta-Veil-Marble-Crimson-Orange-Normal-Giant-None':    'Crimson Rasbora',
   'Delta-Flowing-Marble-Crimson-Rose-Normal-Giant-None':   'Flame Wing',
-  'Slender-Veil-Marble-Crimson-Orange-Normal-Giant-None':  'Scarlet Ribbon',
-  'Slender-Flowing-Marble-Crimson-Orange-Normal-Giant-None':'Ember Dancer',
+  'Slender-Veil-Marble-Crimson-Orange-Normal-Giant-None':  'Scarlet Swordtail',
+  'Slender-Flowing-Marble-Crimson-Orange-Normal-Giant-None':'Ember Rainbowfish',
   'Slender-Angular-Tiger-Crimson-Orange-Normal-Giant-None':'Fire Viper',
   'Eel-Veil-Marble-Crimson-Orange-Normal-Giant-None':      'Fire Eel',
   'Eel-Flowing-Plain-Crimson-Orange-Normal-Giant-None':    'Lava Eel',
-  'Orb-Veil-Marble-Gold-Orange-Normal-Giant-None':         'Gilded Orb',
-  'Orb-Veil-Marble-Gold-Rose-Normal-Giant-None':           'Sunburst Veil',
-  'Orb-Veil-Spotted-Gold-Orange-Normal-Giant-None':        'Gold Fleck',
-  'Orb-Veil-Tiger-Gold-Orange-Normal-Giant-None':          'Amber Tiger',
-  'Orb-Flowing-Marble-Gold-Orange-Normal-Giant-None':      'Molten Drifter',
-  'Round-Veil-Marble-Gold-Orange-Normal-Giant-None':       'Gold Coin Fish',
-  'Round-Veil-Marble-Gold-Rose-Normal-Medium-None':        'Daffodil Puff',
-  'Round-Flowing-Marble-Gold-Orange-Normal-Giant-None':    'Sunspot Sphere',
-  'Delta-Veil-Marble-Gold-Orange-Normal-Giant-None':       'Delta Sunrise',
-  'Delta-Veil-Spotted-Gold-Rose-Normal-Giant-None':        'Speckled Saffron',
+  'Orb-Veil-Marble-Gold-Orange-Normal-Giant-None':         'Gilded Puffer',
+  'Orb-Veil-Marble-Gold-Rose-Normal-Giant-None':           'Sunburst Molly',
+  'Orb-Veil-Spotted-Gold-Orange-Normal-Giant-None':        'Gold Fleck Goby',
+  'Orb-Veil-Tiger-Gold-Orange-Normal-Giant-None':          'Amber Tiger Puffer',
+  'Orb-Flowing-Marble-Gold-Orange-Normal-Giant-None':      'Molten Gourami',
+  'Round-Veil-Marble-Gold-Orange-Normal-Giant-None':       'Gold Coin Barb',
+  'Round-Veil-Marble-Gold-Rose-Normal-Medium-None':        'Daffodil Platy',
+  'Round-Flowing-Marble-Gold-Orange-Normal-Giant-None':    'Sunspot Perch',
+  'Delta-Veil-Marble-Gold-Orange-Normal-Giant-None':       'Sunrise Tetra',
+  'Delta-Veil-Spotted-Gold-Rose-Normal-Giant-None':        'Speckled Saffron Darter',
   'Delta-Flowing-Marble-Gold-Teal-Normal-Giant-None':      'Teal-Gold Flash',
-  'Slender-Veil-Marble-Gold-Orange-Normal-Giant-None':     'Golden Spear',
-  'Slender-Flowing-Marble-Gold-Orange-Normal-Giant-None':  'Gilded Ribbon',
-  'Slender-Flowing-Tiger-Gold-Teal-Normal-Giant-None':     'Tiger Goldfish',
+  'Slender-Veil-Marble-Gold-Orange-Normal-Giant-None':     'Golden Swordtail',
+  'Slender-Flowing-Marble-Gold-Orange-Normal-Giant-None':  'Gilded Rainbowfish',
+  'Slender-Flowing-Tiger-Gold-Teal-Normal-Giant-None':     'Tiger Rainbowfish',
   'Eel-Veil-Tiger-Gold-Orange-Normal-Giant-None':          'Tiger Moray',
   'Eel-Flowing-Plain-Gold-Orange-Normal-Giant-None':       'Gilt Eel',
-  'Orb-Veil-Marble-Azure-Silver-Normal-Giant-None':        'Azure Globe',
-  'Orb-Veil-Marble-Azure-Indigo-Normal-Giant-None':        'Midnight Orb',
-  'Orb-Veil-Spotted-Azure-Silver-Normal-Giant-None':       'Sapphire Bubble',
-  'Orb-Veil-Tiger-Azure-Teal-Normal-Giant-None':           'Blue Tiger Globe',
-  'Orb-Flowing-Marble-Azure-Indigo-Normal-Giant-None':     'Ocean Drifter',
-  'Round-Veil-Marble-Azure-Silver-Normal-Giant-None':      'Cobalt Ball',
-  'Round-Veil-Marble-Azure-Indigo-Normal-Medium-None':     'Ink Puff',
-  'Round-Flowing-Marble-Azure-Silver-Normal-Giant-None':   'Storm Sphere',
-  'Delta-Veil-Marble-Azure-Silver-Normal-Giant-None':      'Glacier Delta',
-  'Slender-Veil-Marble-Azure-Silver-Normal-Giant-None':    'Celestial Streamer',
+  'Orb-Veil-Marble-Azure-Silver-Normal-Giant-None':        'Azure Puffer',
+  'Orb-Veil-Marble-Azure-Indigo-Normal-Giant-None':        'Midnight Goby',
+  'Orb-Veil-Spotted-Azure-Silver-Normal-Giant-None':       'Sapphire Guppy',
+  'Orb-Veil-Tiger-Azure-Teal-Normal-Giant-None':           'Blue Tiger Puffer',
+  'Orb-Flowing-Marble-Azure-Indigo-Normal-Giant-None':     'Ocean Gourami',
+  'Round-Veil-Marble-Azure-Silver-Normal-Giant-None':      'Cobalt Cichlid',
+  'Round-Veil-Marble-Azure-Indigo-Normal-Medium-None':     'Ink Platy',
+  'Round-Flowing-Marble-Azure-Silver-Normal-Giant-None':   'Storm Perch',
+  'Delta-Veil-Marble-Azure-Silver-Normal-Giant-None':      'Glacier Tetra',
+  'Slender-Veil-Marble-Azure-Silver-Normal-Giant-None':    'Celestial Swordtail',
   'Slender-Flowing-Marble-Azure-Indigo-Normal-Giant-None': 'Tidal Serpent',
   'Slender-Flowing-Tiger-Azure-Teal-Normal-Giant-None':    'Reef Viper',
   'Eel-Flowing-Lined-Azure-Silver-Normal-Giant-None':      'Electric Eel',
@@ -230,7 +230,7 @@ const NAMED_SPECIES = {
   'Round-Flowing-Marble-Violet-Indigo-Radiant-Giant-None': 'Pulsar',
   'Slender-Flowing-Tiger-Emerald-Teal-Radiant-Giant-None': 'Radiant Sea Snake',
   'Eel-Flowing-Marble-Azure-Indigo-Radiant-Giant-None':    'Electric Phantom',
-  'Orb-Veil-Marble-Crimson-Orange-Ultraviolet-Giant-None':    'UV Crimson Sphere',
+  'Orb-Veil-Marble-Crimson-Orange-Ultraviolet-Giant-None':    'Crimson Sphere',
   'Orb-Veil-Marble-Gold-Orange-Ultraviolet-Leviathan-None':   'Solar Emperor',
   'Orb-Veil-Marble-Violet-Indigo-Ultraviolet-Giant-None':     'Cosmic Orb',
   'Slender-Flowing-Tiger-Azure-Teal-Ultraviolet-Leviathan-None':'Leviathan Phantom',
@@ -288,28 +288,87 @@ export function getSpeciesFromPhenotype(phenotype) {
 }
 
 const ADJ = {
-  Crimson: ['Scarlet','Ruby','Ember','Flame','Cinnabar'],
-  Gold: ['Gilded','Amber','Honey','Solar','Aureate'],
-  Violet: ['Mystic','Amethyst','Twilight','Dusk','Lavender'],
-  Azure: ['Cobalt','Ocean','Sky','Sapphire','Cerulean'],
-  Emerald: ['Jade','Forest','Jungle','Moss','Malachite'],
-  White: ['Ghost','Pearl','Snow','Ivory','Opal'],
+  Crimson: ['Crimson','Ruby','Scarlet','Ember','Blaze','Phoenix','Inferno','Garnet','Vermillion','Cinnabar'],
+  Gold: ['Golden','Amber','Sunlit','Gilded','Honeyed','Aureate','Topaz','Marigold','Saffron','Sovereign'],
+  Violet: ['Amethyst','Twilight','Royal','Imperial','Orchid','Mystic','Indigo','Nebula','Regal','Phantom'],
+  Azure: ['Sapphire','Cobalt','Midnight','Arctic','Pacific','Celestial','Storm','Glacier','Abyss','Tidal'],
+  Emerald: ['Jade','Verdant','Jungle','Malachite','Fern','Sylvan','Evergreen','Moss','Serpentine','Tropic'],
+  White: ['Pearl','Ghost','Ivory','Crystal','Diamond','Frost','Opal','Platinum','Moonlit','Spectral'],
 };
 const NOUN = {
-  Orb: ['Sphere','Globe','Orb','Lantern'],
-  Round: ['Puff','Bubble','Bead','Drop'],
-  Delta: ['Flash','Wedge','Chevron','Dart'],
-  Slender: ['Arrow','Dart','Needle','Lance'],
-  Eel: ['Eel','Serpent','Snake','Ribbon'],
+  Orb:     ['Oracle','Lantern','Globe','Jewel','Bubble','Moon','Pearl','Marble','Gem','Droplet'],
+  Round:   ['Emperor','Sovereign','Guardian','Sentinel','Baron','Knight','Regent','Warden','Herald','Noble'],
+  Delta:   ['Dart','Arrow','Phantom','Whisper','Flash','Spark','Streak','Bolt','Zephyr','Glider'],
+  Slender: ['Blade','Dagger','Spear','Needle','Lance','Rapier','Stiletto','Sabre','Pike','Striker'],
+  Eel:     ['Serpent','Dragon','Viper','Wyrm','Shadow','Spectre','Wraith','Shade','Phantom','Crawler'],
 };
-const GLOWPFX = { Luminous: 'Glowing ', Radiant: 'Radiant ', Ultraviolet: 'UV ' };
+const PATTERN_MOD = {
+  Spotted: ['Spotted ','Dappled ','Freckled ','Star-marked ','Constellation '],
+  Tiger:   ['Tiger ','Banded ','Ringed ','Striped ','Barred '],
+  Marble:  ['Marbled ','Painted ','Mosaic ','Veined ','Swirled '],
+  Lined:   ['Lined ','Pinstripe ','Threaded ','Traced ','Etched '],
+  Plain:   ['','','','',''],
+};
+const FIN_MOD = {
+  Veil:    [' Veiltail',' Cascadia',' Silktail',' Flowtail',''],
+  Flowing: [' Fantail',' Wisp',' Plume','',''],
+  Broad:   ['','','','',''],
+  Angular: ['','','','',''],
+  Nub:     ['','','','',''],
+};
+const SIZE_MOD = {
+  Dwarf:     ['Little ','Pygmy ','Petite ','Miniature ',''],
+  Tiny:      ['','','','',''],
+  Medium:    ['','','','',''],
+  Giant:     ['Grand ','Great ','King ','Elder ',''],
+  Leviathan: ['Titan ','Colossal ','Ancient ','Leviathan ','Primordial '],
+};
+const GLOWPFX = { Luminous: 'Luminous ', Radiant: 'Radiant ', Ultraviolet: '' };
+
+// Rare title patterns for epic/legendary fish
+const EPIC_TITLES = [
+  (adj, noun) => `${adj} ${noun}`,
+  (adj, noun) => `The ${adj} ${noun}`,
+  (adj, noun) => `${noun} of ${adj} Depths`,
+  (adj, noun) => `${adj} ${noun} Rex`,
+  (adj, noun) => `${noun} Primus`,
+];
+const LEGENDARY_TITLES = [
+  (adj, noun) => `${adj} ${noun} the Magnificent`,
+  (adj, noun) => `The Eternal ${adj} ${noun}`,
+  (adj, noun) => `${noun} of the ${adj} Abyss`,
+  (adj, noun) => `${adj} ${noun} Imperator`,
+  (adj, noun) => `The Last ${adj} ${noun}`,
+];
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 function generateProceduralName(ph) {
   const glow = GLOWPFX[ph.glow] || '';
-  const adj = (ADJ[ph.primaryColor] || ['Mystery'])[Math.floor(Math.random() * 5) % 5];
-  const noun = (NOUN[ph.bodyShape] || ['Fish'])[Math.floor(Math.random() * 4) % 4];
+  const showSize = ph.size === 'Dwarf' || ph.size === 'Tiny' || ph.size === 'Giant' || ph.size === 'Leviathan';
+  const size = showSize ? pick(SIZE_MOD[ph.size] || ['']) : '';
+  const showPattern = ph.pattern !== 'Plain' && Math.random() < 0.5; // 50% chance to show pattern
+  const pattern = showPattern ? pick(PATTERN_MOD[ph.pattern] || ['']) : '';
+  const adj = pick(ADJ[ph.primaryColor] || ['Mystery']);
+  const noun = pick(NOUN[ph.bodyShape] || ['Fish']);
+  const showFin = (ph.finType === 'Veil' || ph.finType === 'Flowing') && Math.random() < 0.4;
+  const fin = showFin ? pick(FIN_MOD[ph.finType] || ['']) : '';
   const mut = (ph.mutation && ph.mutation !== 'None') ? ` (${ph.mutation})` : '';
-  return `${glow}${adj} ${noun}${mut}`;
+
+  // Rare fish get dramatic title patterns
+  const score = computeRarityScore(ph);
+  const rarity = rarityFromScore(score);
+
+  if (rarity === 'legendary' && Math.random() < 0.7) {
+    const titleFn = pick(LEGENDARY_TITLES);
+    return `${glow}${titleFn(adj, noun)}${mut}`.replace(/  +/g, ' ').trim();
+  }
+  if (rarity === 'epic' && Math.random() < 0.4) {
+    const titleFn = pick(EPIC_TITLES);
+    return `${glow}${titleFn(adj, noun)}${mut}`.replace(/  +/g, ' ').trim();
+  }
+
+  return `${glow}${size}${pattern}${adj} ${noun}${fin}${mut}`.replace(/  +/g, ' ').trim();
 }
 
 export const RARITY = {
@@ -403,6 +462,16 @@ export function randomGenome() {
   return genome;
 }
 
+export const PERSONALITIES = [
+  { id: 'playful',   label: '🎭 Playful',   desc: 'Does tricks near the glass', weight: 3 },
+  { id: 'shy',       label: '🫣 Shy',       desc: 'Hides behind decorations',   weight: 3 },
+  { id: 'curious',   label: '🔍 Curious',   desc: 'Follows your cursor',        weight: 2 },
+  { id: 'lazy',      label: '😴 Lazy',      desc: 'Idles more, swims less',     weight: 3 },
+  { id: 'aggressive',label: '😤 Aggressive', desc: 'Chases other fish',         weight: 1.5 },
+  { id: 'social',    label: '🤝 Social',    desc: 'Stays near other fish',      weight: 2 },
+  { id: 'gluttonous',label: '🍽️ Gluttonous', desc: 'Gets hungry faster',       weight: 1.5 },
+  { id: 'hardy',     label: '💪 Hardy',     desc: 'Resists disease better',     weight: 1.5 },
+];
 export function createFish({ genome = null, stage = 'adult', parentIds = [], tankId = 'tank_0', targetRarity = null } = {}) {
   let resolvedGenome = genome || randomGenome();
   let phenotype = computePhenotype(resolvedGenome);
@@ -439,12 +508,22 @@ export function createFish({ genome = null, stage = 'adult', parentIds = [], tan
     colorVariant = colorVariant || variants[0];
   }
 
+  // ── Personality ────────────────────────────────────────────
+  const pTotal = PERSONALITIES.reduce((s, p) => s + p.weight, 0);
+  let pRoll = Math.random() * pTotal;
+  let personality = PERSONALITIES[0];
+  for (const p of PERSONALITIES) {
+    pRoll -= p.weight;
+    if (pRoll <= 0) { personality = p; break; }
+  }
+
   return {
     id: crypto.randomUUID(),
     genome: resolvedGenome,
     phenotype,
     species,
     colorVariant,
+    personality: personality.id,
     stage,
     bornAt: now,
     stageStartedAt: now,
