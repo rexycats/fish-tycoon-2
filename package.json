@@ -5,10 +5,10 @@
   "type": "module",
   "main": "electron/main.js",
   "scripts": {
-    "dev": "npx vite",
-    "build": "npx vite build",
+    "dev": "vite",
+    "build": "vite build",
     "preview": "npx vite preview",
-    "deploy": "npx vite build && npx gh-pages -d dist",
+    "deploy": "vite build && npx gh-pages -d dist",
     "electron:dev": "concurrently \"npx vite\" \"wait-on http://localhost:5173 && VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
     "electron:build": "npx vite build && electron-builder",
     "electron:build:win": "npx vite build && electron-builder --win",
