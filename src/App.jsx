@@ -28,6 +28,7 @@ import { EventPopup, HagglePopup } from './components/EventPopup.jsx';
 import TitleScreen    from './components/TitleScreen.jsx';
 import Credits        from './components/Credits.jsx';
 import { formatCoins } from './utils/format.js';
+import { TUTORIAL_STEPS } from './data/tutorial.js';
 
 import { useGameStore } from './store/gameStore.js';
 import { useFishSelection } from './hooks/useFishSelection.js';
