@@ -167,6 +167,7 @@ export default function App() {
   const currentAchCount      = (player.achievements || []).length;
   const newAchCount          = Math.max(0, currentAchCount - (player.seenAchCount || 0));
 
+  const playTabSwitch = () => {}; // SFX placeholder
   const handleTabChange = useCallback((tab) => {
     playTabSwitch();
     setActiveTab(tab);
