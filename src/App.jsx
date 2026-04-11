@@ -482,7 +482,7 @@ export default function App() {
         </label>
         <button className="btn btn-sm" onClick={() => setShowCredits(true)}>ℹ️ Credits</button>
         <span className="footer-tip">Auto-saves every 30s</span>
-        {saveFlash && <SaveIndicator key={saveFlash} />}
+        
         <button className="btn btn-sm" onClick={() => setShowCredits(true)} title="Credits">ℹ️</button>
         {canPrestige(useGameStore.getState()) && (
           <button className="btn btn-sm btn-prestige" onClick={performPrestige} title="Reset for permanent bonuses">
