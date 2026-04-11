@@ -35,6 +35,16 @@ const KoiSprite              = lazy(() => import('./sprites/KoiSprite.jsx'));
 const MoorishIdolSprite      = lazy(() => import('./sprites/MoorishIdolSprite.jsx'));
 const TriggerSprite          = lazy(() => import('./sprites/TriggerSprite.jsx'));
 const ElectricEelSprite      = lazy(() => import('./sprites/ElectricEelSprite.jsx'));
+const AxolotlSprite          = lazy(() => import('./sprites/AxolotlSprite.jsx'));
+const YellowTangSprite       = lazy(() => import('./sprites/YellowTangSprite.jsx'));
+const ArowanaSprite          = lazy(() => import('./sprites/ArowanaSprite.jsx'));
+const CherryShrimpSprite     = lazy(() => import('./sprites/CherryShrimp.jsx'));
+const OscarSprite            = lazy(() => import('./sprites/OscarSprite.jsx'));
+const GuppySprite            = lazy(() => import('./sprites/GuppySprite.jsx'));
+const CuttlefishSprite       = lazy(() => import('./sprites/CuttlefishSprite.jsx'));
+const CorydorasSprite        = lazy(() => import('./sprites/CorydorasSprite.jsx'));
+const HammerheadSprite       = lazy(() => import('./sprites/HammerheadSprite.jsx'));
+const NautilusSprite         = lazy(() => import('./sprites/NautilusSprite.jsx'));
 
 // ── Species sprite routing (Phase 12) ───────────────────────
 // Add new real-species entries here as they're built.
@@ -55,6 +65,16 @@ const SPECIES_SPRITE_MAP = {
   moorish_idol:      MoorishIdolSprite,
   triggerfish:       TriggerSprite,
   electric_eel:      ElectricEelSprite,
+  axolotl:           AxolotlSprite,
+  yellow_tang:       YellowTangSprite,
+  arowana:           ArowanaSprite,
+  cherry_shrimp:     CherryShrimpSprite,
+  oscar:             OscarSprite,
+  guppy:             GuppySprite,
+  cuttlefish:        CuttlefishSprite,
+  corydoras:         CorydorasSprite,
+  hammerhead:        HammerheadSprite,
+  nautilus:          NautilusSprite,
 };
 
 // ─── COLOR PALETTES ─────────────────────────────────────────────────────────
@@ -107,10 +127,11 @@ export const BODY_COLORS = {
 
 // ─── RARITY AURA ────────────────────────────────────────────────────────────
 const RARITY_AURA = {
-  common:   null,
-  uncommon: { color:'#78c8ff', opacity:0.20, blur:6  },
-  rare:     { color:'#c878ff', opacity:0.28, blur:8  },
-  epic:     { color:'#ffe040', opacity:0.40, blur:10 },
+  common:    null,
+  uncommon:  { color:'#78c8ff', opacity:0.18, blur:5  },
+  rare:      { color:'#c878ff', opacity:0.30, blur:8  },
+  epic:      { color:'#ffe040', opacity:0.42, blur:11, pulse: true },
+  legendary: { color:'#ff60ff', opacity:0.55, blur:14, pulse: true, rainbow: true },
 };
 
 // ============================================================

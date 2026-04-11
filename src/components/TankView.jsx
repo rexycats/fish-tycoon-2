@@ -492,6 +492,40 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
         <div className="tank-sand-detail"/>
         <div className="caustic-floor"/>
         <div className="tank-highlight-top"/>
+
+        {/* Water surface line */}
+        <svg className="water-surface" viewBox="0 0 800 20" preserveAspectRatio="none">
+          <path className="water-surface-wave wave-1" d="M0,10 Q100,2 200,10 Q300,18 400,10 Q500,2 600,10 Q700,18 800,10 L800,0 L0,0 Z" fill="rgba(100,180,255,0.08)"/>
+          <path className="water-surface-wave wave-2" d="M0,12 Q100,5 200,12 Q300,19 400,12 Q500,5 600,12 Q700,19 800,12 L800,0 L0,0 Z" fill="rgba(140,200,255,0.05)"/>
+          <line className="water-surface-line" x1="0" y1="10" x2="800" y2="10" stroke="rgba(180,220,255,0.15)" strokeWidth="1.5"/>
+        </svg>
+
+        {/* Swaying plants/seaweed */}
+        <svg className="tank-plants" viewBox="0 0 800 400" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="plantGrad1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#2a8040" stopOpacity="0.7"/>
+              <stop offset="100%" stopColor="#1a5028" stopOpacity="0.9"/>
+            </linearGradient>
+            <linearGradient id="plantGrad2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#3a9050" stopOpacity="0.6"/>
+              <stop offset="100%" stopColor="#206030" stopOpacity="0.8"/>
+            </linearGradient>
+          </defs>
+          {/* Left cluster */}
+          <path className="seaweed sw-1" d="M60,400 Q55,340 65,300 Q58,260 62,220 Q68,190 60,160" fill="none" stroke="url(#plantGrad1)" strokeWidth="5" strokeLinecap="round"/>
+          <path className="seaweed sw-2" d="M75,400 Q80,350 72,310 Q78,270 70,240" fill="none" stroke="url(#plantGrad2)" strokeWidth="4" strokeLinecap="round"/>
+          <path className="seaweed sw-3" d="M50,400 Q45,360 55,330 Q48,300 52,270" fill="none" stroke="url(#plantGrad1)" strokeWidth="3.5" strokeLinecap="round"/>
+          {/* Right cluster */}
+          <path className="seaweed sw-4" d="M720,400 Q725,345 715,300 Q722,265 718,230 Q710,200 720,170" fill="none" stroke="url(#plantGrad2)" strokeWidth="5" strokeLinecap="round"/>
+          <path className="seaweed sw-5" d="M740,400 Q735,355 745,320 Q738,285 742,250" fill="none" stroke="url(#plantGrad1)" strokeWidth="4" strokeLinecap="round"/>
+          {/* Center coral */}
+          <path className="seaweed sw-6" d="M400,400 Q395,370 405,345 Q398,320 402,295" fill="none" stroke="rgba(180,80,100,0.5)" strokeWidth="4.5" strokeLinecap="round"/>
+          <path className="seaweed sw-7" d="M385,400 Q390,365 382,340" fill="none" stroke="rgba(200,100,120,0.4)" strokeWidth="3" strokeLinecap="round"/>
+        </svg>
+
+        {/* Glass frame overlay */}
+        <div className="tank-glass-frame"/>
         <div className="dust-motes">
           {Array.from({ length: 12 }, (_, i) => (
             <div key={i} className="dust-mote" style={{
@@ -651,6 +685,61 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           })}
         </svg>
 
+        {/* Air bubbler stone with bubble stream */}
+        <div className="air-bubbler">
+          <svg className="bubbler-stone" viewBox="0 0 40 25" width="40" height="25">
+            <ellipse cx="20" cy="18" rx="18" ry="7" fill="#556070"/>
+            <ellipse cx="20" cy="16" rx="15" ry="5" fill="#667080"/>
+            <ellipse cx="18" cy="14" rx="6" ry="2" fill="#778898" opacity="0.4"/>
+          </svg>
+          <div className="bubbler-stream">
+            {Array.from({length: 8}, (_, i) => (
+              <div key={i} className={`bubbler-bubble bb-${i}`}/>
+            ))}
+          </div>
+        </div>
+
+        {/* Glass snail */}
+        <div className="tank-snail">
+          <svg viewBox="0 0 24 18" width="24" height="18">
+            <ellipse cx="12" cy="14" rx="10" ry="4" fill="rgba(160,140,100,0.7)"/>
+            <circle cx="14" cy="10" r="6" fill="rgba(140,120,80,0.8)"/>
+            <path d="M14,10 Q16,7 14,5 Q12,7 14,10" fill="rgba(120,100,60,0.5)"/>
+            <circle cx="14" cy="8" r="3.5" fill="rgba(160,140,100,0.6)"/>
+            <line x1="6" y1="12" x2="3" y2="9" stroke="rgba(140,120,80,0.6)" strokeWidth="1" strokeLinecap="round"/>
+            <line x1="8" y1="11" x2="6" y2="8" stroke="rgba(140,120,80,0.6)" strokeWidth="1" strokeLinecap="round"/>
+            <circle cx="3" cy="9" r="1" fill="rgba(60,60,60,0.5)"/>
+            <circle cx="6" cy="8" r="1" fill="rgba(60,60,60,0.5)"/>
+          </svg>
+        </div>
+
+        {/* Scattered shells on sand */}
+        <svg className="tank-shells" viewBox="0 0 800 400" preserveAspectRatio="none">
+          <g opacity="0.5">
+            <path d="M120,392 Q125,385 130,392 Q125,395 120,392" fill="#d8c8a0"/>
+            <path d="M320,395 Q326,387 332,395 Q326,398 320,395" fill="#c8b890" transform="rotate(20,326,395)"/>
+            <path d="M540,390 Q544,383 548,390 Q544,393 540,390" fill="#dcd0a8" transform="rotate(-15,544,390)"/>
+            <ellipse cx="180" cy="396" rx="4" ry="3" fill="#c0b088" transform="rotate(30,180,396)"/>
+            <ellipse cx="440" cy="394" rx="5" ry="3.5" fill="#d0c098"/>
+            <ellipse cx="620" cy="393" rx="3.5" ry="2.5" fill="#b8a880" transform="rotate(-25,620,393)"/>
+            {/* Starfish */}
+            <g transform="translate(280,388) scale(0.5) rotate(15)">
+              <path d="M0,-10 L2,-3 L10,-3 L4,2 L6,10 L0,5 L-6,10 L-4,2 L-10,-3 L-2,-3 Z" fill="rgba(200,100,80,0.4)"/>
+            </g>
+          </g>
+        </svg>
+
+        {/* Treasure chest */}
+        <svg className="tank-chest" viewBox="0 0 36 30" width="36" height="30">
+          <rect x="3" y="14" width="30" height="16" rx="2" fill="#8a5a2a"/>
+          <rect x="3" y="14" width="30" height="16" rx="2" fill="none" stroke="#6a4020" strokeWidth="1.5"/>
+          <rect x="5" y="10" width="26" height="8" rx="3" fill="#9a6a3a"/>
+          <rect x="14" y="12" width="8" height="6" rx="1" fill="#c8a040"/>
+          <circle cx="18" cy="15" r="2" fill="#ffd060"/>
+          <line x1="3" y1="22" x2="33" y2="22" stroke="#6a4020" strokeWidth="1" opacity="0.5"/>
+          <rect x="3" y="10" width="30" height="1" fill="rgba(255,255,255,0.1)"/>
+        </svg>
+
         <div className="bubbles">
           {/* Large wobbling bubbles */}
           {[0,1,2,3].map(i => <div key={`lg-${i}`} className={`bubble bubble-lg bubble-lg-${i}`}/>)}
@@ -686,7 +775,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
 
           return (
             <div key={f.id}
-              className={`fish-container ${isSelected ? 'selected' : ''} depth-layer-${depthLayer}${f.disease ? ' fish-diseased' : ''}${pos.isIdle ? ' fish-idle' : ''}`}
+              className={`fish-container ${isSelected ? 'selected' : ''} depth-layer-${depthLayer}${f.disease ? ' fish-diseased' : ''}${pos.isIdle ? ' fish-idle' : ''}${f.hunger > 70 ? ' fish-hungry' : ''}${(f.health || 100) < 30 ? ' fish-critical' : ''}${f.stage === 'egg' ? (Date.now() - (f.bornAt || 0) > 90000 ? ' fish-egg egg-hatching' : ' fish-egg') : ''}${f.species?.rarity === 'legendary' ? ' fish-legendary' : f.species?.rarity === 'epic' ? ' fish-epic' : ''}`}
               style={{
                 left: `${pos.x}%`,
                 top:  `${pos.y}%`,

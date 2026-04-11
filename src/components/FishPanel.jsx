@@ -215,6 +215,26 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
           disabled={!needsMedicine || medicineStock <= 0}
           disabledTitle={medicineStock <= 0 ? 'No medicine in stock' : 'Fish is healthy — no treatment needed'}
           variant="medicine" pulse={needsMedicine && medicineStock > 0} highlight={bestAction === 'medicine'} />
+        {disease && !fish.diagnosed && getDiseaseStage(fish.diseaseSince) === 'incubating' && (() => {
+          const diagKits = fish.tankId ? (tanks.find(t => t.id === fish.tankId)?.supplies?.diagnosticKit || 0) : 0;
+          return (
+            <ActionBtn icon="🔬" label={`Diagnose (${diagKits})`}
+              onClick={() => useGameStore.getState().diagnoseFish(fish.id)}
+              disabled={diagKits <= 0}
+              disabledTitle="No diagnostic kits — buy from Shop → Supplies"
+              variant="medicine" />
+          );
+        })()}
+        {!disease && !(fish.vitaminUntil && fish.vitaminUntil > Date.now()) && (() => {
+          const vitCount = fish.tankId ? (tanks.find(t => t.id === fish.tankId)?.supplies?.vitamins || 0) : 0;
+          return (
+            <ActionBtn icon="💉" label={`Vitamins (${vitCount})`}
+              onClick={() => useGameStore.getState().giveVitamins(fish.id)}
+              disabled={vitCount <= 0 || fish.stage !== 'adult'}
+              disabledTitle={vitCount <= 0 ? 'No vitamins — buy from Shop → Supplies' : 'Not available'}
+              variant="feed" />
+          );
+        })()}
         {isListed ? (
           <ActionBtn icon="🏪" label="Listed" onClick={() => onSell(fish.id)} variant="listed" />
         ) : (

@@ -104,6 +104,33 @@ function SaveIndicator() {
   return <span className="hud2-save-indicator" title="Game saved">💾</span>;
 }
 
+/* ── Urgent Offer Banner ───────────────────────────────────── */
+function UrgentOfferBanner() {
+  const offer = useGameStore(s => s.urgentOffer);
+  const [timeLeft, setTimeLeft] = useState('');
+  useEffect(() => {
+    if (!offer?.expiresAt) return;
+    const tick = () => {
+      const ms = Math.max(0, offer.expiresAt - Date.now());
+      if (ms <= 0) { setTimeLeft('EXPIRED'); return; }
+      const m = Math.floor(ms / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      setTimeLeft(`${m}:${String(s).padStart(2, '0')}`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [offer?.expiresAt]);
+  if (!offer || !offer.expiresAt || Date.now() >= offer.expiresAt) return null;
+  return (
+    <div className="hud2-urgent">
+      <span className="hud2-urgent-name">{offer.name}</span>
+      <span className="hud2-urgent-desc">{offer.desc}</span>
+      <span className="hud2-urgent-timer">⏰ {timeLeft}</span>
+    </div>
+  );
+}
+
 /* ── Level / XP Bar ────────────────────────────────────────── */
 function LevelBar({ xp }) {
   const { level, currentXp, nextLevelXp } = getLevelFromXp(xp || 0);
@@ -140,6 +167,7 @@ export default function HUD({
 
   return (
     <header className="hud2">
+      <UrgentOfferBanner />
 
       {/* ── Row 1: brand · coins · rep · sound ───────────────── */}
       <div className="hud2-row hud2-row--top">

@@ -103,6 +103,11 @@ export function createDefaultState() {
       dailyStreak: 0,
       lastDailyClaimDate: null,
       unlockedBackgrounds: ['tropical'],
+      completedMilestones: [],
+      completedMilestones: [],
+      tutorialStep: 0,
+      tutorialDone: false,
+      completedMilestones: [],
       shopLevel: 1,
       fishdex: [],
       achievements: [],
@@ -200,7 +205,8 @@ export function createDefaultState() {
     lastReviewAt: 0,
     discoveries: [],          // unique phenotype discovery keys
     weather: null,            // current weather state
-    lastWeatherSeed: 0, // starts at 1 (just breedingTank), upgrade unlocks more
+    lastWeatherSeed: 0,
+    urgentOffer: null,        // limited-time loss aversion offer
 
     log: [
       { time: Date.now(), message: '🐠 Welcome to Fish Tycoon 2! Your aquarium awaits.' },
@@ -295,7 +301,9 @@ function migrateSave(parsed, fromVersion) {
   if (!parsed.player.research) parsed.player.research = { marine_biology: 0, genetics: 0, business: 0 };
   if (!parsed.player.activeLoan) parsed.player.activeLoan = { active: false };
   if (parsed.player.dailyStreak === undefined) parsed.player.dailyStreak = 0;
-  if (!parsed.player.unlockedBackgrounds) parsed.player.unlockedBackgrounds = ['tropical']; // Retroactive XP from earnings
+  if (!parsed.player.unlockedBackgrounds) parsed.player.unlockedBackgrounds = ['tropical'];
+  if (!parsed.player.completedMilestones) parsed.player.completedMilestones = [];
+  if (!parsed.player.completedMilestones) parsed.player.completedMilestones = []; // Retroactive XP from earnings
   if (!parsed.player.magicFishFound) parsed.player.magicFishFound = [];
   if (!parsed.player.autopsies) parsed.player.autopsies = [];
   if (!parsed.shop?.fishPrices) {

@@ -21,7 +21,7 @@ import {
   refreshDailyChallenges, updateChallengeProgress,
   refreshMarket,
 } from '../systems/gameTick.js';
-import { breedGenomes, createFish } from '../data/genetics.js';
+import { breedGenomes, createFish, computePhenotype, getSpeciesFromPhenotype } from '../data/genetics.js';
 import { getDiseaseStage, CURE_SUCCESS_RATE } from '../systems/gameTick.js';
 import { canPrestige as _canPrestige, performPrestige as _performPrestige } from '../data/prestige.js';
 import { REAL_SPECIES_MAP } from '../data/realSpecies.js';
@@ -32,6 +32,8 @@ import { getLevelFromXp, XP_REWARDS, getLevelTitle } from '../data/levels.js';
 import { RESEARCH_BRANCHES } from '../data/research.js';
 import { LOAN_TIERS } from '../data/loans.js';
 import { TANK_BACKGROUNDS } from '../data/tankBackgrounds.js';
+import { MILESTONES } from '../data/milestones.js';
+import { checkNearMiss, getStreakMultiplier, getStreakLabel } from '../data/retention.js';
 import {
   playCoin, playBubble, playFeed, playBreed, playWarning,
   playDiscover, playSale, setSoundEnabled,
@@ -146,6 +148,7 @@ export const useGameStore = create(
           tank.supplies.food -= 1;
           fish.hunger = Math.max(0, fish.hunger - 45);
           fish.health = Math.min(100, fish.health + 5);
+          state.player.stats.fishFed = (state.player.stats.fishFed || 0) + 1;
         }),
 
         feedAllInTank: (tankId) => set(state => {
@@ -632,8 +635,22 @@ export const useGameStore = create(
             bt.storedGenomeA = fishA?.genome || null;
             bt.storedGenomeB = fishB?.genome || null;
             bt.storedTankId = fishA?.tankId || state.tanks[0]?.id || 'tank_0';
+
+            // ── Clutch size calculation ──────────────────────
+            // Base: 1 egg. Twins: ~15%, Triplets: ~3%
+            // Bonuses: parent health, hatchery level, same species
+            const hpAvg = ((fishA?.health || 50) + (fishB?.health || 50)) / 200; // 0-1
+            const hatcheryLvl = state.shop?.upgrades?.hatchery?.level || 0;
+            const sameSpecies = fishA?.species?.key && fishA.species.key === fishB?.species?.key;
+            const clutchBonus = hpAvg * 0.08 + hatcheryLvl * 0.04 + (sameSpecies ? 0.06 : 0);
+            const roll = Math.random();
+            const clutchSize = roll < 0.03 + clutchBonus * 0.5 ? 3
+              : roll < 0.15 + clutchBonus ? 2 : 1;
+            bt.clutchSize = clutchSize;
+
             playBreed();
-            addLogDraft(state, `🧬 Breeding started: ${fishA?.species?.name || '?'} × ${fishB?.species?.name || '?'}`);
+            const clutchMsg = clutchSize > 1 ? ` (${clutchSize === 3 ? 'Triplets' : 'Twins'}! 🎉)` : '';
+            addLogDraft(state, `🧬 Breeding started: ${fishA?.species?.name || '?'} × ${fishB?.species?.name || '?'}${clutchMsg}`);
           }
         }),
 
@@ -654,27 +671,66 @@ export const useGameStore = create(
           if (!bt.storedGenomeA || !bt.storedGenomeB) return;
           const tankId = bt.storedTankId || state.tanks[0]?.id || 'tank_0';
           const tank = state.tanks.find(t => t.id === tankId);
-          const count = state.fish.filter(f => f.tankId === tankId).length;
-          if (count >= (tank?.capacity || 12)) {
+          const currentCount = state.fish.filter(f => f.tankId === tankId).length;
+          const capacity = tank?.capacity || 12;
+          const clutchSize = bt.clutchSize || 1;
+          const roomAvailable = capacity - currentCount;
+
+          if (roomAvailable <= 0) {
             playWarning();
             addLogDraft(state, '⚠️ Target tank is full!');
             return;
           }
+
           const mutagenLevel = state.shop?.upgrades?.mutagen?.level || 0;
           const mutationBoostActive = (state.player?.boosts?.mutationBoost || 0) > Date.now();
           const mutationRate = (0.02 + mutagenLevel * 0.03) * (mutationBoostActive ? 3 : 1);
-          const childGenome = breedGenomes(bt.storedGenomeA, bt.storedGenomeB, null, mutationRate);
-          const egg = createFish({ stage: 'egg', tankId, genome: childGenome });
-          state.fish.push(egg);
+
+          // Create 1-3 eggs, each with unique genome
+          const eggsToCreate = Math.min(clutchSize, roomAvailable);
+          const newEggs = [];
+          for (let i = 0; i < eggsToCreate; i++) {
+            const childGenome = breedGenomes(bt.storedGenomeA, bt.storedGenomeB, null, mutationRate);
+            const egg = createFish({ stage: 'egg', tankId, genome: childGenome });
+            newEggs.push(egg);
+            state.fish.push(egg);
+          }
+
           bt.eggReady = false;
           bt.breedingStartedAt = null;
           bt.slots = [null, null];
           bt.storedGenomeA = null;
           bt.storedGenomeB = null;
-          state.player.stats.eggsCollected = (state.player.stats.eggsCollected || 0) + 1;
+          bt.clutchSize = null;
+          state.player.stats.eggsCollected = (state.player.stats.eggsCollected || 0) + eggsToCreate;
+
           playCoin();
-          addLogDraft(state, '🥚 Collected a new egg!');
-          addXp(state, XP_REWARDS.breedEgg, 'breed');
+          if (eggsToCreate === 3) {
+            playDiscover();
+            addLogDraft(state, `🥚🥚🥚 Triplets! Collected 3 eggs!`);
+          } else if (eggsToCreate === 2) {
+            addLogDraft(state, `🥚🥚 Twins! Collected 2 eggs!`);
+          } else {
+            addLogDraft(state, '🥚 Collected a new egg!');
+          }
+          if (clutchSize > roomAvailable) {
+            addLogDraft(state, `⚠️ Only ${roomAvailable} of ${clutchSize} eggs fit — tank is almost full!`);
+          }
+
+          addXp(state, XP_REWARDS.breedEgg * eggsToCreate, 'breed');
+
+          // Near-miss check — would the offspring have been higher rarity?
+          for (const egg of newEggs) {
+            if (egg.genome) {
+              const ph = computePhenotype(egg.genome);
+              const sp = getSpeciesFromPhenotype(ph);
+              const nearMiss = checkNearMiss({ species: sp });
+              if (nearMiss) {
+                addLogDraft(state, `😱 ${nearMiss.message} Breed similar parents to push past the threshold!`);
+              }
+            }
+          }
+
           const updated = updateChallengeProgress(state, 'collect_egg');
           Object.assign(state, updated);
         }),
@@ -797,15 +853,26 @@ export const useGameStore = create(
           if (state.player.lastDailyClaimDate === today) return;
           const last = state.player.lastDailyClaimDate;
           const wasYesterday = last && (new Date(today) - new Date(last)) / 86400000 <= 1;
-          const streak = wasYesterday ? (state.player.dailyStreak || 0) + 1 : 1;
+          const oldStreak = state.player.dailyStreak || 0;
+          const streak = wasYesterday ? oldStreak + 1 : 1;
+
+          // Streak broken penalty
+          if (!wasYesterday && oldStreak >= 3) {
+            const lostMult = getStreakMultiplier(oldStreak);
+            addLogDraft(state, `💔 ${oldStreak}-day streak broken! Lost ${getStreakLabel(oldStreak)} (${Math.round((lostMult-1)*100)}% bonus). Starting over...`);
+          }
+
           state.player.dailyStreak = streak;
           state.player.lastDailyClaimDate = today;
-          // Reward scales with streak
           const reward = 25 + streak * 10;
           state.player.coins += reward;
           addXp(state, 10, 'daily');
           playCoin();
-          addLogDraft(state, `🎁 Day ${streak} login reward: +🪙${reward}!`);
+
+          const mult = getStreakMultiplier(streak);
+          const label = getStreakLabel(streak);
+          const multMsg = mult > 1 ? ` ${label} — ${Math.round((mult-1)*100)}% coin bonus active!` : '';
+          addLogDraft(state, `🎁 Day ${streak} reward: +🪙${reward}!${multMsg}`);
         }),
 
         // ── Tank backgrounds ────────────────────────────────
@@ -823,6 +890,22 @@ export const useGameStore = create(
         setTankBackground: (tankId, bgId) => set(state => {
           const tank = state.tanks.find(t => t.id === tankId);
           if (tank) tank.backgroundId = bgId;
+        }),
+
+        claimMilestone: (milestoneId) => set(state => {
+          
+          if (!state.player.completedMilestones) state.player.completedMilestones = [];
+          if (state.player.completedMilestones.includes(milestoneId)) return;
+          const m = MILESTONES.find(ms => ms.id === milestoneId);
+          if (!m || !m.check(state)) return;
+          state.player.completedMilestones.push(milestoneId);
+          if (m.reward?.coins) {
+            state.player.coins += m.reward.coins;
+            state.player.totalCoinsEarned = (state.player.totalCoinsEarned || 0) + m.reward.coins;
+          }
+          addXp(state, 30, 'milestone');
+          playCoin();
+          addLogDraft(state, `🏆 Milestone: ${m.title}! ${m.reward?.coins ? '+🪙' + m.reward.coins : ''}`);
         }),
 
         resetGame: () => set(state => {

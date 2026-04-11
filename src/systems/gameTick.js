@@ -9,6 +9,7 @@ import { getDailyOrderSeed, generateOrders } from '../data/specialOrders.js';
 import { getWeatherSeed, getCurrentWeather } from '../data/weather.js';
 import { generateReview } from '../data/reviews.js';
 import { checkNewDiscovery } from '../data/discoveries.js';
+import { checkJackpot, rollUrgentOffer, isOfferActive, getStreakMultiplier } from '../data/retention.js';
 
 export const TICK_INTERVAL_MS = 1000;
 
@@ -951,6 +952,21 @@ export function processTick(state) {
     }
   }
 
+  // ── Urgent offers: limited-time loss aversion ──────────────
+  if (next.urgentOffer && !isOfferActive(next.urgentOffer)) {
+    // Expired — notify and clear
+    messages.push(`⏰ The ${next.urgentOffer.name} offer expired! You missed out.`);
+    next = { ...next, urgentOffer: null };
+  }
+  if (!next.urgentOffer) {
+    const newOffer = rollUrgentOffer();
+    if (newOffer) {
+      next = { ...next, urgentOffer: newOffer };
+      const mins = Math.round(newOffer.duration / 60000);
+      messages.push(`🚨 ${newOffer.name}: ${newOffer.desc} Expires in ${mins} minutes!`);
+    }
+  }
+
   // ── Discovery tracking: check new fish for undiscovered phenotypes ──
   for (const f of next.fish) {
     if (f._discoveryChecked) continue;
@@ -961,6 +977,8 @@ export function processTick(state) {
     }
     f._discoveryChecked = true;
   }
+
+
 
   return { ...next, lastTickAt: now };
   } catch (err) {
@@ -1099,7 +1117,25 @@ function processCustomerVisit(state, messages) {
   }
 
   const salePriceBoost = (state.player?.boosts?.salePrice || 0) > Date.now() ? 1.25 : 1.0;
-  const earnedCoins = Math.max(1, Math.round(finalPrice * salePriceBoost));
+  const streakMult = getStreakMultiplier(state.player?.dailyStreak || 0);
+
+  // Urgent offer multiplier
+  let urgentMult = 1;
+  const offer = state.urgentOffer;
+  if (offer && isOfferActive(offer)) {
+    const rarityMatch = !offer.targetRarity || offer.targetRarity.includes(fish.species?.rarity);
+    const speciesMatch = !offer.requiresSpecies || fish.species?.visualType === 'species';
+    if (rarityMatch && speciesMatch) urgentMult = offer.multiplier;
+  }
+
+  // Jackpot check
+  const totalSales = (state.shop.salesHistory?.length || 0) + 1;
+  const jackpot = checkJackpot(totalSales);
+  const jackpotMult = jackpot ? jackpot.multiplier : 1;
+
+  const earnedCoins = Math.max(1, Math.round(finalPrice * salePriceBoost * streakMult * urgentMult * jackpotMult));
+  if (jackpot) messages.push(`${jackpot.label} ${jackpotMult}× payout on this sale! 🪙${earnedCoins}`);
+  if (urgentMult > 1) messages.push(`💎 Urgent buyer paid ${urgentMult}× premium!`);
   const repGain     = Math.ceil((fish.species?.rarityScore ?? 5) / 10) + (askPrice > autoPrice ? 1 : 0);
 
   messages.push(`${customer.emoji} ${customer.name}: "${greeting}" — bought your ${fish.species?.name || 'fish'} for 🪙${earnedCoins}${priceNote}!`);

@@ -10,6 +10,8 @@ import { LOAN_TIERS, getLoanStatus } from '../data/loans.js';
 import { canClaimDaily, getDailyReward, getStreak } from '../data/dailyRewards.js';
 import { getTotalPossibleDiscoveries } from '../data/discoveries.js';
 import { TANK_BACKGROUNDS } from '../data/tankBackgrounds.js';
+import { getStreakMultiplier, getStreakLabel } from '../data/retention.js';
+import { MILESTONES, getMilestoneProgress, getTotalMilestones, getCompletedCount } from '../data/milestones.js';
 
 export default function GoalsPanel() {
   const player = useGameStore(s => s.player);
@@ -24,8 +26,9 @@ export default function GoalsPanel() {
   const repayLoan = useGameStore(s => s.repayLoan);
   const claimDailyReward = useGameStore(s => s.claimDailyReward);
   const buyBackground = useGameStore(s => s.buyBackground);
+  const claimMilestone = useGameStore(s => s.claimMilestone);
 
-  const [subTab, setSubTab] = useState('orders');
+  const [subTab, setSubTab] = useState('campaign');
 
   const canClaim = canClaimDaily({ player });
   const streak = getStreak({ player });
@@ -47,6 +50,7 @@ export default function GoalsPanel() {
       {/* Sub-tabs */}
       <div className="goals-tabs">
         {[
+          ['campaign', '🏅 Campaign'],
           ['orders', '📋 Orders'],
           ['research', '🔬 Research'],
           ['bank', '🏦 Bank'],
@@ -60,6 +64,16 @@ export default function GoalsPanel() {
         ))}
       </div>
 
+      {/* ── Streak status ──────────────────────────────── */}
+      {streak > 0 && (
+        <div className={`goals-streak ${streak >= 3 ? 'hot' : ''}`}>
+          <span>{getStreakLabel(streak) || `Day ${streak}`}</span>
+          {getStreakMultiplier(streak) > 1 && (
+            <span className="goals-streak-mult">+{Math.round((getStreakMultiplier(streak)-1)*100)}% coins</span>
+          )}
+        </div>
+      )}
+
       {/* ── Daily Reward ───────────────────────────────── */}
       {canClaim && (
         <div className="goals-daily">
@@ -68,6 +82,52 @@ export default function GoalsPanel() {
           <button className="btn btn-sm btn-primary" onClick={claimDailyReward}>Claim!</button>
         </div>
       )}
+
+      {/* ── Campaign Milestones ─────────────────────────── */}
+      {subTab === 'campaign' && (() => {
+        const state = useGameStore.getState();
+        const chapters = getMilestoneProgress(state);
+        const totalDone = getCompletedCount(state);
+        const totalAll = getTotalMilestones();
+        return (
+          <div className="goals-section">
+            <div className="goals-section-title">
+              🏅 Campaign — {totalDone}/{totalAll} milestones
+            </div>
+            <div className="campaign-progress-bar">
+              <div className="campaign-progress-fill" style={{ width: `${(totalDone / totalAll) * 100}%` }}/>
+            </div>
+            {Object.entries(chapters).map(([ch, info]) => (
+              <div key={ch} className="campaign-chapter">
+                <div className="campaign-chapter-header">
+                  <span className="campaign-chapter-name">Ch.{ch}: {info.title}</span>
+                  <span className="campaign-chapter-count">{info.done}/{info.total}</span>
+                </div>
+                <div className="campaign-milestones">
+                  {info.milestones.map(m => (
+                    <div key={m.id} className={`campaign-milestone ${m.isDone ? 'done' : ''} ${m.isReady ? 'ready' : ''}`}>
+                      <span className="campaign-milestone-icon">{m.isDone ? '✅' : m.emoji}</span>
+                      <div className="campaign-milestone-info">
+                        <span className="campaign-milestone-title">{m.title}</span>
+                        <span className="campaign-milestone-desc">{m.desc}</span>
+                      </div>
+                      {m.isDone ? (
+                        <span className="campaign-milestone-claimed">Claimed</span>
+                      ) : m.isReady ? (
+                        <button className="btn btn-sm btn-primary campaign-claim" onClick={() => claimMilestone(m.id)}>
+                          Claim 🪙{m.reward?.coins || 0}
+                        </button>
+                      ) : (
+                        <span className="campaign-milestone-reward">🪙{m.reward?.coins || 0}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* ── Special Orders ─────────────────────────────── */}
       {subTab === 'orders' && (

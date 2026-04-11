@@ -249,7 +249,7 @@ export default function BreedingLab({ fish, breedingTank, extraBays = [], maxBay
             return (
               <button key={i} className={`breed-bay-tab ${activeBay === i ? 'active' : ''} ${hasEgg ? 'has-egg' : ''} ${busy ? 'busy' : ''}`}
                 onClick={() => setActiveBay(i)}>
-                Bay {i + 1} {hasEgg ? '🥚' : busy ? '⏳' : ''}
+                Bay {i + 1} {hasEgg ? (b?.clutchSize > 1 ? `${'🥚'.repeat(b.clutchSize)}` : '🥚') : busy ? '⏳' : ''}
               </button>
             );
           })}
@@ -277,14 +277,21 @@ export default function BreedingLab({ fish, breedingTank, extraBays = [], maxBay
 
         {/* Progress / collect */}
         <div className="breed-status">
-          {bay.eggReady ? (
-            <button className="btn btn-collect pulse" onClick={onCollectEgg}>
-              🥚 Collect Egg!
-            </button>
-          ) : bay.breedingStartedAt ? (
+          {bay.eggReady ? (() => {
+            const clutch = bay.clutchSize || 1;
+            const eggEmoji = '🥚'.repeat(clutch);
+            const clutchLabel = clutch === 3 ? 'Collect Triplets!' : clutch === 2 ? 'Collect Twins!' : 'Collect Egg!';
+            return (
+              <button className={`btn btn-collect pulse ${clutch > 1 ? 'btn-collect--multi' : ''}`} onClick={onCollectEgg}>
+                {eggEmoji} {clutchLabel}
+              </button>
+            );
+          })() : bay.breedingStartedAt ? (
             <div className="breed-progress-wrap">
               <div className="breed-progress-header">
-                <div className="breed-progress-label">Breeding…</div>
+                <div className="breed-progress-label">
+                  Breeding… {bay.clutchSize > 1 && <span className="breed-clutch-badge">{bay.clutchSize === 3 ? '×3 Triplets!' : '×2 Twins!'}</span>}
+                </div>
                 {timeRemainingLabel && (
                   <div className="breed-progress-time">{timeRemainingLabel}</div>
                 )}

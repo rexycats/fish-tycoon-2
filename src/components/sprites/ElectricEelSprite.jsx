@@ -1,38 +1,77 @@
 import React, { memo } from 'react';
-const AURA = { common:null, uncommon:{color:'#78c8ff',opacity:0.20,blur:6}, rare:{color:'#c878ff',opacity:0.28,blur:8}, epic:{color:'#ffe040',opacity:0.40,blur:10}, legendary:{color:'#ff7eb3',opacity:0.55,blur:14} };
+const AURA = { common:null, uncommon:{color:'#78c8ff',opacity:0.20,blur:6}, rare:{color:'#c878ff',opacity:0.28,blur:8}, epic:{color:'#ffe040',opacity:0.40,blur:10}, legendary:{color:'#ff60ff',opacity:0.55,blur:14} };
+
+const PALETTES = {
+  default:{b:'#384838',b2:'#1a281a',bl:'#486048',lt:'#587858',sh:'#0a180a',ac:'#e0c020',ac2:'#80ff40',fin:'#304830',lat:'#507050',outline:'#0a180a'},
+  albino: {b:'#e8d8b8',b2:'#c0a888',bl:'#f0e8d0',lt:'#f8f0e0',sh:'#807050',ac:'#f0d040',ac2:'#a0ff60',fin:'#d0c0a0',lat:'#e0d0b0',outline:'#907860'},
+  midnight:{b:'#181828',b2:'#080810',bl:'#282840',lt:'#384050',sh:'#040408',ac:'#40a0ff',ac2:'#60c0ff',fin:'#141820',lat:'#283040',outline:'#080810'},
+};
 
 function ElectricEelSprite({ fish, size=60, flipped=false, selected=false, onClick }) {
   const uid=(fish?.id||'ee').slice(0,8), rarity=fish?.species?.rarity||'epic', aura=AURA[rarity];
-  const variant=fish?.colorVariant||'default', W=size*1.2, H=size*0.4;
-  const vs = variant==='albino'?{filter:'saturate(0.2) brightness(1.5)'}:variant==='midnight'?{filter:'brightness(0.5) saturate(1.5)'}:{};
+  const v=fish?.colorVariant||'default';
+  const C = PALETTES[v] || PALETTES.default;
+  const W=size*1.6, H=size*0.45;
   return (
-    <svg width={W} height={H} viewBox="0 0 120 40" onClick={onClick} style={{cursor:onClick?'pointer':'default',transform:flipped?'scaleX(-1)':'none',overflow:'visible',...vs}}>
+    <svg width={W} height={H} viewBox="0 0 140 35" onClick={onClick}
+      style={{cursor:onClick?'pointer':'default',transform:flipped?'scaleX(-1)':'none',overflow:'visible'}}>
       <defs>
-        <filter id={`eesh-${uid}`} x="-10%" y="-25%" width="120%" height="170%"><feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000" floodOpacity="0.3"/></filter>
-        <linearGradient id={`eeb-${uid}`} x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#2a3a2a"/><stop offset="30%" stopColor="#3a5a30"/><stop offset="70%" stopColor="#2a4a28"/><stop offset="100%" stopColor="#1a2a1a"/></linearGradient>
-        <radialGradient id={`ees-${uid}`} cx="20%" cy="25%" r="30%"><stop offset="0%" stopColor="white" stopOpacity="0.4"/><stop offset="100%" stopColor="white" stopOpacity="0"/></radialGradient>
-        {aura&&<filter id={`eea-${uid}`} x="-40%" y="-80%" width="180%" height="260%"><feGaussianBlur stdDeviation={aura.blur} result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>}
+        <filter id={`eesh-${uid}`} x="-12%" y="-28%" width="124%" height="178%"><feDropShadow dx="0" dy="3" stdDeviation="2.5" floodColor="#000" floodOpacity="0.30"/></filter>
+        <filter id={`eegl-${uid}`} x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood floodColor={C.ac2} floodOpacity="0.35" result="c"/><feComposite in="c" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <linearGradient id={`eeb-${uid}`} x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor={C.lt}/><stop offset="30%" stopColor={C.b}/><stop offset="70%" stopColor={C.b2}/><stop offset="100%" stopColor={C.sh}/></linearGradient>
+        <radialGradient id={`eed-${uid}`} cx="50%" cy="0%" r="85%"><stop offset="0%" stopColor={C.sh} stopOpacity="0.45"/><stop offset="100%" stopColor={C.sh} stopOpacity="0"/></radialGradient>
+        <radialGradient id={`eebl-${uid}`} cx="50%" cy="100%" r="55%"><stop offset="0%" stopColor={C.lt} stopOpacity="0.4"/><stop offset="100%" stopColor={C.lt} stopOpacity="0"/></radialGradient>
+        <radialGradient id={`eesp-${uid}`} cx="25%" cy="18%" r="40%"><stop offset="0%" stopColor="white" stopOpacity="0.4"/><stop offset="100%" stopColor="white" stopOpacity="0"/></radialGradient>
+        <linearGradient id={`eelat-${uid}`} x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="0%" stopColor={C.lat} stopOpacity="0"/><stop offset="25%" stopColor={C.lat} stopOpacity="0.2"/><stop offset="50%" stopColor={C.lat} stopOpacity="0.3"/><stop offset="75%" stopColor={C.lat} stopOpacity="0.2"/><stop offset="100%" stopColor={C.lat} stopOpacity="0"/></linearGradient>
+        <linearGradient id={`eefin-${uid}`} x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor={C.fin} stopOpacity="0.7"/><stop offset="100%" stopColor={C.fin} stopOpacity="0.3"/></linearGradient>
+        <clipPath id={`eeclip-${uid}`}><path d="M130,18 C130,10 110,5 70,5 C35,5 10,10 6,18 C10,26 35,31 70,31 C110,31 130,26 130,18 Z"/></clipPath>
+        {aura&&<filter id={`eea-${uid}`} x="-45%" y="-60%" width="190%" height="220%"><feGaussianBlur stdDeviation={aura.blur} result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>}
       </defs>
-      {aura&&<ellipse cx="60" cy="20" rx="55" ry="14" fill={aura.color} opacity={aura.opacity} filter={`url(#eea-${uid})`}/>}
-      <g filter={`url(#eesh-${uid})`}>
-        {/* Serpentine body */}
-        <path d="M8,20 Q20,12 35,18 Q50,24 65,18 Q80,12 95,18 Q108,22 115,20 Q108,26 95,24 Q80,18 65,24 Q50,30 35,24 Q20,18 8,24 Z" fill={`url(#eeb-${uid})`}/>
-        {/* Yellow/orange belly stripe */}
-        <path d="M12,22 Q30,20 50,22 Q70,24 90,22 Q105,21 112,22" stroke="#d4a030" strokeWidth="2.5" fill="none" opacity="0.6"/>
-        {/* Electric glow spots */}
-        {[25,45,65,85,100].map((x,i)=><circle key={i} cx={x} cy={20} r="2" fill="#60ff80" opacity={0.3+i*0.05}>
-          <animate attributeName="opacity" values={`${0.2+i*0.05};${0.6+i*0.05};${0.2+i*0.05}`} dur={`${1.5+i*0.3}s`} repeatCount="indefinite"/>
-        </circle>)}
-        <path d="M8,20 Q20,12 35,18 Q50,24 65,18 Q80,12 95,18 Q108,22 115,20 Q108,26 95,24 Q80,18 65,24 Q50,30 35,24 Q20,18 8,24 Z" fill={`url(#ees-${uid})`}/>
+      {aura&&<ellipse cx="68" cy="18" rx="58" ry="14" fill={aura.color} opacity={aura.opacity} filter={`url(#eea-${uid})`}/>}
+      {/* Tail — tapered, no caudal fin (real electric eels have none) */}
+      <path d="M128,18 Q134,16 138,18 Q134,20 128,18" fill={C.b} opacity="0.5"/>
+      {/* Anal fin — runs entire underside (the real propulsion) */}
+      <g className="fish-anal-fin">
+        <path d="M20,28 Q40,33 60,32 Q80,33 100,32 Q120,30 130,26" fill={`url(#eefin-${uid})`} stroke={C.fin} strokeWidth="0.5" strokeOpacity="0.3"/>
+        {[30,45,60,75,90,105,120].map((x,i)=><line key={i} x1={x} y1={28+i*0.3} x2={x} y2={32-i*0.1} stroke={C.fin} strokeWidth="0.3" opacity="0.15"/>)}
       </g>
-      {/* Eye */}
-      <circle cx="12" cy="20" r="3" fill="#1a2a1a"/><circle cx="12" cy="20" r="2" fill="#2a3a20"/><circle cx="11" cy="19" r="1" fill="white" opacity="0.8"/>
-      {/* Electric zap effect */}
-      <path d="M40,14 L44,18 L38,20 L45,24" stroke="#80ff90" strokeWidth="0.8" fill="none" opacity="0.4">
-        <animate attributeName="opacity" values="0;0.6;0" dur="2s" repeatCount="indefinite"/>
-      </path>
-      <ellipse cx="60" cy="36" rx="30" ry="1.5" fill="#000" opacity="0.06"/>
-      {selected&&<ellipse cx="60" cy="20" rx="58" ry="16" fill="none" stroke="#f0c040" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.9" style={{animation:'shimmer-ring-march 0.9s linear infinite'}}/>}
+      {/* Pectoral — small, rounded */}
+      <ellipse cx="20" cy="22" rx="5" ry="3" fill={`url(#eefin-${uid})`} transform="rotate(-10,20,22)" className="fish-pectoral"/>
+      {/* Body — very long, sinuous */}
+      <g filter={`url(#eesh-${uid})`}><path d="M130,18 C130,10 110,5 70,5 C35,5 10,10 6,18 C10,26 35,31 70,31 C110,31 130,26 130,18 Z" fill={`url(#eeb-${uid})`}/></g>
+      <path d="M130,18 C130,10 110,5 70,5 C35,5 10,10 6,18 C10,26 35,31 70,31 C110,31 130,26 130,18 Z" fill={`url(#eed-${uid})`}/>
+      <path d="M130,18 C130,10 110,5 70,5 C35,5 10,10 6,18 C10,26 35,31 70,31 C110,31 130,26 130,18 Z" fill={`url(#eebl-${uid})`}/>
+      <path d="M130,18 C130,10 110,5 70,5 C35,5 10,10 6,18 C10,26 35,31 70,31 C110,31 130,26 130,18 Z" fill={`url(#eelat-${uid})`}/>
+      {/* Orange chin patch — real electric eel feature */}
+      <ellipse cx="10" cy="22" rx="6" ry="4" fill={C.ac} opacity="0.35"/>
+      {/* Electric organ spots — glowing bio-electricity */}
+      <g filter={`url(#eegl-${uid})`} clipPath={`url(#eeclip-${uid})`}>
+        {[30,45,58,72,86,100,114].map((x,i)=>(
+          <g key={i}>
+            <circle cx={x} cy={14+i%2*2} r="2" fill={C.ac2} opacity={0.25+Math.sin(i)*0.1}/>
+            <circle cx={x+6} cy={20-i%2*2} r="1.5" fill={C.ac2} opacity={0.18+Math.cos(i)*0.08}/>
+            <circle cx={x} cy={14+i%2*2} r="4" fill={C.ac2} opacity="0.06"/>
+          </g>
+        ))}
+      </g>
+      {/* Segment lines — body divisions */}
+      <g clipPath={`url(#eeclip-${uid})`} opacity="0.1">
+        {[20,30,40,50,60,70,80,90,100,110,120].map((x,i)=><line key={i} x1={x} y1="6" x2={x} y2="30" stroke={C.lat} strokeWidth="0.5"/>)}
+      </g>
+      <path d="M130,18 C130,10 110,5 70,5 C35,5 10,10 6,18 C10,26 35,31 70,31 C110,31 130,26 130,18 Z" fill={`url(#eesp-${uid})`}/>
+      <path d="M130,18 C130,10 110,5 70,5 C35,5 10,10 6,18 C10,26 35,31 70,31 C110,31 130,26 130,18 Z" fill="none" stroke={C.outline} strokeWidth="0.8" opacity="0.25"/>
+      {/* Lateral line */}
+      <path d="M14,18 Q40,16 70,17 Q100,16 126,18" stroke={C.lat} strokeWidth="0.5" fill="none" opacity="0.15"/>
+      {/* Gill slits */}
+      <path d="M16,14 Q17,18 16,22" stroke={C.sh} strokeWidth="0.7" fill="none" opacity="0.2"/>
+      {/* Mouth — upturned, air-breathing */}
+      <path d="M6,17 Q4,18 6,19" stroke={C.sh} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.35"/>
+      {/* Eye — small for an eel */}
+      <circle cx="10" cy="16" r="3" fill="rgba(0,0,0,0.08)"/>
+      <circle cx="10" cy="15.5" r="2.5" fill="#fafafa"/>
+      <circle cx="10" cy="15.5" r="1.8" fill="#0a0a12"/>
+      <circle cx="9.2" cy="14.8" r="0.9" fill="white"/>
+      {selected&&<ellipse cx="68" cy="18" rx="62" ry="16" fill="none" stroke="rgba(240,192,64,0.5)" strokeWidth="2" strokeDasharray="5 3"/>}
     </svg>
   );
 }

@@ -1,42 +1,72 @@
 import React, { memo } from 'react';
-const AURA = { common:null, uncommon:{color:'#78c8ff',opacity:0.20,blur:6}, rare:{color:'#c878ff',opacity:0.28,blur:8}, epic:{color:'#ffe040',opacity:0.40,blur:10} };
+const AURA = { common:null, uncommon:{color:'#78c8ff',opacity:0.20,blur:6}, rare:{color:'#c878ff',opacity:0.28,blur:8}, epic:{color:'#ffe040',opacity:0.40,blur:10}, legendary:{color:'#ff60ff',opacity:0.55,blur:14} };
 
 function MoorishIdolSprite({ fish, size=60, flipped=false, selected=false, onClick }) {
   const uid=(fish?.id||'mi').slice(0,8), rarity=fish?.species?.rarity||'rare', aura=AURA[rarity];
-  const variant=fish?.colorVariant||'default', W=size*0.7, H=size;
-  const vs = variant==='phantom'?{filter:'saturate(0.4) brightness(0.8)'}:variant==='golden'?{filter:'hue-rotate(15deg) saturate(1.2) brightness(1.1)'}:{};
+  const W=size, H=size*1.1;
+  const C = { w:'#f8f8f0',y:'#f0d020',yDark:'#c0a010',blk:'#0a0a0a',blk2:'#1a1a1a',outline:'#303030',fin:'#f0e8d0',snout:'#c89820' };
   return (
-    <svg width={W} height={H} viewBox="0 0 55 80" onClick={onClick} style={{cursor:onClick?'pointer':'default',transform:flipped?'scaleX(-1)':'none',overflow:'visible',...vs}}>
+    <svg width={W} height={H} viewBox="0 0 70 78" onClick={onClick}
+      style={{cursor:onClick?'pointer':'default',transform:flipped?'scaleX(-1)':'none',overflow:'visible'}}>
       <defs>
-        <filter id={`mish-${uid}`} x="-20%" y="-10%" width="140%" height="130%"><feDropShadow dx="0" dy="3" stdDeviation="2" floodColor="#000" floodOpacity="0.3"/></filter>
-        <linearGradient id={`miy-${uid}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ffe040"/><stop offset="100%" stopColor="#d4a020"/></linearGradient>
-        <radialGradient id={`mis-${uid}`} cx="30%" cy="20%" r="40%"><stop offset="0%" stopColor="white" stopOpacity="0.5"/><stop offset="100%" stopColor="white" stopOpacity="0"/></radialGradient>
-        {aura&&<filter id={`mia-${uid}`} x="-60%" y="-40%" width="220%" height="180%"><feGaussianBlur stdDeviation={aura.blur} result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>}
+        <filter id={`mish-${uid}`} x="-22%" y="-15%" width="144%" height="148%"><feDropShadow dx="0" dy="4" stdDeviation="3" floodColor="#000" floodOpacity="0.30"/></filter>
+        <filter id={`mifg-${uid}`} x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood floodColor={C.y} floodOpacity="0.3" result="c"/><feComposite in="c" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <radialGradient id={`mib-${uid}`} cx="30%" cy="28%" r="68%"><stop offset="0%" stopColor="#ffffff"/><stop offset="30%" stopColor={C.w}/><stop offset="100%" stopColor="#d8d0c0"/></radialGradient>
+        <radialGradient id={`misp-${uid}`} cx="28%" cy="20%" r="42%"><stop offset="0%" stopColor="white" stopOpacity="0.55"/><stop offset="100%" stopColor="white" stopOpacity="0"/></radialGradient>
+        <linearGradient id={`mifin-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor={C.fin} stopOpacity="0.85"/><stop offset="100%" stopColor="#c0b898" stopOpacity="0.35"/></linearGradient>
+        <clipPath id={`miclip-${uid}`}><ellipse cx="32" cy="42" rx="22" ry="26"/></clipPath>
+        {aura&&<filter id={`mia-${uid}`} x="-60%" y="-50%" width="220%" height="200%"><feGaussianBlur stdDeviation={aura.blur} result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>}
       </defs>
-      {aura&&<ellipse cx="28" cy="42" rx="22" ry="28" fill={aura.color} opacity={aura.opacity} filter={`url(#mia-${uid})`}/>}
-      {/* Long dorsal filament */}
-      <path d="M30,18 Q32,4 40,0 Q38,8 35,16" fill="rgba(30,30,30,0.7)" stroke="rgba(20,20,20,0.5)" strokeWidth="0.5"/>
-      {/* Tail */}
-      <path d="M40,42 L52,36 L50,42 L52,48 Z" fill="#1a1a1a" opacity="0.7"/>
-      <g filter={`url(#mish-${uid})`}>
-        {/* Body — tall oval */}
-        <ellipse cx="28" cy="42" rx="18" ry="24" fill={`url(#miy-${uid})`}/>
-        {/* Black bands */}
-        <path d="M12,30 Q20,28 28,28 Q28,56 12,54 Z" fill="#1a1a1a" opacity="0.85"/>
-        <path d="M34,30 Q40,32 42,42 Q40,52 34,54 Q36,46 36,42 Q36,36 34,30 Z" fill="#1a1a1a" opacity="0.8"/>
-        {/* White snout band */}
-        <path d="M10,34 Q14,32 16,34 Q14,40 10,38 Z" fill="white" opacity="0.9"/>
-        <ellipse cx="26" cy="50" rx="10" ry="4" fill="rgba(255,240,180,0.15)"/>
+      {aura&&<ellipse cx="32" cy="42" rx="28" ry="30" fill={aura.color} opacity={aura.opacity} filter={`url(#mia-${uid})`}/>}
+      {/* Trailing dorsal filament — the iconic whip */}
+      <g filter={`url(#mifg-${uid})`} className="fish-dorsal">
+        <path d="M28,16 Q24,4 30,0 Q36,8 50,4 Q58,2 64,6" stroke={C.w} strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.7"/>
+        <path d="M28,16 Q24,6 30,2" stroke={C.y} strokeWidth="0.8" fill="none" opacity="0.3"/>
       </g>
-      {/* Anal fin */}
-      <path d="M18,64 Q22,72 30,66 Q26,70 20,66 Z" fill="#1a1a1a" opacity="0.6"/>
-      <ellipse cx="28" cy="42" rx="18" ry="24" fill={`url(#mis-${uid})`}/>
-      {/* Eye */}
-      <circle cx="14" cy="38" r="3.5" fill="#1a1020"/><circle cx="14" cy="38" r="2.2" fill="#302020"/>
-      <circle cx="14" cy="38" r="1.5" fill="#ffa020" opacity="0.4"/>
-      <circle cx="12.8" cy="36.8" r="1.2" fill="white" opacity="0.85"/>
-      <ellipse cx="28" cy="76" rx="14" ry="1.5" fill="#000" opacity="0.07"/>
-      {selected&&<ellipse cx="28" cy="42" rx="24" ry="30" fill="none" stroke="#f0c040" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.9" style={{animation:'shimmer-ring-march 0.9s linear infinite'}}/>}
+      {/* Dorsal fin base */}
+      <path d="M22,18 Q28,10 40,14 Q48,18 52,24" fill={`url(#mifin-${uid})`} stroke={C.outline} strokeWidth="0.5" strokeOpacity="0.3"/>
+      {/* Anal */}
+      <g className="fish-anal-fin"><path d="M22,66 Q28,74 40,72 Q48,68 52,60" fill={`url(#mifin-${uid})`} stroke={C.outline} strokeWidth="0.5" strokeOpacity="0.3"/></g>
+      {/* Tail */}
+      <g className="fish-tail"><path d="M52,42 Q58,34 64,32 Q60,38 62,42 Q60,46 64,52 Q58,50 52,42 Z" fill={C.blk} opacity="0.8" stroke={C.outline} strokeWidth="0.5" strokeOpacity="0.4"/></g>
+      {/* Pectoral — small, transparent */}
+      <ellipse cx="24" cy="46" rx="6" ry="3.5" fill={C.fin} opacity="0.4" transform="rotate(-20,24,46)" className="fish-pectoral"/>
+      {/* Body — tall, compressed disc */}
+      <g filter={`url(#mish-${uid})`}><ellipse cx="32" cy="42" rx="22" ry="26" fill={`url(#mib-${uid})`}/></g>
+      {/* THE signature bands — black-yellow-white-black */}
+      <g clipPath={`url(#miclip-${uid})`}>
+        {/* Band 1 — black eye mask */}
+        <rect x="10" y="30" width="12" height="24" fill={C.blk} opacity="0.85"/>
+        <rect x="10" y="30" width="12" height="24" fill="none" stroke={C.blk2} strokeWidth="0.5" opacity="0.3"/>
+        {/* Band 2 — yellow central */}
+        <rect x="22" y="16" width="14" height="52" fill={C.y} opacity="0.8"/>
+        <rect x="22" y="16" width="14" height="52" fill="none"/>
+        {/* Yellow gradient overlay for depth */}
+        <rect x="22" y="16" width="14" height="52" fill="url(#misp-${uid})" opacity="0.3"/>
+        {/* Band 3 — white */}
+        <rect x="36" y="16" width="8" height="52" fill={C.w} opacity="0.9"/>
+        {/* Band 4 — black tail band */}
+        <rect x="44" y="20" width="10" height="44" fill={C.blk} opacity="0.8"/>
+        {/* Band transitions — soft edges */}
+        <rect x="21" y="30" width="2" height="24" fill={C.blk} opacity="0.15"/>
+        <rect x="35" y="16" width="2" height="52" fill={C.yDark} opacity="0.1"/>
+        <rect x="43" y="20" width="2" height="44" fill="rgba(0,0,0,0.1)"/>
+      </g>
+      <ellipse cx="32" cy="42" rx="22" ry="26" fill={`url(#misp-${uid})`}/>
+      <ellipse cx="32" cy="42" rx="22" ry="26" fill="none" stroke={C.outline} strokeWidth="0.8" opacity="0.25"/>
+      {/* Snout — elongated, distinctive */}
+      <path d="M12,42 Q6,40 4,42 Q6,44 12,42" fill={C.snout} opacity="0.6"/>
+      <path d="M12,41 Q8,40 6,41" stroke={C.outline} strokeWidth="0.5" fill="none" opacity="0.2"/>
+      {/* Mouth */}
+      <path d="M6,42 Q4,43 6,43" stroke={C.outline} strokeWidth="0.8" fill="none" opacity="0.3"/>
+      {/* Eye — on black band */}
+      <circle cx="16" cy="40" r="4.5" fill="rgba(0,0,0,0.1)"/>
+      <circle cx="16" cy="39.5" r="4" fill="#e8e8e0"/>
+      <circle cx="16" cy="39.5" r="3" fill={C.y}/>
+      <circle cx="16" cy="39.5" r="2" fill="#0a0a12"/>
+      <circle cx="14.8" cy="38.2" r="1.1" fill="white"/>
+      <circle cx="16.8" cy="40.5" r="0.4" fill="rgba(255,255,255,0.3)"/>
+      {selected&&<ellipse cx="32" cy="42" rx="26" ry="30" fill="none" stroke="rgba(240,192,64,0.5)" strokeWidth="2" strokeDasharray="5 3"/>}
     </svg>
   );
 }

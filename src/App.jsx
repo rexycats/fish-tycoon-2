@@ -21,6 +21,9 @@ import FishAutopsyPanel from './components/FishAutopsy.jsx';
 import SettingsPanel  from './components/SettingsPanel.jsx';
 import StatsPanel     from './components/StatsPanel.jsx';
 import GoalsPanel     from './components/GoalsPanel.jsx';
+import Tutorial       from './components/Tutorial.jsx';
+import FishShowPanel  from './components/FishShowPanel.jsx';
+import CatchOfDayPanel from './components/CatchOfDayPanel.jsx';
 import { EventPopup, HagglePopup } from './components/EventPopup.jsx';
 import TitleScreen    from './components/TitleScreen.jsx';
 import Credits        from './components/Credits.jsx';
@@ -203,6 +206,9 @@ export default function App() {
   const magicCount     = (player.magicFishFound || []).length;
   const autopsyCount   = (player.autopsies || []).length;
   const challengeDone  = (dailyChallenges?.challenges || []).filter(c => c.completed).length;
+  const tutorialStep   = player.tutorialStep ?? 0;
+  const tutorialDone   = player.tutorialDone;
+  const tutorialHighlight = (!tutorialDone && TUTORIAL_STEPS[tutorialStep]?.highlight) || null;
   const challengeTotal = (dailyChallenges?.challenges || []).length;
 
   // ── Memoized game-like object for components that still expect it ──
@@ -299,7 +305,7 @@ export default function App() {
           return (
             <button
               key={tab}
-              className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
+              className={`tab-btn ${activeTab === tab ? 'active' : ''}${tutorialHighlight === tab ? ' tutorial-highlight' : ''}`}
               onClick={() => handleTabChange(tab)}
             >
               <span className="tab-btn-icon">{icon}</span>
@@ -361,6 +367,8 @@ export default function App() {
         {activeTab === 'challenges' && (
           <>
             <GoalsPanel />
+            <FishShowPanel />
+            <CatchOfDayPanel />
             <DailyChallengesPanel dailyChallenges={dailyChallenges} streak={player.challengeStreak || 0} />
           </>
         )}
@@ -443,6 +451,7 @@ export default function App() {
 
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
       {showCredits && <Credits onClose={() => setShowCredits(false)} />}
+      <Tutorial />
       <EventPopup />
       <HagglePopup />
       {showApiSetup && <ApiKeyModal onClose={() => setShowApiSetup(false)} />}
