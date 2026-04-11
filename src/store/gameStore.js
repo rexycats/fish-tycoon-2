@@ -29,6 +29,9 @@ import { DECOR_CATALOG, TANK_THEMES } from '../data/decorations.js';
 import { fireToast } from '../components/ToastManager.jsx';
 import { syncSteamAchievement, syncAllSteamAchievements } from '../services/steamService.js';
 import { getLevelFromXp, XP_REWARDS, getLevelTitle } from '../data/levels.js';
+import { RESEARCH_BRANCHES } from '../data/research.js';
+import { LOAN_TIERS } from '../data/loans.js';
+import { TANK_BACKGROUNDS } from '../data/tankBackgrounds.js';
 import {
   playCoin, playBubble, playFeed, playBreed, playWarning,
   playDiscover, playSale, setSoundEnabled,
@@ -754,7 +757,6 @@ export const useGameStore = create(
         // ── Research ────────────────────────────────────────
         buyResearch: (branchId) => set(state => {
           const level = state.player?.research?.[branchId] || 0;
-          const { RESEARCH_BRANCHES } = require('../data/research.js');
           const branch = RESEARCH_BRANCHES[branchId];
           if (!branch || level >= branch.tiers.length) return;
           const next = branch.tiers[level];
@@ -770,7 +772,6 @@ export const useGameStore = create(
         // ── Loans ───────────────────────────────────────────
         takeLoan: (tierId) => set(state => {
           if (state.player?.activeLoan?.active) { playWarning(); return; }
-          const { LOAN_TIERS } = require('../data/loans.js');
           const tier = LOAN_TIERS.find(t => t.id === tierId);
           if (!tier) return;
           state.player.coins += tier.amount;
@@ -809,7 +810,6 @@ export const useGameStore = create(
 
         // ── Tank backgrounds ────────────────────────────────
         buyBackground: (bgId) => set(state => {
-          const { TANK_BACKGROUNDS } = require('../data/tankBackgrounds.js');
           const bg = TANK_BACKGROUNDS.find(b => b.id === bgId);
           if (!bg || bg.cost === 0 || (state.player.unlockedBackgrounds || []).includes(bgId)) return;
           if (state.player.coins < bg.cost) { playWarning(); return; }

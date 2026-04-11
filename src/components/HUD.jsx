@@ -176,9 +176,12 @@ export default function HUD({
         <SaveIndicator />
       </div>
 
-      {/* ── Row 2: tank stats · quick actions ────────────────── */}
+      {/* ── Row 2: tank stats · weather · quick actions ─────── */}
       <div className="hud2-row hud2-row--bottom">
         <div className="hud2-pills">
+          {player.activeLoan?.active && (
+            <StatPill icon="🏦" value="LOAN" label="Active loan — repay before deadline!" color="#ff6060" alert={true} />
+          )}
           <StatPill icon="💧" value={`${wq}%`}  label="Water quality" color={wqCol}  alert={wqBad} />
           <StatPill icon="🌡" value={`${Math.round(temp)}°`} label="Temperature" color={tempCol} alert={tempBad} />
           <StatPill icon="🐟" value={`${fishCnt}/${tank.capacity ?? 12}`} label="Fish capacity" />

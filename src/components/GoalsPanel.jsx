@@ -1,0 +1,242 @@
+// ============================================================
+// FISH TYCOON 2 — GOALS PANEL
+// Special Orders, Research, Loans, Daily Rewards, Weather
+// ============================================================
+import React, { useState, useMemo } from 'react';
+import { useGameStore } from '../store/gameStore.js';
+import { checkOrderFulfillment } from '../data/specialOrders.js';
+import { RESEARCH_BRANCHES } from '../data/research.js';
+import { LOAN_TIERS, getLoanStatus } from '../data/loans.js';
+import { canClaimDaily, getDailyReward, getStreak } from '../data/dailyRewards.js';
+import { getTotalPossibleDiscoveries } from '../data/discoveries.js';
+import { TANK_BACKGROUNDS } from '../data/tankBackgrounds.js';
+
+export default function GoalsPanel() {
+  const player = useGameStore(s => s.player);
+  const fish   = useGameStore(s => s.fish);
+  const orders = useGameStore(s => s.specialOrders) || [];
+  const discoveries = useGameStore(s => s.discoveries) || [];
+  const reviews = useGameStore(s => s.reviews) || [];
+  const weather = useGameStore(s => s.weather);
+  const fulfillOrder = useGameStore(s => s.fulfillOrder);
+  const buyResearch = useGameStore(s => s.buyResearch);
+  const takeLoan = useGameStore(s => s.takeLoan);
+  const repayLoan = useGameStore(s => s.repayLoan);
+  const claimDailyReward = useGameStore(s => s.claimDailyReward);
+  const buyBackground = useGameStore(s => s.buyBackground);
+
+  const [subTab, setSubTab] = useState('orders');
+
+  const canClaim = canClaimDaily({ player });
+  const streak = getStreak({ player });
+  const loanStatus = getLoanStatus(player.activeLoan);
+
+  return (
+    <div className="goals-panel">
+      {/* Weather banner */}
+      {weather && (
+        <div className="goals-weather">
+          <span>{weather.label}</span>
+          <span className="goals-weather-effect">
+            {weather.happinessBonus > 0 ? `+${weather.happinessBonus} happiness` : weather.happinessBonus < 0 ? `${weather.happinessBonus} happiness` : ''}
+            {weather.rare ? ' ✨ Rare weather!' : ''}
+          </span>
+        </div>
+      )}
+
+      {/* Sub-tabs */}
+      <div className="goals-tabs">
+        {[
+          ['orders', '📋 Orders'],
+          ['research', '🔬 Research'],
+          ['bank', '🏦 Bank'],
+          ['journal', '📖 Journal'],
+          ['backgrounds', '🎨 Themes'],
+        ].map(([id, label]) => (
+          <button key={id} className={`goals-tab ${subTab === id ? 'active' : ''}`}
+            onClick={() => setSubTab(id)}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Daily Reward ───────────────────────────────── */}
+      {canClaim && (
+        <div className="goals-daily">
+          <span>🎁 Daily reward ready!</span>
+          <span className="goals-daily-streak">Day {streak + 1} streak</span>
+          <button className="btn btn-sm btn-primary" onClick={claimDailyReward}>Claim!</button>
+        </div>
+      )}
+
+      {/* ── Special Orders ─────────────────────────────── */}
+      {subTab === 'orders' && (
+        <div className="goals-section">
+          <div className="goals-section-title">📋 Special Orders — refreshes daily</div>
+          {orders.length === 0 && <div className="goals-empty">No orders available yet. Keep playing!</div>}
+          {orders.map(order => {
+            const matchingFish = fish.filter(f => f.stage === 'adult' && checkOrderFulfillment(f, order));
+            return (
+              <div key={order.id} className={`goals-order ${order.fulfilled ? 'fulfilled' : ''}`}>
+                <div className="goals-order-header">
+                  <span className="goals-order-emoji">{order.emoji}</span>
+                  <div>
+                    <div className="goals-order-desc">{order.desc}</div>
+                    <div className="goals-order-customer">— {order.customer}</div>
+                  </div>
+                  <div className="goals-order-reward">🪙{order.reward}</div>
+                </div>
+                {order.fulfilled ? (
+                  <div className="goals-order-done">✅ Fulfilled!</div>
+                ) : matchingFish.length > 0 ? (
+                  <div className="goals-order-matches">
+                    <span>{matchingFish.length} matching fish:</span>
+                    {matchingFish.slice(0, 3).map(f => (
+                      <button key={f.id} className="btn btn-sm goals-order-fill"
+                        onClick={() => fulfillOrder(order.id, f.id)}>
+                        Sell {f.nickname || f.species?.name}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="goals-order-none">No matching fish — breed or buy one!</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Research Tree ──────────────────────────────── */}
+      {subTab === 'research' && (
+        <div className="goals-section">
+          <div className="goals-section-title">🔬 Research — permanent bonuses</div>
+          {Object.entries(RESEARCH_BRANCHES).map(([branchId, branch]) => {
+            const level = player.research?.[branchId] || 0;
+            const next = level < branch.tiers.length ? branch.tiers[level] : null;
+            return (
+              <div key={branchId} className="goals-research-branch">
+                <div className="goals-research-header">
+                  <span style={{color: branch.color}}>{branch.emoji} {branch.label}</span>
+                  <span className="goals-research-level">Tier {level}/{branch.tiers.length}</span>
+                </div>
+                <div className="goals-research-tiers">
+                  {branch.tiers.map((tier, i) => (
+                    <div key={i} className={`goals-research-tier ${i < level ? 'done' : i === level ? 'next' : 'locked'}`}>
+                      <span className="goals-research-name">{i < level ? '✅' : i === level ? '➡️' : '🔒'} {tier.label}</span>
+                      <span className="goals-research-desc">{tier.desc}</span>
+                    </div>
+                  ))}
+                </div>
+                {next && (
+                  <button className="btn btn-sm" disabled={player.coins < next.cost}
+                    onClick={() => buyResearch(branchId)}>
+                    Research: 🪙{next.cost}
+                  </button>
+                )}
+                {!next && <div className="goals-research-maxed">🏆 Fully researched!</div>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Bank / Loans ──────────────────────────────── */}
+      {subTab === 'bank' && (
+        <div className="goals-section">
+          <div className="goals-section-title">🏦 Bank of the Deep</div>
+          {loanStatus ? (
+            <div className="goals-loan-active">
+              <div className="goals-loan-header">Active Loan</div>
+              <div>Borrowed: 🪙{loanStatus.amount}</div>
+              <div>Total owed: 🪙{loanStatus.totalOwed}</div>
+              <div className={loanStatus.overdue ? 'goals-loan-overdue' : ''}>
+                {loanStatus.overdue
+                  ? '⚠️ OVERDUE — Bank will seize a fish!'
+                  : `Time remaining: ${Math.floor(loanStatus.remaining / 60)}m ${Math.round(loanStatus.remaining % 60)}s`
+                }
+              </div>
+              <button className="btn btn-sm btn-primary" disabled={player.coins < loanStatus.totalOwed}
+                onClick={repayLoan}>
+                Repay 🪙{loanStatus.totalOwed}
+              </button>
+            </div>
+          ) : (
+            <div className="goals-loan-options">
+              <p style={{fontSize:'0.8rem',opacity:0.6,marginBottom:'0.8rem'}}>
+                Need cash fast? Take a loan — but repay on time or the bank seizes your best fish!
+              </p>
+              {LOAN_TIERS.map(tier => (
+                <div key={tier.id} className="goals-loan-tier">
+                  <div>
+                    <div className="goals-loan-name">{tier.label}</div>
+                    <div className="goals-loan-desc">{tier.desc}</div>
+                  </div>
+                  <button className="btn btn-sm" onClick={() => takeLoan(tier.id)}>
+                    Borrow 🪙{tier.amount}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Discovery Journal ─────────────────────────── */}
+      {subTab === 'journal' && (
+        <div className="goals-section">
+          <div className="goals-section-title">📖 Discovery Journal</div>
+          <div className="goals-discovery-count">
+            {discoveries.length} / {getTotalPossibleDiscoveries()} unique phenotypes discovered
+          </div>
+          <div className="goals-discovery-bar">
+            <div className="goals-discovery-fill" style={{ width: `${(discoveries.length / getTotalPossibleDiscoveries()) * 100}%` }}/>
+          </div>
+
+          {reviews.length > 0 && (
+            <>
+              <div className="goals-section-title" style={{marginTop:'1rem'}}>📰 Latest Reviews</div>
+              {reviews.slice(0, 5).map((r, i) => (
+                <div key={i} className="goals-review">
+                  <span className="goals-review-stars">{'⭐'.repeat(r.stars)}</span>
+                  <span className="goals-review-headline">"{r.headline}"</span>
+                  <span className="goals-review-critic">{r.critic}</span>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ── Tank Backgrounds ──────────────────────────── */}
+      {subTab === 'backgrounds' && (
+        <div className="goals-section">
+          <div className="goals-section-title">🎨 Tank Backgrounds</div>
+          <div className="goals-bg-grid">
+            {TANK_BACKGROUNDS.map(bg => {
+              const owned = bg.cost === 0 || (player.unlockedBackgrounds || []).includes(bg.id);
+              const locked = bg.minPrestige && (player.prestigeLevel || 0) < bg.minPrestige;
+              return (
+                <div key={bg.id} className={`goals-bg-card ${owned ? 'owned' : ''} ${locked ? 'locked' : ''}`}>
+                  <div className="goals-bg-preview" style={{ background: bg.gradient }}/>
+                  <div className="goals-bg-name">{bg.emoji} {bg.label}</div>
+                  <div className="goals-bg-desc">{bg.desc}</div>
+                  {locked ? (
+                    <div className="goals-bg-locked">🔒 Prestige {bg.minPrestige}</div>
+                  ) : owned ? (
+                    <div className="goals-bg-owned">✅ Owned</div>
+                  ) : (
+                    <button className="btn btn-sm" disabled={player.coins < bg.cost}
+                      onClick={() => buyBackground(bg.id)}>
+                      🪙{bg.cost}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

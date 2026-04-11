@@ -20,6 +20,7 @@ import DecorationPanel from './components/DecorationPanel.jsx';
 import FishAutopsyPanel from './components/FishAutopsy.jsx';
 import SettingsPanel  from './components/SettingsPanel.jsx';
 import StatsPanel     from './components/StatsPanel.jsx';
+import GoalsPanel     from './components/GoalsPanel.jsx';
 import { EventPopup, HagglePopup } from './components/EventPopup.jsx';
 import TitleScreen    from './components/TitleScreen.jsx';
 import Credits        from './components/Credits.jsx';
@@ -358,7 +359,10 @@ export default function App() {
           </>
         )}
         {activeTab === 'challenges' && (
-          <DailyChallengesPanel dailyChallenges={dailyChallenges} streak={player.challengeStreak || 0} />
+          <>
+            <GoalsPanel />
+            <DailyChallengesPanel dailyChallenges={dailyChallenges} streak={player.challengeStreak || 0} />
+          </>
         )}
         {activeTab === 'shop' && (
           <MemoShop
