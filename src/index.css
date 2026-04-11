@@ -11347,3 +11347,205 @@ h1, h2, h3, .section-title, .goals-section-title, .campaign-chapter-name {
   height: 5px;
   opacity: 0.8;
 }
+
+/* ============================================================
+   CSS POLISH PASS — Tab alignment, readability, consistency
+   ============================================================ */
+
+/* ── Tab bar: equal spacing, centered, no overflow quirks ── */
+.tab-bar {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(4,10,24,1) 0%, rgba(6,13,28,1) 100%);
+  border-top: 1px solid rgba(20,45,100,0.45);
+  border-bottom: 1px solid rgba(10,22,55,0.9);
+  box-shadow: 0 -1px 0 rgba(255,255,255,0.03), 0 4px 16px rgba(0,0,0,0.5);
+  z-index: 20;
+  padding: 6px 4px 0;
+  gap: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.tab-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 6px 2px 7px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 10px 10px 0 0;
+  position: relative;
+  transition: background 0.15s;
+  box-shadow: none;
+}
+
+.tab-btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  line-height: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.tab-btn-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  transition: color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Badges: position on icon, don't affect layout */
+.tab-dot {
+  position: absolute;
+  top: 0;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  padding: 0 3px;
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30,80,180,0.85);
+  border: 1.5px solid rgba(4,10,24,1);
+  color: #a8c8f0;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.tab-new-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 4px;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #fff8e0;
+  background: linear-gradient(135deg, #c85000, #e09000);
+  border-radius: 5px;
+  border: 1.5px solid rgba(4,10,24,1);
+  box-shadow: 0 0 6px rgba(200,120,0,0.5);
+  line-height: 1;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ── Achievement cards: better readability ── */
+.ach-card {
+  background: rgba(10,20,40,0.7);
+  border: 1px solid rgba(30,60,120,0.3);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: border-color 0.2s;
+}
+.ach-card:hover { border-color: rgba(60,100,180,0.4); }
+.ach-card.earned {
+  background: rgba(15,30,55,0.8);
+  border-color: rgba(80,200,100,0.25);
+}
+.ach-card.locked { opacity: 0.6; filter: grayscale(0.3); }
+.ach-label { font-size: 0.9rem; font-weight: 700; color: #d0e0f0; margin-bottom: 3px; }
+.ach-desc  { font-size: 0.8rem; color: #a0b8d0; line-height: 1.4; }
+.ach-date  { font-size: 0.72rem; color: #7aa0c0; margin-top: 4px; }
+.ach-emoji { font-size: 1.8rem; flex-shrink: 0; width: 40px; text-align: center; }
+
+/* ── Autopsy panel: better empty state + cards ── */
+.autopsy-panel { padding: 16px; }
+.autopsy-title { font-size: 1.2rem; color: #d0e0f0; margin: 0 0 4px; }
+.autopsy-subtitle { font-size: 0.82rem; color: #8ab0cc; margin: 0; }
+.autopsy-empty { text-align: center; padding: 40px 20px; color: #8ab0cc; }
+.autopsy-empty-icon { font-size: 3rem; opacity: 0.4; margin-bottom: 12px; }
+.autopsy-card {
+  background: rgba(10,20,40,0.7);
+  border: 1px solid rgba(30,60,120,0.3);
+  border-left: 3px solid var(--ac, #607080);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.autopsy-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.autopsy-card-header:hover { background: rgba(255,255,255,0.03); }
+.autopsy-name { font-weight: 700; font-size: 0.9rem; }
+.autopsy-meta { font-size: 0.75rem; color: #8ab0cc; display: flex; gap: 8px; flex-wrap: wrap; }
+.autopsy-cause { font-weight: 700; font-size: 0.8rem; margin-left: auto; white-space: nowrap; }
+.autopsy-cause-icon { margin-right: 4px; }
+.autopsy-card-body { padding: 8px 12px 12px; border-top: 1px solid rgba(30,60,120,0.2); }
+.autopsy-detail-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.8rem; color: #a0b8d0; }
+.autopsy-detail-label { color: #7a9ab8; }
+.autopsy-tip { font-size: 0.78rem; color: #90b8d8; background: rgba(80,160,240,0.08); border-radius: 6px; padding: 6px 10px; margin-top: 8px; }
+.autopsy-cause-detail { font-size: 0.8rem; color: #a0b8d0; margin-top: 6px; }
+
+/* ── Stat pills: consistent sizing ── */
+.autopsy-stats-wrap { display: flex; gap: 16px; }
+.autopsy-stat { text-align: center; }
+.autopsy-stat-num { font-size: 1.4rem; font-weight: 700; color: #d0e0f0; }
+.autopsy-stat-label { font-size: 0.7rem; color: #8ab0cc; text-transform: uppercase; letter-spacing: 0.06em; }
+.autopsy-stat-sub { font-size: 0.7rem; color: #7a9ab8; }
+
+/* ── Breakdown bars ── */
+.autopsy-breakdown { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+.autopsy-breakdown-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #a0b8d0; }
+.autopsy-bd-icon { width: 20px; text-align: center; }
+.autopsy-bd-label { width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.autopsy-bd-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+.autopsy-bd-bar { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.autopsy-bd-count { width: 24px; text-align: right; font-weight: 600; }
+.autopsy-records { margin-top: 12px; }
+.autopsy-records-title { font-size: 0.85rem; font-weight: 700; color: #a0b8d0; margin-bottom: 8px; }
+
+/* ── General polish ── */
+.fish-panel { color: #c0d0e0; }
+.fp-section-title { color: #a0b8d0; }
+.fp-stat-label { color: #8ab0cc; }
+.fp-stat-value { color: #d0e0f0; }
+
+/* Goals panel text */
+.goals-tab { font-size: 0.82rem; }
+.goals-order { color: #c0d0e0; }
+.goals-order-desc { color: #a0b8d0; font-size: 0.82rem; }
+
+/* Shop text readability */
+.supply-card { color: #c0d0e0; }
+.supply-card-desc { color: #a0b8d0; font-size: 0.8rem; line-height: 1.4; }
+

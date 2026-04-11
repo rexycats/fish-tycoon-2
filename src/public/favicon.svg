@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<defs><radialGradient id="bg" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#1a3050"/><stop offset="100%" stop-color="#0a1828"/></radialGradient><radialGradient id="fish" cx="35%" cy="30%" r="60%"><stop offset="0%" stop-color="#ff9040"/><stop offset="100%" stop-color="#e06020"/></radialGradient></defs>
+<circle cx="50" cy="50" r="48" fill="url(#bg)"/><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(64,200,240,0.3)" stroke-width="1.5"/>
+<g transform="translate(25,30)"><path d="M8,20 L0,12 L0,20 L0,28 Z" fill="#e08040" opacity="0.7"/><ellipse cx="28" cy="20" rx="22" ry="14" fill="url(#fish)"/><circle cx="38" cy="17" r="4" fill="#1a1020"/><circle cx="39.5" cy="15.5" r="1.8" fill="white" opacity="0.85"/><path d="M20,8 Q28,0 35,7" fill="rgba(255,140,60,0.5)"/></g>
+</svg>

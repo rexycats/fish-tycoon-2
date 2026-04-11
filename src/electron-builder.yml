@@ -1,0 +1,47 @@
+appId: com.fishtycoon2.app
+productName: Fish Tycoon 2
+copyright: Copyright © 2026
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/**/*
+  - electron/**/*
+  - "!node_modules/**/*"
+  - node_modules/steamworks.js/**/*
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: build/icon.ico
+  artifactName: "${productName}-${version}-Setup.${ext}"
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  icon: build/icon.icns
+  category: public.app-category.games
+  artifactName: "${productName}-${version}.${ext}"
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+  icon: build/icon.png
+  category: Game
+  artifactName: "${productName}-${version}.${ext}"
+
+# Steam integration
+extraResources:
+  - from: steam_appid.txt
+    to: .
