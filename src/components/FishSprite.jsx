@@ -374,6 +374,7 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
   const W     = isGiant ? size * 1.35 : size;
   const H     = isGiant ? size * 0.85 : size * 0.65;
   const shape = phenotype.bodyShape;
+  const isRound = shape === 'Round' || shape === 'Orb';
   const fin   = phenotype.finType;
 
   // Body center, radii, and SVG path vary by body shape
