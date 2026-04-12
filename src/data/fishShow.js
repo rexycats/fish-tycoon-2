@@ -83,4 +83,4 @@ export function canEnterShow(state) {
   return now.toDateString() !== last.toDateString();
 }
 
-export { SHOW_CATEGORIES, JUDGE_NAMES };
+export { JUDGE_NAMES };

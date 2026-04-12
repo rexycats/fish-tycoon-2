@@ -60,12 +60,3 @@ export const TANK_BACKGROUNDS = [
 export function getBackground(id) {
   return TANK_BACKGROUNDS.find(b => b.id === id) || TANK_BACKGROUNDS[0];
 }
-
-export function getUnlockedBackgrounds(state) {
-  const prestige = state.player?.prestigeLevel || 0;
-  return TANK_BACKGROUNDS.filter(b => {
-    if (b.minPrestige && prestige < b.minPrestige) return false;
-    if (b.cost === 0) return true;
-    return (state.player?.unlockedBackgrounds || []).includes(b.id);
-  });
-}

@@ -108,7 +108,7 @@ export function computePhenotype(genome) {
   return phenotype;
 }
 
-export function phenotypeKey(ph) {
+function phenotypeKey(ph) {
   return [ph.bodyShape, ph.finType, ph.pattern, ph.primaryColor, ph.secondaryColor, ph.glow, ph.size, ph.mutation].join('-');
 }
 
@@ -256,7 +256,7 @@ const ALLELE_RARITY_SCORES = {
   None: 1, Albino: 8, Melanistic: 8, Xanthic: 10, 'Twin-tail': 12, Starfish: 20,
 };
 
-export function computeRarityScore(phenotype) {
+function computeRarityScore(phenotype) {
   let score = 0;
   for (const val of Object.values(phenotype)) {
     score += ALLELE_RARITY_SCORES[val] || 1;
@@ -264,7 +264,7 @@ export function computeRarityScore(phenotype) {
   return score;
 }
 
-export function rarityFromScore(score) {
+function rarityFromScore(score) {
   if (score >= 55) return 'legendary';
   if (score >= 30) return 'epic';
   if (score >= 18) return 'rare';
@@ -272,7 +272,7 @@ export function rarityFromScore(score) {
   return 'common';
 }
 
-export function basePriceFromScore(score, rarity) {
+function basePriceFromScore(score, rarity) {
   const base = score * 3;
   const mult = { common: 1, uncommon: 2.5, rare: 6, epic: 15, legendary: 40 }[rarity] || 1;
   return Math.round(base * mult);
@@ -462,7 +462,7 @@ export function randomGenome() {
   return genome;
 }
 
-export const PERSONALITIES = [
+const PERSONALITIES = [
   { id: 'playful',   label: '🎭 Playful',   desc: 'Does tricks near the glass', weight: 3 },
   { id: 'shy',       label: '🫣 Shy',       desc: 'Hides behind decorations',   weight: 3 },
   { id: 'curious',   label: '🔍 Curious',   desc: 'Follows your cursor',        weight: 2 },
@@ -670,4 +670,3 @@ export function checkMagicFishMatch(phenotype, magicFish) {
   }
   return true;
 }
-

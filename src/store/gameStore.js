@@ -1,3 +1,4 @@
+import { upgradeCost, BREEDING_BASE_MS, BREEDING_SPEED_FACTOR } from '../data/constants.js';
 // ============================================================
 // FISH TYCOON 2 — ZUSTAND GAME STORE
 // Replaces: useGameEngine + useEconomy + useState(game)
@@ -22,7 +23,7 @@ import {
   refreshMarket,
 } from '../systems/gameTick.js';
 import { breedGenomes, createFish, computePhenotype, getSpeciesFromPhenotype } from '../data/genetics.js';
-import { getDiseaseStage, CURE_SUCCESS_RATE } from '../systems/gameTick.js';
+import { getDiseaseStage, CURE_SUCCESS_RATE, DISEASES } from '../systems/gameTick.js';
 import { canPrestige as _canPrestige, performPrestige as _performPrestige } from '../data/prestige.js';
 import { REAL_SPECIES_MAP } from '../data/realSpecies.js';
 import { DECOR_CATALOG, TANK_THEMES } from '../data/decorations.js';
@@ -39,6 +40,22 @@ import {
   playDiscover, playSale, setSoundEnabled,
   playClick, playTabSwitch, playDeath, playSick, playLevelUp, playSplash,
 } from '../services/soundService.js';
+
+// ── Module-level constants ─────────────────────────────────
+const DISEASE_CURES = {
+  ich: 'antibiotic',
+  fin_rot: 'antibiotic',
+  bloat: 'digestiveRemedy',
+  velvet: 'antiparasitic',
+  swim_bladder: 'digestiveRemedy',
+  gill_flukes: 'antiparasitic',
+  dropsy: 'antibiotic',
+};
+
+const PERSONALITY_LIST = [
+  'playful', 'shy', 'curious', 'lazy',
+  'aggressive', 'social', 'gluttonous', 'hardy',
+];
 
 // ── Species phenotype lookup (static, module-level) ────────
 // ── XP helper (Immer-compatible, call inside set()) ──────
@@ -89,6 +106,13 @@ function buildInitialState() {
 }
 
 // ============================================================
+// HELPERS — reduce repeated lookups in store actions
+// ============================================================
+function findFish(state, fishId) { return fishId ? findFish(state, fishId) : null; }
+function findTank(state, tankId) { return tankId ? findTank(state, tankId) : null; }
+function fishTank(state, fish) { return fish?.tankId ? findTank(state, fish.tankId) : null; }
+
+// ============================================================
 // STORE
 // ============================================================
 export const useGameStore = create(
@@ -136,9 +160,9 @@ export const useGameStore = create(
 
         feedFish: (fishId) => set(state => {
           if (!fishId) return;
-          const fish = state.fish.find(f => f.id === fishId);
+          const fish = findFish(state, fishId);
           if (!fish) return;
-          const tank = state.tanks.find(t => t.id === fish.tankId);
+          const tank = fishTank(state, fish);
           if (!tank || tank.supplies.food <= 0) {
             playWarning();
             addLogDraft(state, '⚠️ No food in that tank!');
@@ -152,7 +176,7 @@ export const useGameStore = create(
         }),
 
         feedAllInTank: (tankId) => set(state => {
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           if (!tank) return;
           const hungry = state.fish.filter(f => f.tankId === tankId && f.stage !== 'egg' && f.hunger > 30);
           if (hungry.length === 0) return;
@@ -174,12 +198,11 @@ export const useGameStore = create(
         }),
 
         useMedicine: (fishId, medicineType) => set(state => {
-          const fish = state.fish.find(f => f.id === fishId);
+          const fish = findFish(state, fishId);
           if (!fish || !fish.disease) return;
-          const tank = fish.tankId ? state.tanks.find(t => t.id === fish.tankId) : null;
+          const tank = fishTank(state, fish);
           if (!tank) return;
 
-          const DISEASE_CURES = { ich: 'antibiotic', fin_rot: 'antibiotic', bloat: 'digestiveRemedy', velvet: 'antiparasitic', swim_bladder: 'digestiveRemedy', gill_flukes: 'antiparasitic', dropsy: 'antibiotic' };
           const correctMed = DISEASE_CURES[fish.disease] || 'antibiotic';
 
           // If no medicineType specified, auto-pick the correct one
@@ -233,9 +256,9 @@ export const useGameStore = create(
 
         // ── Diagnose a sick fish ─────────────────────────────
         diagnoseFish: (fishId) => set(state => {
-          const fish = state.fish.find(f => f.id === fishId);
+          const fish = findFish(state, fishId);
           if (!fish || !fish.disease || fish.diagnosed) return;
-          const tank = fish.tankId ? state.tanks.find(t => t.id === fish.tankId) : null;
+          const tank = fishTank(state, fish);
           if (!tank || (tank.supplies.diagnosticKit || 0) <= 0) {
             playWarning();
             addLogDraft(state, '⚠️ No diagnostic kits available!');
@@ -250,9 +273,9 @@ export const useGameStore = create(
 
         // ── Give vitamins to a fish ──────────────────────────
         giveVitamins: (fishId) => set(state => {
-          const fish = state.fish.find(f => f.id === fishId);
+          const fish = findFish(state, fishId);
           if (!fish) return;
-          const tank = fish.tankId ? state.tanks.find(t => t.id === fish.tankId) : null;
+          const tank = fishTank(state, fish);
           if (!tank || (tank.supplies.vitamins || 0) <= 0) {
             playWarning();
             addLogDraft(state, '⚠️ No vitamins available!');
@@ -266,9 +289,9 @@ export const useGameStore = create(
         }),
         moveFishToTank: (fishId, targetTankId) => set(state => {
           if (!fishId || !targetTankId) return;
-          const fish = state.fish.find(f => f.id === fishId);
+          const fish = findFish(state, fishId);
           if (!fish) return;
-          const target = state.tanks.find(t => t.id === targetTankId);
+          const target = findTank(state, targetTankId);
           if (!target) return;
           const count = state.fish.filter(f => f.tankId === targetTankId).length;
           if (count >= (target.capacity || 12)) {
@@ -281,7 +304,7 @@ export const useGameStore = create(
         }),
 
         treatWater: (tankId) => set(state => {
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           if (!tank) return;
           if ((tank.supplies.waterTreatment || 0) <= 0) {
             playWarning();
@@ -297,12 +320,12 @@ export const useGameStore = create(
         }),
 
         toggleAutoFeed: (tankId) => set(state => {
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           if (tank) tank.autoFeed = !tank.autoFeed;
         }),
 
         useHeater: (tankId) => set(state => {
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           if (!tank) return;
           if ((tank.supplies.heater || 0) <= 0) {
             playWarning();
@@ -339,7 +362,7 @@ export const useGameStore = create(
         }),
 
         renameTank: (tankId, name) => set(state => {
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           if (tank) tank.name = name.trim().slice(0, 24) || tank.name;
         }),
 
@@ -358,7 +381,7 @@ export const useGameStore = create(
             state.shop.listedFish.push(fishId);
           }
           playCoin();
-          const fish = state.fish.find(f => f.id === fishId);
+          const fish = findFish(state, fishId);
           addLogDraft(state,
             isListed
               ? `🏪 Removed ${fish?.species?.name || 'fish'}.`
@@ -380,7 +403,7 @@ export const useGameStore = create(
             addLogDraft(state, '⚠️ Not enough coins!');
             return;
           }
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           if (!tank) return;
           state.player.coins -= actualCost;
           tank.supplies[supplyKey] = (tank.supplies[supplyKey] || 0) + amount;
@@ -419,7 +442,9 @@ export const useGameStore = create(
 
           // Assign personality to adult fish
           if (!newFish.personality) {
-            if (!newFish.personality) { const pList = ['playful','shy','curious','lazy','aggressive','social','gluttonous','hardy']; newFish.personality = pList[Math.floor(Math.random() * pList.length)]; }
+            if (!newFish.personality) {
+              newFish.personality = PERSONALITY_LIST[Math.floor(Math.random() * PERSONALITY_LIST.length)];
+            }
           }
 
           state.fish.push(newFish);
@@ -430,7 +455,7 @@ export const useGameStore = create(
         buyUpgrade: (upgradeKey) => set(state => {
           const upg = state.shop.upgrades[upgradeKey];
           if (!upg || upg.level >= (upg.maxLevel || 3)) return;
-          const cost = Math.round(upg.cost * Math.pow(1.6, upg.level));
+          const cost = upgradeCost(upg.cost, upg.level);
           if (state.player.coins < cost) {
             playWarning();
             addLogDraft(state, '⚠️ Not enough coins!');
@@ -444,7 +469,7 @@ export const useGameStore = create(
             state.tanks.forEach(t => { t.capacity = (t.capacity || 12) + 4; });
           }
           if (upgradeKey === 'breeding') {
-            state.breedingTank.breedingDurationMs = Math.round(300_000 * Math.pow(0.8, upg.level));
+            state.breedingTank.breedingDurationMs = Math.round(BREEDING_BASE_MS * Math.pow(BREEDING_SPEED_FACTOR, upg.level));
           }
           if (upgradeKey === 'deepSea') {
             state.tanks.forEach(t => { t.capacity = (t.capacity || 12) + 6; });
@@ -479,7 +504,7 @@ export const useGameStore = create(
           }
 
           // Check tank capacity for fish/egg items
-          const tank = state.tanks.find(t => t.id === tankId) || state.tanks[0];
+          const tank = findTank(state, tankId) || state.tanks[0];
           if ((item.type === 'fish' || item.type === 'egg') && tank) {
             const count = state.fish.filter(f => f.tankId === tank.id).length;
             const needed = item.eggCount || 1;
@@ -554,7 +579,7 @@ export const useGameStore = create(
             playWarning();
             return;
           }
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           if (!tank) return;
           state.player.coins -= decor.price;
           if (!tank.decorations.owned) tank.decorations.owned = [];
@@ -563,7 +588,7 @@ export const useGameStore = create(
         }),
 
         claimUnlockedDecoration: (decorId, tankId) => set(state => {
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           if (!tank) return;
           if (!tank.decorations.owned) tank.decorations.owned = [];
           tank.decorations.owned.push(decorId);
@@ -571,7 +596,7 @@ export const useGameStore = create(
         }),
 
         placeDecoration: (decorId, tankId) => set(state => {
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           if (!tank) return;
           if (!tank.decorations.placed) tank.decorations.placed = [];
           tank.decorations.placed.push(decorId);
@@ -582,7 +607,7 @@ export const useGameStore = create(
         }),
 
         removeDecoration: (decorId, tankId) => set(state => {
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           if (!tank) return;
           if (tank.decorations.placed) {
             const idx = tank.decorations.placed.indexOf(decorId);
@@ -598,7 +623,7 @@ export const useGameStore = create(
             playWarning();
             return;
           }
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           if (!tank) return;
           state.player.coins -= theme.price || 0;
           if (!tank.themes.owned) tank.themes.owned = [];
@@ -607,7 +632,7 @@ export const useGameStore = create(
         }),
 
         applyTheme: (themeId, tankId) => set(state => {
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           if (tank) tank.themes.active = themeId;
         }),
 
@@ -617,7 +642,7 @@ export const useGameStore = create(
           if (!bt) return;
           if (bt.eggReady) return;
           if (bt.breedingStartedAt) return;
-          const fish = state.fish.find(f => f.id === fishId);
+          const fish = findFish(state, fishId);
           if (!fish || fish.stage !== 'adult') return;
           if (bt.slots.includes(fishId)) {
             // Deselect
@@ -630,8 +655,8 @@ export const useGameStore = create(
           // If both slots filled, start breeding
           if (bt.slots[0] && bt.slots[1]) {
             bt.breedingStartedAt = Date.now();
-            const fishA = state.fish.find(f => f.id === bt.slots[0]);
-            const fishB = state.fish.find(f => f.id === bt.slots[1]);
+            const fishA = findFish(state, bt.slots[0]);
+            const fishB = findFish(state, bt.slots[1]);
             bt.storedGenomeA = fishA?.genome || null;
             bt.storedGenomeB = fishB?.genome || null;
             bt.storedTankId = fishA?.tankId || state.tanks[0]?.id || 'tank_0';
@@ -670,7 +695,7 @@ export const useGameStore = create(
           if (!bt.eggReady) return;
           if (!bt.storedGenomeA || !bt.storedGenomeB) return;
           const tankId = bt.storedTankId || state.tanks[0]?.id || 'tank_0';
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           const currentCount = state.fish.filter(f => f.tankId === tankId).length;
           const capacity = tank?.capacity || 12;
           const clutchSize = bt.clutchSize || 1;
@@ -738,7 +763,7 @@ export const useGameStore = create(
         // ── Fish naming ──────────────────────────────────────
         renameFish: (fishId, name) => set(state => {
           if (!fishId) return;
-          const fish = state.fish.find(f => f.id === fishId);
+          const fish = findFish(state, fishId);
           if (fish) {
             fish.nickname = name.trim().slice(0, 24) || null;
           }
@@ -758,7 +783,7 @@ export const useGameStore = create(
           const price = action === 'counter' ? counterPrice : h.offer;
           if (!price || price <= 0) return;
 
-          const fish = h.fishId ? state.fish.find(f => f.id === h.fishId) : null;
+          const fish = findFish(state, h.fishId);
           if (!fish) {
             addLogDraft(state, `⚠️ Fish no longer available.`);
             return;
@@ -776,7 +801,7 @@ export const useGameStore = create(
           state.shop.salesHistory.push({ fishName: h.fishName, price, customer: h.customerName, at: Date.now() });
           playCoin();
           addLogDraft(state, `🤝 ${h.customerName}: Sold ${h.fishName} for 🪙${price}!`);
-          const soldRarity = state.fish.find(f => f.id === h.fishId)?.species?.rarity;
+          const soldRarity = findFish(state, h.fishId)?.species?.rarity;
           addXp(state, soldRarity === 'epic' ? XP_REWARDS.sellEpicFish : soldRarity === 'rare' ? XP_REWARDS.sellRareFish : XP_REWARDS.sellFish, 'sell');
         }),
 
@@ -798,7 +823,7 @@ export const useGameStore = create(
           if (!fishId || !orderId) return;
           const order = (state.specialOrders || []).find(o => o.id === orderId);
           if (!order || order.fulfilled) return;
-          const fish = state.fish.find(f => f.id === fishId);
+          const fish = findFish(state, fishId);
           if (!fish) return;
           order.fulfilled = true;
           state.player.coins += order.reward;
@@ -888,7 +913,7 @@ export const useGameStore = create(
         }),
 
         setTankBackground: (tankId, bgId) => set(state => {
-          const tank = state.tanks.find(t => t.id === tankId);
+          const tank = findTank(state, tankId);
           if (tank) tank.backgroundId = bgId;
         }),
 
@@ -961,7 +986,7 @@ function handleVisibility() {
     saveGame(useGameStore.getState());
     // Throttle tick to every 5s when hidden (saves CPU/battery)
     if (_tickInterval) clearInterval(_tickInterval);
-    _tickInterval = setInterval(() => useGameStore.getState().tick(), 5000);
+    _tickInterval = setInterval(() => useGameStore.getState().tick(), TICK_INTERVAL_MS);
   } else {
     // Restore normal tick rate when visible
     if (_tickInterval) clearInterval(_tickInterval);

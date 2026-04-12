@@ -250,14 +250,14 @@ export function getDiseaseStage(diseaseSince) {
   return 'critical';
 }
 
-export function getDiseaseDamage(diseaseId, stage) {
+function getDiseaseDamage(diseaseId, stage) {
   const d = DISEASES[diseaseId];
   if (!d) return 0.02;
   const dmg = d.healthDmgPerSec;
   return typeof dmg === 'number' ? dmg : (dmg[stage] || dmg.mild || 0.02);
 }
 
-export { CURE_SUCCESS_RATE, DISEASE_STAGES };
+export { CURE_SUCCESS_RATE };
 
 const DISEASE_BASE_CHANCE  = 0.000015;
 const DISEASE_WATER_MULT   = 2.0;
@@ -989,7 +989,7 @@ export function processTick(state) {
 // ============================================================
 // CUSTOMER
 // ============================================================
-function getCustomerInterval(state) {
+export function getCustomerInterval(state) {
   const repBonus = Math.min(0.5, (state.shop.reputation || 0) / 200);
   const adLevel  = state.shop.upgrades?.reputation?.level || 0;
   const adBonus  = adLevel * 0.15;

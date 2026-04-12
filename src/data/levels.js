@@ -4,18 +4,10 @@
 // ============================================================
 
 // XP required to reach a given level: 100 * level^1.5
-export function xpForLevel(level) {
+function xpForLevel(level) {
   if (level <= 0) return 0;
   return Math.round(100 * Math.pow(level, 1.5));
 }
-
-// Total XP required from 0 to reach this level
-export function totalXpForLevel(level) {
-  let total = 0;
-  for (let i = 1; i <= level; i++) total += xpForLevel(i);
-  return total;
-}
-
 // Current level from total XP
 export function getLevelFromXp(xp) {
   let level = 0;
@@ -44,7 +36,7 @@ export const XP_REWARDS = {
 };
 
 // Level milestone unlocks
-export const LEVEL_UNLOCKS = [
+const LEVEL_UNLOCKS = [
   { level: 2,  unlock: 'shop_uncommon',   label: 'Uncommon fish in shop',     icon: '🐠' },
   { level: 3,  unlock: 'breeding_lab',    label: 'Breeding Lab access',       icon: '🧬' },
   { level: 5,  unlock: 'shop_rare',       label: 'Rare fish in shop',         icon: '🌟' },

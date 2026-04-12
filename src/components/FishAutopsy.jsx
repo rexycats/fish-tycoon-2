@@ -132,7 +132,7 @@ function AutopsyCard({ record }) {
   );
 }
 
-export default function FishAutopsyPanel({ autopsies = [] }) {
+function FishAutopsyPanel({ autopsies = [] }) {
   if (autopsies.length === 0) {
     return (
       <div className="autopsy-panel">
@@ -209,3 +209,4 @@ export default function FishAutopsyPanel({ autopsies = [] }) {
     </div>
   );
 }
+export default React.memo(FishAutopsyPanel);

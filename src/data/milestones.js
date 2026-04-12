@@ -258,14 +258,5 @@ export function getMilestoneProgress(state) {
   }
   return chapters;
 }
-
-export function getNextMilestone(state) {
-  const completed = state.player?.completedMilestones || [];
-  for (const m of MILESTONES) {
-    if (!completed.includes(m.id)) return m;
-  }
-  return null;
-}
-
 export function getTotalMilestones() { return MILESTONES.length; }
 export function getCompletedCount(state) { return (state.player?.completedMilestones || []).length; }

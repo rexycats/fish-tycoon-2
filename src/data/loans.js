@@ -17,7 +17,7 @@ export function getLoanStatus(loan) {
   return { ...loan, remaining, totalOwed, overdue, elapsed };
 }
 
-export function canTakeLoan(state) {
+function canTakeLoan(state) {
   return !state.player?.activeLoan?.active;
 }
 

@@ -8,7 +8,7 @@ import { createFish, randomGenome } from '../data/genetics.js';
 const EVENT_INTERVAL_MIN = 180; // minimum seconds between events
 const EVENT_INTERVAL_MAX = 420; // maximum seconds between events
 
-export const RANDOM_EVENTS = [
+const RANDOM_EVENTS = [
   {
     id: 'celebrity_visit',
     name: '⭐ Celebrity Visit!',

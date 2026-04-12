@@ -209,7 +209,7 @@ export function startMusic() {
   setTimeout(() => scheduleNote(c, dest), 2000);
 }
 
-export function stopMusic() {
+function stopMusic() {
   _musicPlaying = false;
   for (const node of _musicNodes) {
     try { node.osc.stop(); node.lfo.stop(); } catch {}

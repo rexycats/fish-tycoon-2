@@ -1,7 +1,125 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '../store/gameStore.js';
 import { getLevelFromXp, getLevelTitle } from '../data/levels.js';
-import { formatCoins } from '../utils/format.js';
+import { upgradeCost } from '../data/constants.js';
+import { getCustomerInterval } from '../systems/gameTick.js';
+import { TANK_UNLOCK } from '../data/gameState.js';
+
+/* ── Income rate tracker ───────────────────────────────────── */
+function IncomeRate() {
+  const coins = useGameStore(s => s.player.coins);
+  const [rate, setRate] = useState(0);
+  const historyRef = useRef([]);
+
+  useEffect(() => {
+    const now = Date.now();
+    historyRef.current.push({ time: now, coins });
+    // Keep last 60 seconds of data
+    const cutoff = now - 60_000;
+    historyRef.current = historyRef.current.filter(h => h.time > cutoff);
+    const history = historyRef.current;
+    if (history.length < 2) return;
+    const oldest = history[0];
+    const dt = (now - oldest.time) / 60_000; // minutes
+    if (dt < 0.08) return; // need at least ~5 seconds
+    const earned = coins - oldest.coins;
+    setRate(Math.max(0, Math.round(earned / dt)));
+  }, [coins]);
+
+  if (rate <= 0) return null;
+  return (
+    <span className="hud2-income-rate" title="Estimated income per minute">
+      <span className="hud2-income-icon">📈</span>
+      <span className="hud2-income-val">~{rate}/min</span>
+    </span>
+  );
+}
+
+/* ── Next goal teaser ──────────────────────────────────────── */
+function NextGoalTeaser() {
+  const coins = useGameStore(s => s.player.coins);
+  const tanks = useGameStore(s => s.tanks);
+  const upgrades = useGameStore(s => s.shop.upgrades);
+
+  // Find cheapest next goal
+  const goals = [];
+
+  // Tank unlocks
+  const tankCount = tanks?.length || 1;
+  if (TANK_UNLOCK[tankCount]) {
+    goals.push({
+      label: TANK_UNLOCK[tankCount].label,
+      cost: TANK_UNLOCK[tankCount].cost,
+      icon: '🏠',
+    });
+  }
+
+  // Upgrades
+  if (upgrades) {
+    const upgradeNames = { slot: 'Shop Slot', capacity: 'Tank Size', reputation: 'Advertising', breeding: 'Breed Speed', lighting: 'Lighting', vip: 'VIP Access', hatchery: 'Hatchery', tankSitter: 'Tank Sitter' };
+    for (const [id, upg] of Object.entries(upgrades)) {
+      if (upg.level >= (upg.maxLevel || 5)) continue;
+      const cost = upgradeCost(upg.cost, upg.level);
+      goals.push({
+        label: `${upgradeNames[id] || id} Lv${upg.level + 1}`,
+        cost,
+        icon: '⬆️',
+      });
+    }
+  }
+
+  if (goals.length === 0) return null;
+
+  // Sort by cost, pick closest affordable target
+  goals.sort((a, b) => a.cost - b.cost);
+  // Pick the cheapest one you haven't yet reached
+  const goal = goals.find(g => g.cost > coins) || goals[goals.length - 1];
+  if (!goal || coins >= goal.cost) return null;
+
+  const pct = Math.min(100, Math.round((coins / goal.cost) * 100));
+
+  return (
+    <div className="hud2-next-goal" title={`${goal.label}: ${coins.toLocaleString()} / ${goal.cost.toLocaleString()} coins`}>
+      <span className="hud2-goal-label">{goal.icon} {goal.label}</span>
+      <div className="hud2-goal-bar">
+        <div className="hud2-goal-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <span className="hud2-goal-cost">🪙 {coins.toLocaleString()}/{goal.cost.toLocaleString()}</span>
+    </div>
+  );
+}
+
+/* ── Customer countdown ────────────────────────────────────── */
+function CustomerCountdown() {
+  const lastAt = useGameStore(s => s.shop.lastCustomerAt);
+  const listed = useGameStore(s => s.shop.listedFish?.length || 0);
+  const [secsLeft, setSecsLeft] = useState(null);
+
+  useEffect(() => {
+    if (listed <= 0) { setSecsLeft(null); return; }
+    function update() {
+      const state = useGameStore.getState();
+      const interval = getCustomerInterval(state);
+      const elapsed = Date.now() - (state.shop.lastCustomerAt || Date.now());
+      const remaining = Math.max(0, Math.ceil((interval - elapsed) / 1000));
+      setSecsLeft(remaining);
+    }
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [lastAt, listed]);
+
+  if (secsLeft === null || listed <= 0) return null;
+
+  return (
+    <span className="hud2-customer-timer" title="Time until next customer arrives">
+      <span className="hud2-customer-icon">🚶</span>
+      <span className="hud2-customer-val">
+        {secsLeft > 0 ? `${secsLeft}s` : 'arriving...'}
+      </span>
+    </span>
+  );
+}
 
 /* ── Animated coin counter ─────────────────────────────────── */
 function CoinDisplay({ value }) {
@@ -179,8 +297,11 @@ export default function HUD({
         <div className="hud2-divider hud2-divider--v" />
 
         <CoinDisplay value={player.coins} />
+        <IncomeRate />
 
         <LevelBar xp={player.xp} />
+
+        <CustomerCountdown />
 
         <div className="hud2-spacer" />
 
@@ -262,7 +383,10 @@ export default function HUD({
         </div>
       </div>
 
-      {/* ── Row 3: active boosts (from Rare Market) ────────────── */}
+      {/* ── Row 3: next goal teaser ────────────────────────── */}
+      <NextGoalTeaser />
+
+      {/* ── Row 4: active boosts (from Rare Market) ────────────── */}
       <ActiveBoosts />
 
     </header>

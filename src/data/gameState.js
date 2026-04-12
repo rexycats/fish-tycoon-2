@@ -427,27 +427,6 @@ export function loadGame() {
     return parsed;
   } catch (e) { console.error('Load failed:', e); return null; }
 }
-
-// Async load for Electron — called at startup to sync filesystem → localStorage
-export async function syncElectronSave() {
-  if (!isElectron()) return;
-  try {
-    const result = await window.electronAPI.loadGame();
-    if (result.ok && result.data) {
-      // Filesystem save is newer — write it to localStorage for fast access
-      const localRaw = localStorage.getItem(SAVE_KEY);
-      const localSave = localRaw ? JSON.parse(localRaw) : null;
-      if (!localSave || (result.data.lastSavedAt || 0) > (localSave.lastSavedAt || 0)) {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(result.data));
-        console.log('[Electron] Synced filesystem save → localStorage');
-      }
-    }
-  } catch (err) {
-    console.warn('[Electron] Failed to sync save:', err);
-  }
-}
-
-
 // ── Export / Import ────────────────────────────────────────
 export async function exportSave(state) {
   const clean = {

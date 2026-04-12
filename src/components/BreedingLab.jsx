@@ -179,7 +179,7 @@ function BreedFishRow({ fish, inSlot, onSelect, onDragStart }) {
 }
 
 // ── Main component ─────────────────────────────────────────
-export default function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelectForBreeding, onCollectEgg, onCancelBreeding, onNavigate }) {
+function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelectForBreeding, onCollectEgg, onCancelBreeding, onNavigate }) {
   const [activeBay, setActiveBay] = useState(0);
 
   // Build array of all bays
@@ -371,3 +371,4 @@ export default function BreedingLab({ fish, breedingTank, extraBays = [], maxBay
     </div>
   );
 }
+export default React.memo(BreedingLab);

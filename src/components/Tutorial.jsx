@@ -56,7 +56,7 @@ export default function Tutorial() {
         <div className="tutorial-text">{step.text}</div>
         {step.highlight && (
           <div className="tutorial-hint">
-            👆 Click the <strong>{step.highlight === 'shop' ? 'Shop' : step.highlight === 'tank' ? 'Tank' : step.highlight === 'breed' ? 'Breed' : step.highlight === 'challenges' ? 'Goals' : step.highlight}</strong> tab
+            👆 Click the <strong>{{ shop: 'Shop', tank: 'Tank', breed: 'Breed', challenges: 'Goals' }[step.highlight] || step.highlight}</strong> tab
             {step.highlight === 'feed' ? ' or use the Feed button' : ''}
           </div>
         )}

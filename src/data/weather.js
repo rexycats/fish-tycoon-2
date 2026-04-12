@@ -38,4 +38,4 @@ function mulberry32(a) {
   };
 }
 
-export { WEATHER_TYPES };
+;

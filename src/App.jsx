@@ -27,7 +27,6 @@ import CatchOfDayPanel from './components/CatchOfDayPanel.jsx';
 import { EventPopup, HagglePopup } from './components/EventPopup.jsx';
 import TitleScreen    from './components/TitleScreen.jsx';
 import Credits        from './components/Credits.jsx';
-import { formatCoins } from './utils/format.js';
 import { TUTORIAL_STEPS } from './data/tutorial.js';
 
 import { useGameStore } from './store/gameStore.js';
@@ -65,6 +64,8 @@ const MemoFishAutopsy    = memo(FishAutopsyPanel);
 
 export default function App() {
   const [showTitle, setShowTitle] = useState(true);
+  const [levelFlash, setLevelFlash] = useState(false);
+  const prevLevelRef = useRef(null);
 
   // ── Store selectors — each subscribes to its own slice ─────
   const player          = useGameStore(s => s.player);
@@ -166,6 +167,16 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler);
   }, [selectedFish, activeTank, activeTab, tanks]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Level-up flash ─────────────────────────────────────
+  useEffect(() => {
+    if (player._levelUpPending && player._levelUpPending !== prevLevelRef.current) {
+      prevLevelRef.current = player._levelUpPending;
+      setLevelFlash(true);
+      const t = setTimeout(() => setLevelFlash(false), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [player._levelUpPending]);
+
   // ── Start music on first click ─────────────────────────
   useEffect(() => {
     const start = () => { if (!isMusicPlaying()) startMusic(); document.removeEventListener('click', start); };
@@ -242,7 +253,7 @@ export default function App() {
             className={`coin-delta coin-delta--${diff > 0 ? 'up' : 'down'} coin-delta--arc`}
             style={{ '--arc-dir': diff > 0 ? '1' : '-1' }}
           >
-            {diff > 0 ? '+' : ''}{diff.toLocaleString()}
+            {diff > 0 ? '🪙 +' : ''}{diff.toLocaleString()}
           </span>
         ))}
       </div>
@@ -459,6 +470,9 @@ export default function App() {
           <span className="seasonal-desc">{seasonalEvent.desc}</span>
         </div>
       )}
+
+      {/* Level-up flash */}
+      {levelFlash && <div className="level-up-flash" />}
 
       {/* Pause overlay */}
       {paused && (

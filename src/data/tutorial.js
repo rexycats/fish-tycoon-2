@@ -84,11 +84,3 @@ export const TUTORIAL_STEPS = [
     action: null,
   },
 ];
-
-export function getTutorialStep(stepIndex) {
-  return TUTORIAL_STEPS[stepIndex] || null;
-}
-
-export function isTutorialComplete(state) {
-  return (state.player?.tutorialStep || 0) >= TUTORIAL_STEPS.length - 1;
-}

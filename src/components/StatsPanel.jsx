@@ -3,7 +3,6 @@
 // ============================================================
 import React, { useMemo } from 'react';
 import { useGameStore } from '../store/gameStore.js';
-import { RARITY } from '../data/genetics.js';
 
 const RC = { common: '#7ec8a0', uncommon: '#6ab0de', rare: '#b07ee8', epic: '#f0c040', legendary: '#ff7eb3' };
 

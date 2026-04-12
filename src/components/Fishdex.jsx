@@ -274,7 +274,7 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
 }
 
 // ── Main Fishdex ───────────────────────────────────────────
-export default function Fishdex({ fishdex: _fishdex, onGenerateLore, generatingLoreFor, aiError, legendFishUnlocked }) {
+function Fishdex({ fishdex: _fishdex, onGenerateLore, generatingLoreFor, aiError, legendFishUnlocked }) {
   const fishdex = Array.isArray(_fishdex) ? _fishdex : [];
   const [selected, setSelected]   = useState(null);
   const [search, setSearch]       = useState('');
@@ -414,3 +414,4 @@ export default function Fishdex({ fishdex: _fishdex, onGenerateLore, generatingL
     </div>
   );
 }
+export default React.memo(Fishdex);

@@ -73,7 +73,7 @@ function AchievementCard({ def, unlock, onNavigate }) {
   );
 }
 
-export default function Achievements({ achievements, player, onNavigate }) {
+function Achievements({ achievements, player, onNavigate }) {
   const earned = useMemo(
     () => Object.fromEntries((achievements || []).map(a => [a.id, a])),
     [achievements]
@@ -130,3 +130,4 @@ export default function Achievements({ achievements, player, onNavigate }) {
     </div>
   );
 }
+export default React.memo(Achievements);

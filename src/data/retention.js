@@ -3,7 +3,6 @@
 // Near-miss, jackpots, loss aversion, streak pain
 // ============================================================
 
-import { RARITY } from './genetics.js';
 
 const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
@@ -48,7 +47,7 @@ export function checkJackpot(totalSales) {
 }
 
 // ── Loss Aversion: limited-time offers that expire ──────────
-export const URGENT_OFFERS = [
+const URGENT_OFFERS = [
   {
     id: 'vip_collector',
     name: '💎 VIP Collector',

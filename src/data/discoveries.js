@@ -2,7 +2,7 @@
 // DISCOVERY JOURNAL — track unique phenotype combinations
 // ============================================================
 
-export function getDiscoveryKey(fish) {
+function getDiscoveryKey(fish) {
   const p = fish?.phenotype || {};
   const s = fish?.species || {};
   // Key = body+fin+pattern+color+glow — each unique combo is a discovery

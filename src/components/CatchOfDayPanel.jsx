@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore.js';
 import { pickShadow, createCaughtFish, canPlayCatch } from '../data/catchOfDay.js';
-import { playCoin, playBubble, playDiscover, playWarning } from '../services/soundService.js';
+import { playCoin, playBubble, playDiscover } from '../services/soundService.js';
 
 const GAME_DURATION = 30; // seconds
 const SHADOW_LIFETIME = 3500; // ms before shadow swims away

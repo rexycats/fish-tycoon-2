@@ -7,11 +7,11 @@ import { useGameStore } from '../store/gameStore.js';
 import { checkOrderFulfillment } from '../data/specialOrders.js';
 import { RESEARCH_BRANCHES } from '../data/research.js';
 import { LOAN_TIERS, getLoanStatus } from '../data/loans.js';
-import { canClaimDaily, getDailyReward, getStreak } from '../data/dailyRewards.js';
+import { canClaimDaily, getStreak } from '../data/dailyRewards.js';
 import { getTotalPossibleDiscoveries } from '../data/discoveries.js';
 import { TANK_BACKGROUNDS } from '../data/tankBackgrounds.js';
 import { getStreakMultiplier, getStreakLabel } from '../data/retention.js';
-import { MILESTONES, getMilestoneProgress, getTotalMilestones, getCompletedCount } from '../data/milestones.js';
+import { getMilestoneProgress, getTotalMilestones, getCompletedCount } from '../data/milestones.js';
 
 export default function GoalsPanel() {
   const player = useGameStore(s => s.player);

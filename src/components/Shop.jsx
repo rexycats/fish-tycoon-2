@@ -1,3 +1,4 @@
+import { upgradeCost } from '../data/constants.js';
 // ============================================================
 // FISH TYCOON 2 — SHOP (Phase 7: Customer Walking Animation)
 // ============================================================
@@ -132,10 +133,10 @@ function UpgradeCard({ id, upgrade, coins, onBuy }) {
   const maxed     = upgrade.level >= maxLevel;
   const icon      = UPGRADE_ICONS[id] || '⬆️';
   // Actual cost matches the store's formula: baseCost * 1.6^level
-  const actualCost = Math.round(upgrade.cost * Math.pow(1.6, upgrade.level));
+  const actualCost = upgradeCost(upgrade.cost, upgrade.level);
   const canAfford  = coins >= actualCost;
   const nextCost   = !maxed && upgrade.level + 1 < maxLevel
-    ? Math.round(upgrade.cost * Math.pow(1.6, upgrade.level + 1))
+    ? upgradeCost(upgrade.cost, upgrade.level + 1)
     : null;
   return (
     <div className={`upgrade-card ${maxed ? 'maxed' : ''}`}>

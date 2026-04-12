@@ -32,36 +32,12 @@ export const RESEARCH_BRANCHES = {
   },
 };
 
-export function getResearchLevel(state, branchId) {
+function getResearchLevel(state, branchId) {
   return state.player?.research?.[branchId] || 0;
 }
 
-export function getNextResearch(branchId, level) {
+function getNextResearch(branchId, level) {
   const branch = RESEARCH_BRANCHES[branchId];
   if (!branch || level >= branch.tiers.length) return null;
   return branch.tiers[level];
-}
-
-export function canAffordResearch(state, branchId) {
-  const level = getResearchLevel(state, branchId);
-  const next = getNextResearch(branchId, level);
-  if (!next) return false;
-  return state.player.coins >= next.cost;
-}
-
-export function getAllResearchEffects(state) {
-  const effects = {};
-  for (const [branchId, branch] of Object.entries(RESEARCH_BRANCHES)) {
-    const level = getResearchLevel(state, branchId);
-    for (let i = 0; i < level; i++) {
-      const tier = branch.tiers[i];
-      if (!tier) continue;
-      for (const [key, val] of Object.entries(tier.effect)) {
-        if (typeof val === 'number') {
-          effects[key] = (effects[key] || 1) * val;
-        }
-      }
-    }
-  }
-  return effects;
 }

@@ -86,7 +86,7 @@ const SPECIES_SPRITE_MAP = {
 //   light       : specular / shimmer highlight
 //   shadow      : deep shadow for dorsal band
 //   lateral     : iridescent lateral-line shimmer colour
-export const BODY_COLORS = {
+const BODY_COLORS = {
   Crimson: {
     body:'#d94040', body2:'#c02828', belly:'#f07070',
     fin:'#a81818',  fin2:'#e05858', accent:'#ff9090',

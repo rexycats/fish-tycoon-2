@@ -193,7 +193,7 @@ function PlacedItemRow({ item, onRemove }) {
 }
 
 // ── Main component ────────────────────────────────────────────
-export default function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveDecor, unlockedDecorations = [], onClaimUnlockedDecor, onBuyTheme, onApplyTheme }) {
+function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveDecor, unlockedDecorations = [], onClaimUnlockedDecor, onBuyTheme, onApplyTheme }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedDecorType, setSelectedDecorType]  = useState(null);
   const [placingScale, setPlacingScale] = useState(1.0);
@@ -427,3 +427,4 @@ export default function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceD
     </div>
   );
 }
+export default React.memo(DecorationPanel);

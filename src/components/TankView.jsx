@@ -1,3 +1,4 @@
+import { PERSONALITY_EMOJI, SPRITE_SIZE, EGG_HATCH_ANIM_MS } from '../data/constants.js';
 // ============================================================
 // FISH TYCOON 2 — TANK VIEW (Phase 11: Pseudo-3D Visual Overhaul)
 // ============================================================
@@ -347,6 +348,23 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
     return `linear-gradient(to bottom, ${gradStops})`;
   }, [wq, tank?.themes?.active]);
   const ps = DAY_PHASE_STYLES[dayPhase.phase];
+
+  // ── Helper: build fish container class list ─────────────
+  function fishClasses(f, isSelected, depthLayer, pos) {
+    const cls = ['fish-container', `depth-layer-${depthLayer}`];
+    if (isSelected) cls.push('selected');
+    if (f.disease) cls.push('fish-diseased');
+    if (pos.isIdle) cls.push('fish-idle');
+    if (f.hunger > 70) cls.push('fish-hungry');
+    if ((f.health || 100) < 30) cls.push('fish-critical');
+    if (f.stage === 'egg') {
+      cls.push('fish-egg');
+      if (Date.now() - (f.bornAt || 0) > EGG_HATCH_ANIM_MS) cls.push('egg-hatching');
+    }
+    if (f.species?.rarity === 'legendary') cls.push('fish-legendary');
+    else if (f.species?.rarity === 'epic') cls.push('fish-epic');
+    return cls.join(' ');
+  }
 
   const sortedFish = useMemo(() => [...fish].sort((a, b) => {
     const la = posRef.current[a.id]?.depthLayer ?? 1;
@@ -758,7 +776,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           const pos = positions[f.id] || { x: f.x??50, y: f.y??40, flipped: false, depthLayer: 1, tilt: 0, isIdle: false };
           const isSelected = f.id === selectedFishId;
           const layer = DEPTH_LAYERS[pos.depthLayer ?? 1];
-          const baseSize = f.phenotype?.size === 'Giant' ? 76 : f.stage === 'egg' ? 36 : 54;
+          const baseSize = f.phenotype?.size === 'Giant' ? SPRITE_SIZE.giant : f.stage === 'egg' ? SPRITE_SIZE.egg : SPRITE_SIZE.normal;
           const spriteSize = Math.round(baseSize * layer.scale);
           const tiltAngle = pos.flipped ? -(pos.tilt || 0) : (pos.tilt || 0);
           const animClass = pos.isIdle ? 'fish-idle' : 'fish-swimming';
@@ -775,7 +793,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
 
           return (
             <div key={f.id}
-              className={`fish-container ${isSelected ? 'selected' : ''} depth-layer-${depthLayer}${f.disease ? ' fish-diseased' : ''}${pos.isIdle ? ' fish-idle' : ''}${f.hunger > 70 ? ' fish-hungry' : ''}${(f.health || 100) < 30 ? ' fish-critical' : ''}${f.stage === 'egg' ? (Date.now() - (f.bornAt || 0) > 90000 ? ' fish-egg egg-hatching' : ' fish-egg') : ''}${f.species?.rarity === 'legendary' ? ' fish-legendary' : f.species?.rarity === 'epic' ? ' fish-epic' : ''}`}
+              className={fishClasses(f, isSelected, depthLayer, pos)}
               style={{
                 left: `${pos.x}%`,
                 top:  `${pos.y}%`,
@@ -837,7 +855,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
                   </div>
                   {f.disease && <div className="fish-tooltip-disease">🦠 {f.disease}</div>}
                   {f.personality && <div className="fish-tooltip-personality" style={{fontSize:'0.65rem',opacity:0.6,marginTop:2}}>
-                    {f.personality === 'playful' ? '🎭' : f.personality === 'shy' ? '🫣' : f.personality === 'curious' ? '🔍' : f.personality === 'lazy' ? '😴' : f.personality === 'aggressive' ? '😤' : f.personality === 'social' ? '🤝' : f.personality === 'gluttonous' ? '🍽️' : f.personality === 'hardy' ? '💪' : ''}
+                    {PERSONALITY_EMOJI[f.personality] || ''}
                     {' '}{f.personality}
                   </div>}
                 </div>

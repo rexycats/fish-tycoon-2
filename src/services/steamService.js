@@ -61,7 +61,7 @@ export async function syncSteamAchievement(gameAchievementId) {
   if (!steamId) return;
   try {
     await window.electronAPI.steam.setAchievement(steamId);
-    console.log(`[Steam] Achievement unlocked: ${steamId}`);
+    // Steam achievement unlocked
   } catch (err) {
     console.warn(`[Steam] Failed to set achievement ${steamId}:`, err);
   }
@@ -78,4 +78,4 @@ export async function syncAllSteamAchievements(achievements) {
   }
 }
 
-export { STEAM_ACHIEVEMENT_MAP };
+;

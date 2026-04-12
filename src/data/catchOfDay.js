@@ -28,27 +28,6 @@ export function pickShadow(luckBonus = 0) {
   }
   return adjusted[0];
 }
-
-// Generate a wave of shadows (called every few seconds during the game)
-export function generateWave(waveNumber, luckBonus = 0) {
-  const count = 2 + Math.min(4, Math.floor(waveNumber / 2));
-  const shadows = [];
-  for (let i = 0; i < count; i++) {
-    const type = pickShadow(luckBonus);
-    shadows.push({
-      id: `shadow_${Date.now()}_${i}`,
-      rarity: type.rarity,
-      speed: type.speed * (0.8 + Math.random() * 0.4),
-      size: type.size,
-      points: type.points,
-      y: 15 + Math.random() * 70, // vertical position %
-      direction: Math.random() > 0.5 ? 1 : -1, // left or right
-      spawnTime: Date.now() + i * 400,
-    });
-  }
-  return shadows;
-}
-
 // Create a fish from a caught shadow
 export function createCaughtFish(shadow, tankId) {
   return createFish({
@@ -65,4 +44,4 @@ export function canPlayCatch(state) {
   return new Date().toDateString() !== last;
 }
 
-export { SHADOW_TYPES };
+;

@@ -634,7 +634,7 @@ export function getDecorById(id) {
   return DECOR_CATALOG.find(d => d.id === id) || null;
 }
 
-export function getStarterOwnedDecor() {
+function getStarterOwnedDecor() {
   const owned = {};
   for (const d of DECOR_CATALOG) {
     if (d.startOwned > 0) owned[d.id] = d.startOwned;
