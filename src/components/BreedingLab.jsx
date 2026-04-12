@@ -371,4 +371,4 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
     </div>
   );
 }
-export default React.memo(BreedingLab);
+export default BreedingLab;

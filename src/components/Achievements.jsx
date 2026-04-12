@@ -130,4 +130,4 @@ function Achievements({ achievements, player, onNavigate }) {
     </div>
   );
 }
-export default React.memo(Achievements);
+export default Achievements;

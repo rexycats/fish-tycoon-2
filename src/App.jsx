@@ -51,10 +51,10 @@ const TAB_LIST = [
 // specific props change, not on every tick.
 // ============================================================
 const MemoTankView       = memo(TankView);
-const MemoFishPanel      = memo(FishPanel);
+const MemoFishPanel      = FishPanel; // already memo'd with custom comparator
 const MemoHUD            = memo(HUD);
 const MemoLogPanel       = memo(LogPanel);
-const MemoShop           = memo(Shop);
+const MemoShop           = Shop; // already memo'd with custom comparator
 const MemoBreedingLab    = memo(BreedingLab);
 const MemoFishdex        = memo(Fishdex);
 const MemoAchievements   = memo(Achievements);

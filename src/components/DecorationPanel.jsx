@@ -427,4 +427,4 @@ function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveD
     </div>
   );
 }
-export default React.memo(DecorationPanel);
+export default DecorationPanel;

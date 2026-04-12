@@ -209,4 +209,4 @@ function FishAutopsyPanel({ autopsies = [] }) {
     </div>
   );
 }
-export default React.memo(FishAutopsyPanel);
+export default FishAutopsyPanel;
