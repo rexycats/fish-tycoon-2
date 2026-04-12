@@ -48,8 +48,8 @@ const DAY_PHASE_STYLES = {
   dawn:    { overlay: 'rgba(255,150, 60,0.18)', rayOpacity: 0.55, starCount: 0  },
   day:     { overlay: 'rgba(180,230,255,0.06)', rayOpacity: 0.90, starCount: 0  },
   dusk:    { overlay: 'rgba(220, 80, 20,0.22)', rayOpacity: 0.45, starCount: 0  },
-  evening: { overlay: 'rgba( 60, 20,100,0.35)', rayOpacity: 0.15, starCount: 5  },
-  night:   { overlay: 'rgba( 10, 10, 50,0.30)', rayOpacity: 0.15, starCount: 12 },
+  evening: { overlay: 'rgba( 60, 20,100,0.20)', rayOpacity: 0.30, starCount: 5  },
+  night:   { overlay: 'rgba( 15, 15, 60,0.18)', rayOpacity: 0.25, starCount: 12 },
 };
 
 const STARS = Array.from({ length: 12 }, (_, i) => ({
@@ -332,9 +332,9 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
     const stops = theme.waterGradient;
     // Blend wq degradation: as quality drops the water shifts murky brown
     const wqFactor = wq / 100; // 1 = pristine, 0 = filthy
-    const murkR = Math.round((1 - wqFactor) * 60);
-    const murkG = Math.round((1 - wqFactor) * 18);
-    const murkB = Math.round(-(1 - wqFactor) * 40);
+    const murkR = Math.round((1 - wqFactor) * 30);
+    const murkG = Math.round((1 - wqFactor) * 10);
+    const murkB = Math.round(-(1 - wqFactor) * 15);
     const blend = (hex, opacity) => {
       const r = parseInt(hex.slice(1,3),16);
       const g = parseInt(hex.slice(3,5),16);
@@ -872,7 +872,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
         )}
 
         {wq < 40 && (
-          <div className="dirty-water" style={{ opacity: (40 - wq) / 40 * 0.45 }}/>
+          <div className="dirty-water" style={{ opacity: (40 - wq) / 40 * 0.2 }}/>
         )}
 
         </div>{/* close tank-distortion-layer */}

@@ -193,7 +193,7 @@ body {
 .dirty-water {
   position: absolute;
   inset: 0;
-  background: rgba(60,50,10,1);
+  background: rgba(80,60,20,0.7);
   pointer-events: none;
   z-index: 18;
 }
@@ -2207,8 +2207,8 @@ body {
   border: 1.5px solid rgba(30,60,120,0.45);
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 50px rgba(0,0,0,0.25),
-    inset 0 -20px 40px rgba(0,0,0,0.15),
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.15),
+    inset 0 -15px 30px rgba(0,0,0,0.10),
     0 8px 40px rgba(0,0,0,0.65),
     0 16px 60px rgba(0,0,0,0.35),
     0 0 40px rgba(20,80,160,0.20);
@@ -8886,8 +8886,8 @@ select { border-radius: 10px; }
   border: 2px solid rgba(80,160,255,0.25);
   border-radius: 18px;
   box-shadow:
-    inset 0 0 60px rgba(0,0,0,0.25),
-    inset 0 -20px 40px rgba(0,0,0,0.15),
+    inset 0 0 30px rgba(0,0,0,0.12),
+    inset 0 -10px 20px rgba(0,0,0,0.08),
     0 10px 50px rgba(0,0,0,0.6),
     0 0 50px rgba(20,80,200,0.15);
 }
