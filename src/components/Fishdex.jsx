@@ -414,4 +414,4 @@ function Fishdex({ fishdex: _fishdex, onGenerateLore, generatingLoreFor, aiError
     </div>
   );
 }
-export default React.memo(Fishdex);
+export default Fishdex;

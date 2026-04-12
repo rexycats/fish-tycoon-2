@@ -514,9 +514,9 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                   <span className="fli-name">{f.species?.name || 'Unknown'}</span>
                   <span className="fli-rarity" style={{ color: rc }}>{f.species?.rarity || 'common'}</span>
                   <span className="fli-ph">
-                    {f.phenotype.bodyShape} · {f.phenotype.primaryColor}
-                    {f.phenotype.glow !== 'Normal' ? ` · ${f.phenotype.glow}` : ''}
-                    {f.phenotype.mutation !== 'None' ? ` · ${f.phenotype.mutation}` : ''}
+                    {f.phenotype?.bodyShape} · {f.phenotype?.primaryColor}
+                    {f.phenotype?.glow && f.phenotype.glow !== 'Normal' ? ` · ${f.phenotype.glow}` : ''}
+                    {f.phenotype?.mutation && f.phenotype.mutation !== 'None' ? ` · ${f.phenotype.mutation}` : ''}
                   </span>
                   <span className="fli-price">🪙{autoPrice}</span>
                   <button className="btn btn-sm" onClick={e => {

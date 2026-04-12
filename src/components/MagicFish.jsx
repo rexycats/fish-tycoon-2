@@ -71,9 +71,9 @@ function MagicFishCard({ mf, found }) {
         <div className="magic-card-number">#{mf.number}</div>
         <div className="magic-card-sprite">
           <MagicSilhouette
-            bodyShape={mf.phenotype.bodyShape}
-            primaryColor={mf.phenotype.primaryColor || 'Azure'}
-            glow={mf.phenotype.glow || 'Normal'}
+            bodyShape={mf.phenotype?.bodyShape}
+            primaryColor={mf.phenotype?.primaryColor || 'Azure'}
+            glow={mf.phenotype?.glow || 'Normal'}
             found={found}
             size={52}
           />

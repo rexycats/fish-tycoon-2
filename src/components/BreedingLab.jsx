@@ -164,9 +164,9 @@ function BreedFishRow({ fish, inSlot, onSelect, onDragStart }) {
       <div className="bfr-name">{fish.species?.name || 'Unknown'}</div>
       <div className="bfr-rarity" style={{ color: rarityColor }}>{fish.species?.rarity || 'common'}</div>
       <div className="bfr-traits">
-        {fish.phenotype.bodyShape} · {fish.phenotype.primaryColor}
-        {fish.phenotype.glow !== 'Normal' ? ` · ${fish.phenotype.glow}` : ''}
-        {fish.phenotype.mutation !== 'None' ? ` · ${fish.phenotype.mutation}` : ''}
+        {fish.phenotype?.bodyShape} · {fish.phenotype?.primaryColor}
+        {fish.phenotype?.glow && fish.phenotype.glow !== 'Normal' ? ` · ${fish.phenotype.glow}` : ''}
+        {fish.phenotype?.mutation && fish.phenotype.mutation !== 'None' ? ` · ${fish.phenotype.mutation}` : ''}
       </div>
       <button
         className={`btn btn-sm${inSlot ? ' btn-warn' : ''}`}
@@ -353,7 +353,7 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
               key={f.id}
               fish={f}
               inSlot={bay.slots.includes(f.id)}
-              onSelect={onSelectForBreeding}
+              onSelect={(fid) => onSelectForBreeding(fid, activeBay)}
             />
           ))}
           {availableFish.length === 0 && (

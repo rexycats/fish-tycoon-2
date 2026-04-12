@@ -9799,9 +9799,9 @@ select { border-radius: 10px; }
   content: '';
   position: fixed;
   inset: 0;
-  z-index: 99999;
+  z-index: 2;
   pointer-events: none;
-  opacity: 0.035;
+  opacity: 0.025;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 256px 256px;
@@ -9824,12 +9824,12 @@ select { border-radius: 10px; }
   content: '';
   position: fixed;
   inset: 0;
-  z-index: 99998;
+  z-index: 1;
   pointer-events: none;
   background: radial-gradient(
-    ellipse 85% 80% at 50% 50%,
-    transparent 50%,
-    rgba(0,0,0,0.35) 100%
+    ellipse 90% 85% at 50% 50%,
+    transparent 55%,
+    rgba(0,0,0,0.2) 100%
   );
 }
 
@@ -9973,15 +9973,15 @@ select { border-radius: 10px; }
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0px,
-    black 12px,
-    black calc(100% - 20px),
+    black 6px,
+    black calc(100% - 10px),
     transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0px,
-    black 12px,
-    black calc(100% - 20px),
+    black 6px,
+    black calc(100% - 10px),
     transparent 100%
   );
 }
@@ -10116,3 +10116,48 @@ select { border-radius: 10px; }
     0 20px 60px rgba(0,0,0,0.6),
     0 0 60px rgba(255,204,51,0.08);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   READABILITY & BUG FIXES
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Boost text opacity for readability ──────────────── */
+.ach-desc { opacity: 0.75; font-size: 0.82rem; }
+.ach-card .ach-progress-label { opacity: 0.7; }
+.upgrade-desc { opacity: 0.8; color: var(--text-dim); }
+.supply-desc { opacity: 0.8; }
+.goals-order-desc { opacity: 0.8; }
+.challenge-desc { opacity: 0.8; }
+.campaign-milestone-desc { opacity: 0.8; }
+.fdex-card-date { opacity: 0.7; }
+
+/* ── Ensure HUD is above overlays ────────────────────── */
+.hud2 { z-index: 20; position: relative; }
+.tab-bar { z-index: 20; position: relative; }
+.app-footer { z-index: 20; position: relative; }
+
+/* ── Side panel above overlays ───────────────────────── */
+.side-col { z-index: 10; position: relative; }
+.tab-content-scroll { z-index: 10; position: relative; }
+
+/* ── Tank overlays stay behind UI ────────────────────── */
+.tank-wrapper { z-index: 5; position: relative; }
+
+/* ── Coin delta portal above everything ──────────────── */
+.coin-delta-portal { z-index: 9998; }
+
+/* ── Modals above everything ─────────────────────────── */
+.settings-modal,
+.win-modal,
+.credits-modal,
+.offline-modal,
+.offline-modal-v2,
+.haggle-popup,
+.event-popup,
+.tutorial-card { z-index: 1000; }
+.modal-overlay,
+.settings-overlay,
+.win-modal-overlay { z-index: 999; }
+
+/* ── Toast above modals ──────────────────────────────── */
+.toast-container { z-index: 2000; }

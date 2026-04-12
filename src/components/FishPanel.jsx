@@ -73,8 +73,8 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
   const healthColor = disease ? '#ff4455' : healthPct > 70 ? '#3ddba0' : healthPct > 40 ? '#f5c542' : '#ff6055';
   const satietyColor = satietyPct > 70 ? '#5db8e8' : satietyPct > 40 ? '#f5a742' : '#ff6055';
   const hasGenetics = fish.genome && fish.phenotype && fish.species?.visualType !== 'species';
-  const isLegendary = fish.species.rarity === 'legendary';
-  const isEpic      = fish.species.rarity === 'epic';
+  const isLegendary = fish.species?.rarity === 'legendary';
+  const isEpic      = fish.species?.rarity === 'epic';
   const rarityShimmer = isLegendary ? 'fp-hero--legendary' : isEpic ? 'fp-hero--epic' : '';
 
   // Recommended action logic
@@ -121,7 +121,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
           </div>
           <h2 className="fp-name">
             {fish.nickname ? <span className="fp-nickname">{fish.nickname}</span> : null}
-            <span className={fish.nickname ? 'fp-species-sub' : ''}>{fish.species.name}</span>
+            <span className={fish.nickname ? 'fp-species-sub' : ''}>{fish.species?.name || 'Unknown'}</span>
             <button className="fp-rename-btn" title="Rename this fish"
               onClick={() => {
                 const name = prompt('Name this fish:', fish.nickname || '');
