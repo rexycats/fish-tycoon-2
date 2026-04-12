@@ -49,7 +49,7 @@ const DAY_PHASE_STYLES = {
   day:     { overlay: 'rgba(180,230,255,0.06)', rayOpacity: 0.90, starCount: 0  },
   dusk:    { overlay: 'rgba(220, 80, 20,0.22)', rayOpacity: 0.45, starCount: 0  },
   evening: { overlay: 'rgba( 60, 20,100,0.35)', rayOpacity: 0.15, starCount: 5  },
-  night:   { overlay: 'rgba( 10, 10, 50,0.52)', rayOpacity: 0.04, starCount: 12 },
+  night:   { overlay: 'rgba( 10, 10, 50,0.30)', rayOpacity: 0.15, starCount: 12 },
 };
 
 const STARS = Array.from({ length: 12 }, (_, i) => ({
