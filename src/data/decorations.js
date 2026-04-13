@@ -464,10 +464,10 @@ export const TANK_THEMES = [
     desc: 'Warm Caribbean blue with coral silhouettes and golden sand. The classic.',
     substrateId: 'sand',
     waterGradient: [
-      { offset: '0%',   color: '#0e4a8e', opacity: 0.92 },
-      { offset: '40%',  color: '#0c3a7a', opacity: 0.96 },
-      { offset: '72%',  color: '#082860', opacity: 0.99 },
-      { offset: '100%', color: '#040e28', opacity: 1.00 },
+      { offset: '0%',   color: '#1a6ab8', opacity: 0.88 },
+      { offset: '40%',  color: '#145898', opacity: 0.90 },
+      { offset: '72%',  color: '#0e4480', opacity: 0.93 },
+      { offset: '100%', color: '#0a2850', opacity: 0.96 },
     ],
     bgSvgFn: () => `
       <ellipse cx="100" cy="390" rx="80" ry="32" fill="#1a3050" opacity="0.30"/>
@@ -490,10 +490,10 @@ export const TANK_THEMES = [
     desc: 'Near-black abyssal waters with bioluminescent streaks. Dramatic and moody.',
     substrateId: 'gravel_dark',
     waterGradient: [
-      { offset: '0%',   color: '#020818', opacity: 0.97 },
-      { offset: '35%',  color: '#010510', opacity: 0.98 },
-      { offset: '70%',  color: '#010308', opacity: 0.99 },
-      { offset: '100%', color: '#000000', opacity: 1.00 },
+      { offset: '0%',   color: '#0a1838', opacity: 0.92 },
+      { offset: '35%',  color: '#06122c', opacity: 0.94 },
+      { offset: '70%',  color: '#040e22', opacity: 0.96 },
+      { offset: '100%', color: '#020818', opacity: 0.98 },
     ],
     bgSvgFn: () => `
       <ellipse cx="200" cy="388" rx="100" ry="28" fill="#0a1828" opacity="0.6"/>
@@ -518,10 +518,10 @@ export const TANK_THEMES = [
     desc: 'Teal-green jungle waters thick with roots and tropical foliage.',
     substrateId: 'gravel_dark',
     waterGradient: [
-      { offset: '0%',   color: '#083828', opacity: 0.90 },
-      { offset: '40%',  color: '#062e20', opacity: 0.95 },
-      { offset: '72%',  color: '#041e14', opacity: 0.98 },
-      { offset: '100%', color: '#020c08', opacity: 1.00 },
+      { offset: '0%',   color: '#10583a', opacity: 0.85 },
+      { offset: '40%',  color: '#0c4830', opacity: 0.88 },
+      { offset: '72%',  color: '#083822', opacity: 0.92 },
+      { offset: '100%', color: '#042818', opacity: 0.95 },
     ],
     bgSvgFn: () => `
       <ellipse cx="150" cy="392" rx="100" ry="24" fill="#062010" opacity="0.5"/>
@@ -575,10 +575,10 @@ export const TANK_THEMES = [
     desc: 'Scorching dark waters lit by glowing vents. Maximum drama.',
     substrateId: 'gravel_dark',
     waterGradient: [
-      { offset: '0%',   color: '#100808', opacity: 0.96 },
-      { offset: '40%',  color: '#200c04', opacity: 0.97 },
-      { offset: '72%',  color: '#300e02', opacity: 0.99 },
-      { offset: '100%', color: '#1a0400', opacity: 1.00 },
+      { offset: '0%',   color: '#281210', opacity: 0.88 },
+      { offset: '40%',  color: '#381808', opacity: 0.90 },
+      { offset: '72%',  color: '#482006', opacity: 0.93 },
+      { offset: '100%', color: '#2a0c02', opacity: 0.96 },
     ],
     bgSvgFn: () => `
       ${[[120,395,80,20,'#8a2000',0.35],[400,398,60,14,'#a03010',0.30],[660,396,70,18,'#7a1800',0.35]].map(([cx,cy,rx,ry,c,o]) => `
@@ -606,7 +606,7 @@ export const TANK_THEMES = [
       { offset: '0%',   color: '#2a6840', opacity: 0.65 },
       { offset: '38%',  color: '#1e5030', opacity: 0.80 },
       { offset: '70%',  color: '#143820', opacity: 0.92 },
-      { offset: '100%', color: '#081808', opacity: 1.00 },
+      { offset: '100%', color: '#0c2810', opacity: 0.95 },
     ],
     bgSvgFn: () => `
       ${[100,260,440,600,730].map((x,i) => `
