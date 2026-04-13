@@ -130,6 +130,10 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   const [ripples, setRipples] = useState([]);      // click ripple effects
   const [feedSplash, setFeedSplash] = useState(0);  // feed particle trigger
   const [sparkles, setSparkles] = useState([]);     // sale sparkle effects
+  const [justClickedId, setJustClickedId] = useState(null); // fish click wiggle
+  const [clickBubbles, setClickBubbles] = useState([]);      // click bubble burst
+  const [coinShowers, setCoinShowers] = useState([]);         // sale coin shower
+  const [speechBubbles, setSpeechBubbles] = useState([]);     // sale speech bubbles
   const cursorRef = useRef({ x: -100, y: -100 });   // cursor position in % coords
   const tankElRef = useRef(null);
   const tickRef = useRef(0);
@@ -204,6 +208,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   }, [tank?.supplies?.food]);
 
   // ── Sale sparkle trigger (listen for fish removal) ──────
+  const SALE_PHRASES = ['Thanks!', 'Perfect!', 'Love it!', 'Beautiful!', 'Amazing!', 'So pretty!'];
   const prevFishIdsRef = useRef(new Set(fish.map(f => f.id)));
   useEffect(() => {
     const currentIds = new Set(fish.map(f => f.id));
@@ -213,6 +218,17 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
         const sparkleId = Date.now() + Math.random();
         setSparkles(prev => [...prev.slice(-3), { id: sparkleId, x: pos.x, y: pos.y }]);
         setTimeout(() => setSparkles(prev => prev.filter(s => s.id !== sparkleId)), 1500);
+
+        // Coin shower
+        const showerId = sparkleId + 0.1;
+        setCoinShowers(prev => [...prev.slice(-2), { id: showerId, x: pos.x, y: pos.y }]);
+        setTimeout(() => setCoinShowers(prev => prev.filter(s => s.id !== showerId)), 1500);
+
+        // Speech bubble
+        const speechId = sparkleId + 0.2;
+        const phrase = SALE_PHRASES[Math.floor(Math.random() * SALE_PHRASES.length)];
+        setSpeechBubbles(prev => [...prev.slice(-1), { id: speechId, x: pos.x, y: pos.y - 8, text: phrase }]);
+        setTimeout(() => setSpeechBubbles(prev => prev.filter(s => s.id !== speechId)), 2000);
       }
     }
     prevFishIdsRef.current = currentIds;
@@ -395,6 +411,16 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
     }
     if (f.species?.rarity === 'legendary') cls.push('fish-legendary');
     else if (f.species?.rarity === 'epic') cls.push('fish-epic');
+    // Mutation visual effects
+    const mut = f.phenotype?.mutation;
+    if (mut && mut !== 'None') cls.push(`fish-mut--${mut.toLowerCase().replace(/[^a-z]/g, '')}`);
+    // Purity glow for high-purity fish
+    if (f.genome) {
+      let pure = 0, total = 0;
+      for (const g of Object.keys(f.genome)) { total++; if (f.genome[g][0] === f.genome[g][1]) pure++; }
+      if (pure === total && total > 0) cls.push('fish-purity--perfected');
+      else if (pure >= 5) cls.push('fish-purity--pure');
+    }
     return cls.join(' ');
   }
 
@@ -836,10 +862,11 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           const healthPct = Math.round(f.health ?? 100);
           const satiety   = Math.max(0, 100 - Math.round(f.hunger ?? 0));
           const tooltipSide = pos.x > 65 ? 'left' : 'right';
+          const tooltipVert = pos.y < 15 ? 'fish-tooltip--low' : pos.y > 80 ? 'fish-tooltip--high' : '';
 
           return (
             <div key={f.id}
-              className={fishClasses(f, isSelected, depthLayer, pos)}
+              className={fishClasses(f, isSelected, depthLayer, pos) + (justClickedId === f.id ? ' fish-just-clicked' : '')}
               style={{
                 left: `${pos.x}%`,
                 top:  `${pos.y}%`,
@@ -850,7 +877,25 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
               }}
               onMouseEnter={() => setHoveredFishId(f.id)}
               onMouseLeave={() => setHoveredFishId(null)}
-              onClick={() => onSelectFish(f.id === selectedFishId ? null : f.id)}>
+              onClick={() => {
+                onSelectFish(f.id === selectedFishId ? null : f.id);
+                // Wiggle animation
+                setJustClickedId(f.id);
+                setTimeout(() => setJustClickedId(null), 350);
+                // Bubble burst
+                if (pos) {
+                  const bubbles = Array.from({ length: 4 }, (_, i) => ({
+                    id: `cb-${f.id}-${Date.now()}-${i}`,
+                    x: pos.x + (Math.random() - 0.5) * 6,
+                    y: pos.y + (Math.random() - 0.5) * 4,
+                    size: 3 + Math.random() * 5,
+                    dur: 0.5 + Math.random() * 0.5,
+                    rise: -15 - Math.random() * 25,
+                  }));
+                  setClickBubbles(prev => [...prev.slice(-8), ...bubbles]);
+                  setTimeout(() => setClickBubbles(prev => prev.filter(b => !bubbles.some(nb => nb.id === b.id))), 1200);
+                }
+              }}>
               <div className={`fish-anim-inner ${animClass}`}
                    data-species={f.species?.key || undefined}>
                 <FishSprite fish={f} size={spriteSize} flipped={pos.flipped} selected={isSelected}/>
@@ -874,7 +919,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
 
               {/* Hover tooltip */}
               {isHovered && (
-                <div className={`fish-tooltip fish-tooltip--${tooltipSide}`}>
+                <div className={`fish-tooltip fish-tooltip--${tooltipSide} ${tooltipVert}`}>
                   <div className="fish-tooltip-name">{f.species?.name || 'Unknown'}</div>
                   <div className="fish-tooltip-row">
                     <span>❤</span>
@@ -972,6 +1017,39 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
             {Array.from({ length: 6 }, (_, i) => (
               <div key={i} className={`sparkle-particle sparkle-${i}`}/>
             ))}
+          </div>
+        ))}
+
+        {/* ── Sale coin shower ────────────────────────── */}
+        {coinShowers.map(s => (
+          <div key={s.id} className="coin-shower" style={{ left: `${s.x}%`, top: `${s.y}%` }}>
+            {Array.from({ length: 10 }, (_, i) => (
+              <span key={i} className="coin-shower-piece" style={{
+                '--drift': `${(Math.random() - 0.5) * 50}px`,
+                '--drop': `${30 + Math.random() * 50}px`,
+                '--spin': `${Math.random() * 360}deg`,
+                '--fall-dur': `${0.6 + Math.random() * 0.6}s`,
+                animationDelay: `${i * 0.04}s`,
+              }}>🪙</span>
+            ))}
+          </div>
+        ))}
+
+        {/* ── Sale speech bubbles ─────────────────────── */}
+        {speechBubbles.map(s => (
+          <div key={s.id} className="sale-speech-bubble" style={{ left: `${s.x}%`, top: `${s.y}%` }}>
+            {s.text}
+          </div>
+        ))}
+
+        {/* ── Fish click bubble burst ────────────────── */}
+        {clickBubbles.map(b => (
+          <div key={b.id} className="fish-click-bubbles" style={{ left: `${b.x}%`, top: `${b.y}%` }}>
+            <span className="fish-click-bubble" style={{
+              '--bsize': `${b.size}px`,
+              '--bdur': `${b.dur}s`,
+              '--brise': `${b.rise}px`,
+            }} />
           </div>
         ))}
 

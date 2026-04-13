@@ -20,3 +20,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </ErrorBoundary>
   </React.StrictMode>,
 );
+
+// ── Crashproofing: Global error handlers ──────────────────
+window.onerror = (msg, src, line, col, err) => {
+  console.error('[Global]', msg, src, line, err);
+  return false; // let default handler run too
+};
+window.onunhandledrejection = (e) => {
+  console.error('[Unhandled Promise]', e.reason);
+};

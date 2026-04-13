@@ -127,6 +127,7 @@ function CoinDisplay({ value }) {
   const [flash, setFlash]         = useState(null); // 'up' | 'down' | null
   const prevRef = useRef(value);
   const rafRef  = useRef(null);
+  const lastDiffRef = useRef(0);
 
   useEffect(() => {
     const prev = prevRef.current;
@@ -134,6 +135,7 @@ function CoinDisplay({ value }) {
     const diff = value - prev;
     if (diff === 0) return;
 
+    lastDiffRef.current = diff;
     setFlash(diff > 0 ? 'up' : 'down');
     const flashTimer = setTimeout(() => setFlash(null), 900);
 
@@ -158,10 +160,14 @@ function CoinDisplay({ value }) {
     };
   }, [value]);
 
+  const bumpClass = flash === 'up'
+    ? (lastDiffRef.current >= 200 ? ' hud2-coin-val--mega-bump' : ' hud2-coin-val--bump')
+    : '';
+
   return (
     <div className={`hud2-coin ${flash ? `hud2-coin--${flash}` : ''}`}>
       <span className="hud2-coin-icon">🪙</span>
-      <span className="hud2-coin-val">{displayed.toLocaleString()}</span>
+      <span className={`hud2-coin-val${bumpClass}`}>{displayed.toLocaleString()}</span>
     </div>
   );
 }

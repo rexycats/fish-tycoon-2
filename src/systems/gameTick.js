@@ -138,6 +138,32 @@ const EARLY_EVENTS = [
       return state;
     },
   },
+  {
+    id: 'geneticsHint',
+    afterSecs: 600,          // 10 minutes in
+    condition: (state) => state.fish.some(f => f.genome),
+    fire: (state, messages) => {
+      messages.push({ message: `🧬 Tip: Open a fish's Genetics panel to see its Chromacode — the colored DNA bar reveals hidden recessive traits!`, severity: 'info' });
+      return state;
+    },
+  },
+  {
+    id: 'purityHint',
+    afterSecs: 1200,         // 20 minutes in
+    condition: (state) => state.fish.filter(f => f.stage === 'adult').length >= 3,
+    fire: (state, messages) => {
+      messages.push({ message: `✨ Tip: Fish with matching alleles (pure genes) are worth more. Breed carriers of the same trait to purify a lineage!`, severity: 'info' });
+      return state;
+    },
+  },
+  {
+    id: 'mutationHint',
+    afterSecs: 2400,         // 40 minutes in
+    fire: (state, messages) => {
+      messages.push({ message: `🔮 A strange shimmer passes through the tank. Some say rare mutations can be bred with the right combination of parents...`, severity: 'info' });
+      return state;
+    },
+  },
 ];
 
 // --- RATES (per real second) ---
@@ -479,6 +505,15 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
     supplies,
   };
 
+  // Sanitize NaN — prevents corruption from propagating
+  for (const f of updatedTankFish) {
+    if (!Number.isFinite(f.health)) f.health = 50;
+    if (!Number.isFinite(f.hunger)) f.hunger = 0;
+    if (!Number.isFinite(f.age)) f.age = 0;
+  }
+  if (!Number.isFinite(updatedTank.waterQuality)) updatedTank.waterQuality = 80;
+  if (!Number.isFinite(updatedTank.temperature)) updatedTank.temperature = 74;
+
   return { updatedTank, updatedTankFish };
 }
 
@@ -632,6 +667,14 @@ export function updateChallengeProgress(state, eventType, payload = {}) {
 export function processTick(state) {
   // Guard against corrupt state — should never happen but prevents a total crash
   if (!state || !Array.isArray(state.fish) || !Array.isArray(state.tanks)) return state;
+  // Defensive defaults for fields that might be missing on corrupted/old state
+  if (!state.player) return state;
+  if (!Number.isFinite(state.player.coins)) state.player.coins = 0;
+  if (!Number.isFinite(state.player.xp)) state.player.xp = 0;
+  if (!state.shop) state.shop = { listedFish: [], fishPrices: {}, slots: 4, upgrades: {}, lastCustomerAt: 0, reputation: 0 };
+  if (!state.breedingTank) state.breedingTank = { slots: [null, null], eggReady: false, breedingStartedAt: null };
+  if (!state.wantedPosters) state.wantedPosters = [];
+  if (!state.memorials) state.memorials = [];
   try {
   let next = { ...state };
   const messages = [];
@@ -1003,12 +1046,29 @@ export function processTick(state) {
 
 
 
+  // Array size safety caps — prevent unbounded memory growth
+  if (next.fish.length > 200) {
+    console.warn(`[Tick] Fish array capped: ${next.fish.length} → 200`);
+    next.fish = next.fish.slice(0, 200);
+  }
+  if (next.memorials && next.memorials.length > 50) next.memorials.length = 50;
+  if (next.wantedPosters && next.wantedPosters.length > 20) next.wantedPosters.length = 20;
+
+  _tickCrashCount = 0; // Reset on success
   return { ...next, lastTickAt: now };
   } catch (err) {
-    console.error('[GameTick] Tick crashed — returning previous state:', err);
+    _tickCrashCount = (_tickCrashCount || 0) + 1;
+    if (_tickCrashCount <= 3) {
+      console.error(`[GameTick] Tick crashed (${_tickCrashCount}/3) — returning previous state:`, err);
+    }
+    if (_tickCrashCount >= 10) {
+      console.error('[GameTick] 10+ consecutive crashes — pausing tick to prevent freeze');
+      return { ...state, paused: true };
+    }
     return state; // Return unchanged state instead of crashing
   }
 }
+let _tickCrashCount = 0;
 // ============================================================
 // CUSTOMER
 // ============================================================
@@ -1115,7 +1175,22 @@ function processCustomerVisit(state, messages) {
     priceNote = ` (bargain price!)`;
   }
 
-  const greeting = customer.greetings?.[Math.floor(Math.random() * customer.greetings.length)] || '';
+  let greeting = customer.greetings?.[Math.floor(Math.random() * customer.greetings.length)] || '';
+
+  // Feature 8: Occasional mutation recipe hints from customers (~8% chance)
+  const CUSTOMER_HINTS = [
+    "I heard if you breed two glowing fish, something magical happens to their offspring...",
+    "A friend told me — breed two Albinos near an Ultraviolet fish, and you might see crystal...",
+    "Some say Melanistic pairs bred at night produce fish that contain the stars themselves.",
+    "I once saw a fish with a rainbow shimmer. The breeder said both parents had glowing genes.",
+    "They call it the Phoenix mutation. Something about mixing rare mutants with purebred stock...",
+    "My cousin breeds fish. She says purity matters — purebred fish are worth triple!",
+    "Have you tried breeding for specific traits? Check those recessive genes carefully!",
+    "The rarest fish in the world have every gene perfected. Seven out of seven, pure.",
+  ];
+  if (Math.random() < 0.08) {
+    greeting = CUSTOMER_HINTS[Math.floor(Math.random() * CUSTOMER_HINTS.length)];
+  }
 
   // ── Interactive haggling: ~25% of eligible customers trigger a popup ──
   // Only if no pending haggle already and the customer type haggles

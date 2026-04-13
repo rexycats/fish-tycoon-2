@@ -26,6 +26,7 @@ import {
 import { breedGenomes, createFish, computePhenotype, getSpeciesFromPhenotype } from '../data/genetics.js';
 import { getDiseaseStage, CURE_SUCCESS_RATE, DISEASES } from '../systems/gameTick.js';
 import { canPrestige as _canPrestige, performPrestige as _performPrestige } from '../data/prestige.js';
+import { canAscend, performAscension, buyUnlock, hasUnlock, getCoralReward, CORAL_SHOP } from '../data/ascension.js';
 import { REAL_SPECIES_MAP } from '../data/realSpecies.js';
 import { DECOR_CATALOG, TANK_THEMES } from '../data/decorations.js';
 import { fireToast } from '../components/ToastManager.jsx';
@@ -39,6 +40,7 @@ import { checkNearMiss, getStreakMultiplier, getStreakLabel } from '../data/rete
 import {
   playCoin, playBubble, playFeed, playBreed, playWarning,
   playDiscover, playSale, setSoundEnabled,
+  playSaleScaled, playDiscoverScaled, playCoinScaled, playAscension,
   playClick, playTabSwitch, playDeath, playSick, playLevelUp, playSplash,
 } from '../services/soundService.js';
 
@@ -99,27 +101,57 @@ function getInitSave() {
 }
 
 function buildInitialState() {
+  // Recovery mode: ?safe=1 skips offline progress
+  const isRecovery = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('safe') === '1';
+  if (isRecovery) console.warn('[Recovery Mode] Skipping offline progress');
+
   const saved = getInitSave();
-  let g = saved ? applyOfflineProgress(saved) : createDefaultState();
-  g = refreshDailyChallenges(g);
-  g = refreshMarket(g);
+  let g;
+  if (!saved) {
+    g = createDefaultState();
+  } else if (isRecovery) {
+    g = saved; // Skip applyOfflineProgress in recovery mode
+  } else {
+    try {
+      g = applyOfflineProgress(saved);
+    } catch (err) {
+      console.error('[Init] applyOfflineProgress crashed, using raw save:', err);
+      g = saved;
+    }
+  }
+  try { g = refreshDailyChallenges(g); } catch { /* non-fatal */ }
+  try { g = refreshMarket(g); } catch { /* non-fatal */ }
   return g;
 }
 
 // ============================================================
 // HELPERS — reduce repeated lookups in store actions
 // ============================================================
-function findFish(state, fishId) { return fishId ? findFish(state, fishId) : null; }
-function findTank(state, tankId) { return tankId ? findTank(state, tankId) : null; }
+function findFish(state, fishId) { return fishId ? state.fish.find(f => f.id === fishId) : null; }
+function findTank(state, tankId) { return tankId ? state.tanks.find(t => t.id === tankId) : null; }
 function fishTank(state, fish) { return fish?.tankId ? findTank(state, fish.tankId) : null; }
+function removeFishFromBreedSlots(state, fishId) {
+  if (state.breedingTank?.slots) {
+    state.breedingTank.slots = state.breedingTank.slots.map(s => s === fishId ? null : s);
+  }
+  for (const bay of (state.extraBays || [])) {
+    if (bay?.slots) bay.slots = bay.slots.map(s => s === fishId ? null : s);
+  }
+}
 
 // ============================================================
 // STORE
 // ============================================================
 export const useGameStore = create(
   subscribeWithSelector(
-    immer((set, get) => {
+    immer((_rawSet, get) => {
       const initial = buildInitialState();
+
+      // Crashproof wrapper — catches errors in ALL store mutations
+      const set = (fnOrObj) => {
+        try { _rawSet(fnOrObj); }
+        catch (err) { console.error('[Store] Mutation crashed:', err); }
+      };
 
       return {
         // ── Game state (flat — same shape as before) ──────────
@@ -140,7 +172,10 @@ export const useGameStore = create(
           const state = get();
           if (state.paused) return;
           try {
+            const t0 = performance.now();
             set(processTick(state));
+            const dt = performance.now() - t0;
+            if (dt > 50) console.warn(`[Perf] Tick took ${dt.toFixed(1)}ms (>50ms threshold)`);
           } catch (err) {
             console.error('[Store] Tick set failed:', err);
           }
@@ -650,6 +685,16 @@ export const useGameStore = create(
             bt.slots = bt.slots.map(s => s === fishId ? null : s);
             return;
           }
+          // Check if fish is already in another bay
+          const allBays = [state.breedingTank, ...(state.extraBays || [])];
+          for (let i = 0; i < allBays.length; i++) {
+            if (i === bayIndex) continue;
+            if (allBays[i]?.slots?.includes(fishId)) {
+              playWarning();
+              addLogDraft(state, '⚠️ That fish is already in another breeding bay!');
+              return;
+            }
+          }
           const emptyIdx = bt.slots.indexOf(null);
           if (emptyIdx === -1) return;
           bt.slots[emptyIdx] = fishId;
@@ -743,7 +788,7 @@ export const useGameStore = create(
 
           playCoin();
           if (eggsToCreate === 3) {
-            playDiscover();
+            playDiscoverScaled("rare");
             addLogDraft(state, `🥚🥚🥚 Triplets! Collected 3 eggs!`);
           } else if (eggsToCreate === 2) {
             addLogDraft(state, `🥚🥚 Twins! Collected 2 eggs!`);
@@ -909,7 +954,7 @@ export const useGameStore = create(
           const reward = 25 + streak * 10;
           state.player.coins += reward;
           addXp(state, 10, 'daily');
-          playCoin();
+          playCoinScaled(reward);
 
           const mult = getStreakMultiplier(streak);
           const label = getStreakLabel(streak);
@@ -946,7 +991,7 @@ export const useGameStore = create(
             state.player.totalCoinsEarned = (state.player.totalCoinsEarned || 0) + m.reward.coins;
           }
           addXp(state, 30, 'milestone');
-          playCoin();
+          playCoinScaled(m.reward?.coins || 50);
           addLogDraft(state, `🏆 Milestone: ${m.title}! ${m.reward?.coins ? '+🪙' + m.reward.coins : ''}`);
           // Trigger full-screen celebration
           state._pendingCelebration = {
@@ -968,15 +1013,17 @@ export const useGameStore = create(
           // Remove the fish (delivered to buyer)
           state.fish = state.fish.filter(f => f.id !== fishId);
           state.shop.listedFish = (state.shop.listedFish || []).filter(id => id !== fishId);
-          playCoin();
-          playDiscover();
+          removeFishFromBreedSlots(state, fishId);
+          playCoinScaled(poster.reward);
+          playDiscoverScaled("uncommon");
           addXp(state, 30, 'wanted');
           addLogDraft(state, `📋 Bounty fulfilled! Delivered ${fish.species?.name || 'fish'} to ${poster.buyer} for 🪙${poster.reward}!`);
         }),
 
         refreshWantedBoard: () => set(state => {
+          if (!state.wantedPosters) state.wantedPosters = [];
           const level = Math.floor((state.player.xp || 0) / 500) + 1;
-          const active = (state.wantedPosters || []).filter(p => !p.fulfilled && p.expiresAt > Date.now());
+          const active = state.wantedPosters.filter(p => !p.fulfilled && p.expiresAt > Date.now());
           const maxPosters = Math.min(3, 1 + Math.floor(level / 8));
           while (active.length < maxPosters) {
             const poster = generateWantedPoster(level, active);
@@ -987,6 +1034,7 @@ export const useGameStore = create(
 
         // ── Micro-events ──────────────────────────────────
         claimMicroEvent: (eventId, coins, xp) => set(state => {
+          if (!state.player) return;
           state.player.coins += (coins || 0);
           if (xp) addXp(state, xp, 'micro');
           if (coins > 0) playCoin();
@@ -1134,8 +1182,8 @@ function startSalesWatcher() {
     (s) => (s.shop.salesHistory || []).length,
     (len) => {
       if (len > prevLen) {
-        playSale();
         const sale = useGameStore.getState().shop.salesHistory[0];
+        playSaleScaled(sale?.coins || 0);
         if (sale) fireToast(`Sold ${sale.fishName} for 🪙${sale.coins}!`, 'sale', '💰');
       }
       prevLen = len;
@@ -1152,7 +1200,7 @@ function startAchSoundWatcher() {
     (s) => (s.player.achievements || []).length,
     (len) => {
       if (len > prevLen) {
-        playDiscover();
+        playDiscoverScaled("uncommon");
         const achs = useGameStore.getState().player.achievements || [];
         for (let i = prevLen; i < len; i++) {
           const ach = achs[i];

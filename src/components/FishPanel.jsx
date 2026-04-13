@@ -1,6 +1,8 @@
 import React, { memo, useState, useEffect, useRef } from 'react';
 import FishSprite from './FishSprite.jsx';
-import { RARITY, GENES } from '../data/genetics.js';
+import Chromacode from './Chromacode.jsx';
+import { RARITY, GENES, getCarrierTraits, checkLegendaryCombo } from '../data/genetics.js';
+import { purityTier, getHiddenAllele, GENE_ORDER } from '../data/geneAnalysis.js';
 import { DISEASES, getMarketMultiplier, getDiseaseStage, CURE_SUCCESS_RATE } from '../systems/gameTick.js';
 import { useGameStore } from '../store/gameStore.js';
 
@@ -246,26 +248,75 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
       </div>
 
       {/* ── Step 8: Collapsible genetics ── */}
-      {hasGenetics && (
+      {hasGenetics && (() => {
+        const carriers = getCarrierTraits(fish.genome);
+        const legendary = checkLegendaryCombo(fish.phenotype);
+        return (
         <div className="fp-section fp-section--genetics">
           <button className="fp-section-header fp-section-header--toggle" onClick={() => setShowGenetics(v => !v)}>
             <span className="fp-section-icon">🧬</span>
             <span className="fp-section-title">Genetics</span>
+            {legendary && <span className="fp-legendary-badge">{legendary.emoji} {legendary.name}</span>}
             <span className="fp-toggle-arrow">{showGenetics ? '▲' : '▼'}</span>
           </button>
           {showGenetics && (
-            <div className="fp-section-body fp-gene-grid">
-              {Object.entries(fish.phenotype).map(([gene, expressed]) => (
-                <div key={gene} className="fp-gene-row">
-                  <span className="fp-gene-name">{GENES[gene]?.name}</span>
-                  <span className="fp-gene-val">{expressed}</span>
-                  <span className="fp-gene-raw">{fish.genome[gene]?.join('') ?? '??'}</span>
+            <div className="fp-section-body">
+              {/* Chromacode visual DNA bar */}
+              <Chromacode genome={fish.genome} showLabels={true} />
+
+              {/* DNA Card — allele dots */}
+              <div className="fp-dna-card">
+                {Object.entries(GENES).map(([geneKey, geneData]) => {
+                  if (!fish.genome[geneKey]) return null;
+                  const [a1, a2] = fish.genome[geneKey];
+                  const allele1 = geneData.alleles[a1];
+                  const allele2 = geneData.alleles[a2];
+                  if (!allele1 || !allele2) return null;
+                  const d1 = allele1.dominant ?? 0;
+                  const d2 = allele2.dominant ?? 0;
+                  const expressed = d1 >= d2 ? allele1.name : allele2.name;
+                  const isHetero = a1 !== a2;
+                  return (
+                    <div key={geneKey} className="fp-dna-row">
+                      <span className="fp-dna-gene">{geneData.name}</span>
+                      <span className="fp-dna-expressed">{expressed}</span>
+                      <span className="fp-dna-alleles">
+                        <span className={`fp-dna-dot ${d1 >= d2 ? 'fp-dna-dot--dominant' : 'fp-dna-dot--recessive'}`}
+                              title={`${allele1.name} (${a1})`}>{a1}</span>
+                        <span className={`fp-dna-dot ${d2 > d1 ? 'fp-dna-dot--dominant' : 'fp-dna-dot--recessive'}`}
+                              title={`${allele2.name} (${a2})`}>{a2}</span>
+                      </span>
+                      {isHetero && <span className="fp-dna-hetero" title="Heterozygous">⚡</span>}
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Carrier tags */}
+              {carriers.length > 0 && (
+                <div className="fp-carriers">
+                  <div className="fp-carriers-label">Hidden traits (recessive):</div>
+                  <div className="fp-carriers-tags">
+                    {carriers.map((c, i) => (
+                      <span key={i} className="fp-carrier-tag" title={`This fish carries ${c.carried} for ${c.gene}, but expresses ${c.expressed}`}>
+                        🧬 {c.carried}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              )}
+              {/* Legendary combo badge */}
+              {legendary && (
+                <div className="fp-legendary-combo">
+                  <div className="fp-legendary-combo-name">{legendary.emoji} {legendary.name}</div>
+                  <div className="fp-legendary-combo-desc">{legendary.desc}</div>
+                  <div className="fp-legendary-combo-bonus">+{legendary.priceBonus}× sale value</div>
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {tanks.length > 1 && onMoveFish && (
         <div className="fp-move">

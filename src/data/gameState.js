@@ -6,7 +6,7 @@ import { createFish } from './genetics.js';
 import { getDefaultDecorations, getDefaultThemes } from './decorations.js';
 
 const SAVE_KEY     = 'fishtycoon2_save';
-const SAVE_VERSION = 7;
+const SAVE_VERSION = 8;
 
 // ── Tank types / purposes ──────────────────────────────────
 export const TANK_TYPES = {
@@ -383,6 +383,54 @@ function migrateSave(parsed, fromVersion) {
     };
   });
 
+  // Migrate new features into old saves
+  if (!parsed.wantedPosters) parsed.wantedPosters = [];
+  if (!parsed.memorials) parsed.memorials = [];
+  if (!parsed.lastMicroEventAt) parsed.lastMicroEventAt = 0;
+  // Add generation field to existing fish
+  if (parsed.fish) {
+    parsed.fish = parsed.fish.map(f => ({
+      generation: 1,
+      ...f,
+      // Validate genome structure — fill missing genes with random alleles
+      genome: (() => {
+        if (!f.genome || typeof f.genome !== 'object') return f.genome;
+        const GENE_KEYS = ['bodyShape','finType','pattern','primaryColor','secondaryColor','glow','size','mutation'];
+        for (const g of GENE_KEYS) {
+          if (!f.genome[g] || !Array.isArray(f.genome[g]) || f.genome[g].length !== 2) {
+            f.genome[g] = ['N','N']; // safe default
+          }
+        }
+        return f.genome;
+      })(),
+      // Sanitize numeric fields
+      health: Number.isFinite(f.health) ? f.health : 100,
+      hunger: Number.isFinite(f.hunger) ? f.hunger : 0,
+      age: Number.isFinite(f.age) ? f.age : 0,
+    }));
+  }
+
+  // Validate fish genomes — remove fish with corrupted/missing critical fields
+  if (parsed.fish) {
+    parsed.fish = parsed.fish.filter(f => {
+      if (!f || !f.id) return false;
+      if (f.genome && typeof f.genome !== 'object') { f.genome = null; f.phenotype = null; f.species = null; }
+      if (!Number.isFinite(f.health)) f.health = 100;
+      if (!Number.isFinite(f.hunger)) f.hunger = 0;
+      return true;
+    });
+    // Cap fish array at 200 to prevent memory issues
+    if (parsed.fish.length > 200) parsed.fish.length = 200;
+  }
+
+  // Cap arrays to prevent unbounded growth
+  if (parsed.memorials?.length > 50) parsed.memorials.length = 50;
+  if (parsed.wantedPosters?.length > 20) parsed.wantedPosters.length = 20;
+  if (parsed.log?.length > 60) parsed.log.length = 60;
+  if (parsed.reviews?.length > 10) parsed.reviews.length = 10;
+  if (parsed.player?.autopsies?.length > 100) parsed.player.autopsies.length = 100;
+  if (parsed.player?.fishdex?.length > 500) parsed.player.fishdex.length = 500;
+
   parsed.version = SAVE_VERSION;
   return parsed;
 }
@@ -407,7 +455,26 @@ function cleanStateForSave(state) {
 export function saveGame(state) {
   try {
     const cleanState = cleanStateForSave(state);
+    // Sanitize NaN/Infinity in critical numeric fields
+    if (cleanState.player) {
+      if (!Number.isFinite(cleanState.player.coins)) cleanState.player.coins = 0;
+      if (!Number.isFinite(cleanState.player.xp)) cleanState.player.xp = 0;
+    }
+    if (cleanState.fish) {
+      for (const f of cleanState.fish) {
+        if (!Number.isFinite(f.health)) f.health = 100;
+        if (!Number.isFinite(f.hunger)) f.hunger = 0;
+        if (!Number.isFinite(f.age)) f.age = 0;
+        if (!Number.isFinite(f.x)) f.x = 50;
+        if (!Number.isFinite(f.y)) f.y = 50;
+      }
+    }
     const json = JSON.stringify(cleanState);
+    // Rotate backup — keep previous save in case current one corrupts
+    try {
+      const prev = localStorage.getItem(SAVE_KEY);
+      if (prev) localStorage.setItem(SAVE_KEY + '_backup', prev);
+    } catch { /* quota exceeded on backup is non-fatal */ }
     // Always save to localStorage (fast, synchronous)
     localStorage.setItem(SAVE_KEY, json);
     // Also save to filesystem in Electron (async, fire-and-forget)
@@ -422,12 +489,28 @@ export function saveGame(state) {
 
 export function loadGame() {
   try {
-    // In Electron, prefer filesystem save (loaded synchronously at startup
-    // via the preload — electronAPI.loadGame() is async but we call it
-    // during init and cache the result). For now, fall back to localStorage.
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw);
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      // Main save corrupted — try backup
+      console.warn('Main save corrupted, trying backup...');
+      const backup = localStorage.getItem(SAVE_KEY + '_backup');
+      if (!backup) return null;
+      parsed = JSON.parse(backup);
+    }
+    // Validate minimum structure
+    if (!parsed || !parsed.player || !Array.isArray(parsed.fish)) {
+      console.warn('Save missing required fields, trying backup...');
+      const backup = localStorage.getItem(SAVE_KEY + '_backup');
+      if (backup) {
+        const backupParsed = JSON.parse(backup);
+        if (backupParsed?.player && Array.isArray(backupParsed?.fish)) parsed = backupParsed;
+        else return null;
+      } else return null;
+    }
     const fromVersion = parsed.version ?? 0;
     if (fromVersion !== SAVE_VERSION) {
       console.warn(`Migrating save from v${fromVersion} → v${SAVE_VERSION}`);

@@ -29,6 +29,9 @@ import TitleScreen    from './components/TitleScreen.jsx';
 import Credits        from './components/Credits.jsx';
 import HatchReveal    from './components/HatchReveal.jsx';
 import WantedBoard    from './components/WantedBoard.jsx';
+import GeneJournal    from './components/GeneJournal.jsx';
+import TabErrorBoundary from './components/TabErrorBoundary.jsx';
+import DiscoveryCeremony from './components/DiscoveryCeremony.jsx';
 import { TUTORIAL_STEPS } from './data/tutorial.js';
 
 import { useGameStore } from './store/gameStore.js';
@@ -135,6 +138,7 @@ export default function App() {
   const [showSettings, setShowSettings]   = useState(false);
   const [hatchRevealFish, setHatchRevealFish] = useState(null);
   const [celebration, setCelebration] = useState(null);
+  const [discoverySpecies, setDiscoverySpecies] = useState(null);
   const saveFlash = useGameStore(s => s._saveFlash);
   const paused = useGameStore(s => s.paused);
   const togglePause = useGameStore(s => s.togglePause);
@@ -211,6 +215,20 @@ export default function App() {
     return unsub;
   }, []);
 
+  // ── Discovery ceremony ──────────────────────────────────
+  useEffect(() => {
+    const unsub = useGameStore.subscribe(
+      s => s._pendingDiscovery,
+      (species) => {
+        if (species) {
+          setDiscoverySpecies(species);
+          useGameStore.setState({ _pendingDiscovery: null });
+        }
+      }
+    );
+    return unsub;
+  }, []);
+
   // ── Start music on first click ─────────────────────────
   useEffect(() => {
     const start = () => { if (!isMusicPlaying()) startMusic(); document.removeEventListener('click', start); };
@@ -281,16 +299,17 @@ export default function App() {
       <ToastManager />
 
       <div className="coin-delta-portal">
-        {coinDeltas.map(({ id, diff }) => (
+        {coinDeltas.map(({ id, diff, tier }) => (
           <span
             key={id}
-            className={`coin-delta coin-delta--${diff > 0 ? 'up' : 'down'} coin-delta--arc`}
+            className={`coin-delta coin-delta--${diff > 0 ? 'up' : 'down'} coin-delta--arc coin-delta--${tier || 'small'}`}
             style={{ '--arc-dir': diff > 0 ? '1' : '-1' }}
           >
             {diff > 0 ? '🪙 +' : ''}{diff.toLocaleString()}
           </span>
         ))}
       </div>
+      {coinDeltas.some(d => d.tier === 'mega') && <div className="coin-vignette" key={`vig-${coinDeltas[0]?.id}`} />}
 
       {showOffline && offlineSummary && (
         <OfflineSummary summary={offlineSummary} onDismiss={dismissOffline} />
@@ -413,16 +432,16 @@ export default function App() {
           </>
         )}
         {activeTab === 'challenges' && (
-          <div className="tab-content-scroll">
+          <TabErrorBoundary name="challenges"><div className="tab-content-scroll">
             <GoalsPanel />
             <WantedBoard />
             <FishShowPanel />
             <CatchOfDayPanel />
             <DailyChallengesPanel dailyChallenges={dailyChallenges} streak={player.challengeStreak || 0} />
-          </div>
+          </div></TabErrorBoundary>
         )}
         {activeTab === 'shop' && (
-          <div className="tab-content-scroll">
+          <TabErrorBoundary name="shop"><div className="tab-content-scroll">
           <MemoShop
             game={game}
             activeTank={activeTank}
@@ -434,10 +453,10 @@ export default function App() {
             onBuyRareItem={buyRareMarketItem}
             onNavigate={handleTabChange}
           />
-          </div>
+          </div></TabErrorBoundary>
         )}
         {activeTab === 'breed' && (
-          <div className="tab-content-scroll">
+          <TabErrorBoundary name="breed"><div className="tab-content-scroll">
           <MemoBreedingLab
             fish={fish}
             breedingTank={breedingTank}
@@ -448,10 +467,11 @@ export default function App() {
             onCancelBreeding={cancelBreeding}
             onNavigate={handleTabChange}
           />
-          </div>
+          </div></TabErrorBoundary>
         )}
         {activeTab === 'fishdex' && (
           <div className="tab-content-scroll">
+          <TabErrorBoundary name="fishdex">
           <MemoFishdex
             fishdex={player.fishdex || []}
             onGenerateLore={handleGenerateLore}
@@ -459,6 +479,8 @@ export default function App() {
             aiError={aiError}
             legendFishUnlocked={!!player.legendFishUnlocked}
           />
+          <GeneJournal />
+          </TabErrorBoundary>
           </div>
         )}
         {activeTab === 'achieve' && (
@@ -514,6 +536,14 @@ export default function App() {
         <HatchReveal
           fish={hatchRevealFish}
           onComplete={() => setHatchRevealFish(null)}
+        />
+      )}
+
+      {/* Discovery ceremony overlay */}
+      {discoverySpecies && (
+        <DiscoveryCeremony
+          species={discoverySpecies}
+          onDismiss={() => setDiscoverySpecies(null)}
         />
       )}
 

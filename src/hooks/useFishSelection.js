@@ -4,7 +4,7 @@ import { updateChallengeProgress } from '../systems/gameTick.js';
 import { MAGIC_FISH, checkMagicFishMatch } from '../data/genetics.js';
 import { REAL_SPECIES_MAP } from '../data/realSpecies.js';
 import { generateFishName, generateFishLore } from '../services/aiService.js';
-import { playDiscover } from '../services/soundService.js';
+import { playDiscoverScaled } from '../services/soundService.js';
 import { useGameStore } from '../store/gameStore.js';
 
 /**
@@ -71,6 +71,10 @@ export function useFishSelection() {
       for (const e of newEntries) {
         addLogDraft(state, `📖 New species: ${e.name}! (${e.rarity})`);
       }
+      // Queue the first discovery for the ceremony overlay
+      if (newEntries.length > 0) {
+        state._pendingDiscovery = newEntries[0];
+      }
       const afterChallenge = updateChallengeProgress(state, 'discover');
       Object.assign(state, afterChallenge);
 
@@ -97,7 +101,7 @@ export function useFishSelection() {
     });
 
     for (const entry of newEntries) {
-      playDiscover();
+      playDiscoverScaled(entry.rarity);
       generateFishName(entry.phenotype, entry.rarity, entry.name).then(aiName => {
         if (aiName) updateFishdexEntry(entry.name, { aiName });
       });

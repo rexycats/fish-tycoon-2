@@ -2,6 +2,8 @@
 // HATCH REVEAL — Gacha-style trait reveal system
 // ============================================================
 
+import { checkLegendaryCombo } from '../data/genetics.js';
+
 /**
  * Creates a reveal sequence from a hatched fish.
  * Each trait is revealed one at a time with escalating drama.
@@ -9,20 +11,25 @@
 
 const TRAIT_RARITY = {
   // Body shapes
-  Round: 'common', Slender: 'common', Orb: 'uncommon', Delta: 'uncommon', Eel: 'rare',
-  // Colors  
-  Azure: 'common', Emerald: 'common', White: 'common',
-  Crimson: 'uncommon', Gold: 'uncommon', Violet: 'rare',
+  Orb: 'common', Round: 'common', Delta: 'uncommon', Slender: 'uncommon', Eel: 'rare',
+  // Fin types
+  Veil: 'common', Flowing: 'common', Broad: 'uncommon', Angular: 'uncommon', Nub: 'rare',
   // Patterns
-  Solid: 'common', Striped: 'common', Spotted: 'uncommon',
-  Marbled: 'uncommon', Gradient: 'rare',
+  Marble: 'common', Spotted: 'uncommon', Tiger: 'uncommon', Lined: 'uncommon', Plain: 'common',
+  // Primary colors
+  Crimson: 'uncommon', Gold: 'uncommon', Violet: 'rare', Azure: 'common', Emerald: 'common', White: 'rare',
+  // Secondary colors
+  Orange: 'common', Rose: 'uncommon', Teal: 'common', Indigo: 'uncommon', Silver: 'rare',
   // Glow
-  Normal: 'common', Faint: 'uncommon', Bright: 'rare', Ultraviolet: 'epic',
+  Normal: 'common', Luminous: 'uncommon', Radiant: 'rare', Ultraviolet: 'epic',
   // Size
-  Small: 'common', Medium: 'common', Large: 'uncommon', Giant: 'rare',
-  // Mutations
-  None: 'common', Albino: 'rare', Melanistic: 'rare', Iridescent: 'epic',
-  'Double Tail': 'rare', Elongated: 'uncommon', Transparent: 'epic',
+  Leviathan: 'epic', Giant: 'rare', Medium: 'common', Tiny: 'uncommon', Dwarf: 'rare',
+  // Mutations (Tier 1)
+  None: 'common', Albino: 'rare', Melanistic: 'rare', Xanthic: 'rare', 'Twin-tail': 'rare', Starfish: 'rare',
+  // Mutations (Tier 2)
+  Iridescent: 'epic', Bioluminescent: 'epic',
+  // Mutations (Tier 3)
+  Crystalline: 'legendary', Void: 'legendary', Phoenix: 'legendary',
 };
 
 const RARITY_DRAMA = {
@@ -51,11 +58,11 @@ export function createRevealSequence(fish) {
     label: 'Color', value: ph.primaryColor,
     rarity: TRAIT_RARITY[ph.primaryColor] || 'common',
   });
-  if (ph.pattern && ph.pattern !== 'Solid') traits.push({
+  if (ph.pattern && ph.pattern !== 'Plain') traits.push({
     label: 'Pattern', value: ph.pattern,
     rarity: TRAIT_RARITY[ph.pattern] || 'common',
   });
-  if (ph.finType && ph.finType !== 'Standard') traits.push({
+  if (ph.finType) traits.push({
     label: 'Fin Type', value: ph.finType,
     rarity: TRAIT_RARITY[ph.finType] || 'common',
   });
@@ -98,6 +105,7 @@ export function createRevealSequence(fish) {
     totalDuration: steps.reduce((sum, s) => sum + s.drama.delay, 0) + (finalReveal.drama.delay || 1000) + 2000,
     estimatedValue: fish.species?.basePrice || 50,
     speciesName: fish.species?.name || 'Unknown Species',
+    legendaryCombo: checkLegendaryCombo(fish.phenotype),
     personality: fish.personality,
     parentIds: fish.parentIds || [],
     generation: fish.generation || 1,

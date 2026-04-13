@@ -3,6 +3,7 @@
 // ============================================================
 
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import BreedingForecast from './BreedingForecast.jsx';
 import { predictOffspringPhenotypes, RARITY, GENES, expressGene } from '../data/genetics.js';
 
 // ── Per-gene Punnett square probabilities ──────────────────
@@ -335,9 +336,9 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
           </div>
         )}
 
-        {/* Per-gene trait inheritance breakdown */}
+        {/* Per-gene trait inheritance breakdown + carrier hints */}
         {canPredict && bothSelected && (
-          <TraitOddsGrid genomeA={fishA.genome} genomeB={fishB.genome} />
+          <BreedingForecast fishA={fishA} fishB={fishB} />
         )}
       </div>
 

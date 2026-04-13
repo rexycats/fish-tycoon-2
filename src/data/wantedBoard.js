@@ -4,8 +4,8 @@
 
 const COLORS = ['Crimson', 'Gold', 'Violet', 'Azure', 'Emerald', 'White'];
 const SHAPES = ['Round', 'Slender', 'Orb', 'Delta', 'Eel'];
-const PATTERNS = ['Spotted', 'Striped', 'Marbled', 'Gradient'];
-const GLOWS = ['Faint', 'Bright', 'Ultraviolet'];
+const PATTERNS = ['Spotted', 'Tiger', 'Marble', 'Lined'];
+const GLOWS = ['Luminous', 'Radiant', 'Ultraviolet'];
 
 const BUYER_NAMES = [
   'A wealthy collector', 'The royal aquarium', 'A marine biologist',

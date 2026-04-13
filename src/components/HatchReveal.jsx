@@ -117,8 +117,15 @@ export default function HatchReveal({ fish, onComplete }) {
                 <div className="hatch-final-stars">
                   {seq.finalReveal.value}
                 </div>
+                {seq.legendaryCombo && (
+                  <div className="hatch-legendary-combo">
+                    <span className="hatch-legendary-emoji">{seq.legendaryCombo.emoji}</span>
+                    <span className="hatch-legendary-name">{seq.legendaryCombo.name}</span>
+                    <span className="hatch-legendary-desc">{seq.legendaryCombo.desc}</span>
+                  </div>
+                )}
                 <div className="hatch-final-value">
-                  Est. Value: 🪙 {seq.estimatedValue}
+                  Est. Value: 🪙 {seq.legendaryCombo ? seq.estimatedValue * seq.legendaryCombo.priceBonus : seq.estimatedValue}
                 </div>
                 {seq.generation > 1 && (
                   <div className="hatch-final-gen">

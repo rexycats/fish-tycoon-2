@@ -299,3 +299,154 @@ export function playSplash() {
     src.start(c.currentTime);
   });
 }
+
+// ── JUICE LAYER: Scaled sound effects ──────────────────────
+
+let _lastSfxType = '';
+let _lastSfxTime = 0;
+
+function sfxThrottle(type) {
+  const now = Date.now();
+  if (type === _lastSfxType && now - _lastSfxTime < 50) return false;
+  _lastSfxType = type;
+  _lastSfxTime = now;
+  return true;
+}
+
+export function playSaleScaled(value) {
+  if (!sfxThrottle('sale')) return;
+  if (value >= 500) {
+    // Legendary sale — full chord + shimmer
+    playSfx((c, dest) => {
+      [660, 830, 990, 1320, 1580].forEach((freq, i) => {
+        const o = c.createOscillator(), g = c.createGain();
+        o.connect(g); g.connect(dest);
+        o.type = i < 3 ? 'sine' : 'triangle';
+        o.frequency.value = freq;
+        const t = c.currentTime + i * 0.06;
+        g.gain.setValueAtTime(0.12, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+        o.start(t); o.stop(t + 0.5);
+      });
+    });
+  } else if (value >= 200) {
+    // Big sale — 4-note arpeggio + ring
+    playSfx((c, dest) => {
+      [880, 1108, 1320, 1760].forEach((freq, i) => {
+        const o = c.createOscillator(), g = c.createGain();
+        o.connect(g); g.connect(dest);
+        o.type = 'sine'; o.frequency.value = freq;
+        const t = c.currentTime + i * 0.065;
+        g.gain.setValueAtTime(0.15, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+        o.start(t); o.stop(t + 0.35);
+      });
+    });
+  } else if (value >= 50) {
+    // Medium sale — ka-ching
+    playSale();
+  } else {
+    // Small sale — single ding
+    playSfx((c, dest) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(dest);
+      o.type = 'sine'; o.frequency.value = 880;
+      g.gain.setValueAtTime(0.1, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.2);
+      o.start(c.currentTime); o.stop(c.currentTime + 0.2);
+    });
+  }
+}
+
+export function playDiscoverScaled(rarity) {
+  if (!sfxThrottle('discover')) return;
+  const rarityNotes = {
+    common:    [[523, 659], 'triangle', 0.12, 0.3],
+    uncommon:  [[523, 659, 784], 'triangle', 0.14, 0.35],
+    rare:      [[523, 659, 784, 1047], 'triangle', 0.16, 0.4],
+    epic:      [[440, 554, 659, 880, 1047], 'sine', 0.18, 0.5],
+    legendary: [[392, 494, 587, 784, 988, 1175, 1568, 1976], 'sine', 0.15, 0.45],
+  };
+  const [notes, wave, vol, dur] = rarityNotes[rarity] || rarityNotes.common;
+  playSfx((c, dest) => {
+    notes.forEach((freq, i) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(dest);
+      o.type = wave; o.frequency.value = freq;
+      const t = c.currentTime + i * 0.1;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(vol, t + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      o.start(t); o.stop(t + dur);
+    });
+  });
+}
+
+export function playCoinScaled(amount) {
+  if (!sfxThrottle('coin')) return;
+  if (amount >= 500) {
+    playSfx((c, dest) => {
+      [660, 880, 1047, 1320, 1568].forEach((freq, i) => {
+        const o = c.createOscillator(), g = c.createGain();
+        o.connect(g); g.connect(dest);
+        o.type = 'sine'; o.frequency.value = freq;
+        const t = c.currentTime + i * 0.05;
+        g.gain.setValueAtTime(0.1, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+        o.start(t); o.stop(t + 0.3);
+      });
+    });
+  } else if (amount >= 100) {
+    playCoin();
+  } else {
+    playSfx((c, dest) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(dest);
+      o.type = 'sine'; o.frequency.value = 880;
+      g.gain.setValueAtTime(0.06, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.15);
+      o.start(c.currentTime); o.stop(c.currentTime + 0.15);
+    });
+  }
+}
+
+export function playFishSelect(rarity) {
+  if (!sfxThrottle('fishSelect')) return;
+  const freqs = {
+    common:    [600],
+    uncommon:  [600, 800],
+    rare:      [500, 700, 900],
+    epic:      [440, 660, 880],
+    legendary: [440, 554, 659, 880],
+  };
+  const notes = freqs[rarity] || freqs.common;
+  playSfx((c, dest) => {
+    notes.forEach((freq, i) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(dest);
+      o.type = notes.length > 2 ? 'triangle' : 'sine';
+      o.frequency.value = freq;
+      const t = c.currentTime + i * 0.06;
+      g.gain.setValueAtTime(0.08, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      o.start(t); o.stop(t + 0.18);
+    });
+  });
+}
+
+export function playAscension() {
+  playSfx((c, dest) => {
+    // Deep rising chord — ceremonial
+    [261, 329, 392, 523, 659, 784, 1047, 1318].forEach((freq, i) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(dest);
+      o.type = i < 4 ? 'sine' : 'triangle';
+      o.frequency.value = freq;
+      const t = c.currentTime + i * 0.15;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.12, t + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+      o.start(t); o.stop(t + 0.8);
+    });
+  });
+}

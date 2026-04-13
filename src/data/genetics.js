@@ -3,6 +3,12 @@
 // 400+ species via expanded gene system
 // ============================================================
 
+// Polyfill crypto.randomUUID for browsers without it (Safari <15.4, older Firefox)
+if (typeof crypto !== 'undefined' && !crypto.randomUUID) {
+  crypto.randomUUID = () => '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c =>
+    (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16));
+}
+
 export const GENES = {
   bodyShape: {
     name: 'Body Shape',
@@ -77,12 +83,19 @@ export const GENES = {
   mutation: {
     name: 'Mutation',
     alleles: {
-      N: { name: 'None',       dominant: 5 },
-      A: { name: 'Albino',     dominant: 4 },
-      M: { name: 'Melanistic', dominant: 3 },
-      X: { name: 'Xanthic',    dominant: 2 },
-      T: { name: 'Twin-tail',  dominant: 1 },
-      S: { name: 'Starfish',   dominant: 0 },
+      N: { name: 'None',          dominant: 10 },
+      A: { name: 'Albino',        dominant: 9 },
+      M: { name: 'Melanistic',    dominant: 8 },
+      X: { name: 'Xanthic',       dominant: 7 },
+      T: { name: 'Twin-tail',     dominant: 6 },
+      S: { name: 'Starfish',      dominant: 5 },
+      // Tier 2: Rare mutations
+      I: { name: 'Iridescent',    dominant: 4 },
+      L: { name: 'Bioluminescent',dominant: 3 },
+      // Tier 3: Legendary mutations (recipe-only)
+      C: { name: 'Crystalline',   dominant: 2 },
+      V: { name: 'Void',          dominant: 1 },
+      P: { name: 'Phoenix',       dominant: 0 },
     },
   },
 };
@@ -254,6 +267,7 @@ const ALLELE_RARITY_SCORES = {
   Normal: 1, Luminous: 10, Radiant: 18, Ultraviolet: 35,
   Leviathan: 8, Giant: 1, Medium: 1, Tiny: 2, Dwarf: 5,
   None: 1, Albino: 8, Melanistic: 8, Xanthic: 10, 'Twin-tail': 12, Starfish: 20,
+  Iridescent: 25, Bioluminescent: 28, Crystalline: 40, Void: 45, Phoenix: 50,
 };
 
 function computeRarityScore(phenotype) {
@@ -278,12 +292,31 @@ function basePriceFromScore(score, rarity) {
   return Math.round(base * mult);
 }
 
-export function getSpeciesFromPhenotype(phenotype) {
+export function getSpeciesFromPhenotype(phenotype, genome = null) {
   const key = phenotypeKey(phenotype);
-  const name = NAMED_SPECIES[key] || generateProceduralName(phenotype);
+  let name = NAMED_SPECIES[key] || generateProceduralName(phenotype, genome);
   const score = computeRarityScore(phenotype);
   const rarity = rarityFromScore(score);
-  const basePrice = basePriceFromScore(score, rarity);
+  let basePrice = basePriceFromScore(score, rarity);
+
+  // Purity price boost — only when genome is provided
+  // (Name suffix is already handled in generateProceduralName)
+  if (genome) {
+    let pureCount = 0, totalGenes = 0;
+    for (const g of Object.keys(GENES)) {
+      if (!genome[g]) continue;
+      totalGenes++;
+      if (genome[g][0] === genome[g][1]) pureCount++;
+    }
+    if (pureCount === totalGenes && totalGenes > 0) {
+      basePrice = Math.round(basePrice * 3);
+    } else if (pureCount >= 5) {
+      basePrice = Math.round(basePrice * 2);
+    } else if (pureCount >= 3) {
+      basePrice = Math.round(basePrice * 1.4);
+    }
+  }
+
   return { name, rarity, basePrice, rarityScore: score };
 }
 
@@ -343,7 +376,7 @@ const LEGENDARY_TITLES = [
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-function generateProceduralName(ph) {
+function generateProceduralName(ph, genome = null) {
   const glow = GLOWPFX[ph.glow] || '';
   const showSize = ph.size === 'Dwarf' || ph.size === 'Tiny' || ph.size === 'Giant' || ph.size === 'Leviathan';
   const size = showSize ? pick(SIZE_MOD[ph.size] || ['']) : '';
@@ -353,7 +386,41 @@ function generateProceduralName(ph) {
   const noun = pick(NOUN[ph.bodyShape] || ['Fish']);
   const showFin = (ph.finType === 'Veil' || ph.finType === 'Flowing') && Math.random() < 0.4;
   const fin = showFin ? pick(FIN_MOD[ph.finType] || ['']) : '';
-  const mut = (ph.mutation && ph.mutation !== 'None') ? ` (${ph.mutation})` : '';
+  // Mutation prefix replaces the old "(Mutation)" suffix
+  const MUTATION_PREFIX = {
+    Albino: ['Ghost ', 'Spectral ', 'Phantom '],
+    Melanistic: ['Void ', 'Shadow ', 'Obsidian '],
+    Xanthic: ['Solar ', 'Gilded ', 'Sunfire '],
+    'Twin-tail': ['Mirror ', 'Twin ', 'Gemini '],
+    Starfish: ['Star ', 'Astral ', 'Celestial '],
+    Iridescent: ['Prismatic ', 'Opal ', 'Chromatic '],
+    Bioluminescent: ['Abyssal ', 'Deepglow ', 'Noctis '],
+    Crystalline: ['Crystal ', 'Glass ', 'Diamond '],
+    Void: ['Cosmic ', 'Nebula ', 'Void '],
+    Phoenix: ['Ember ', 'Phoenix ', 'Eternal '],
+  };
+  const mutPrefix = (ph.mutation && ph.mutation !== 'None' && MUTATION_PREFIX[ph.mutation])
+    ? pick(MUTATION_PREFIX[ph.mutation])
+    : '';
+
+  // ── Purity suffix (Feature 5) ─────────────────────────
+  const PURITY_SUFFIX = [
+    null, null, null,       // 0-2 pure: no suffix
+    'the Refined',          // 3
+    'the Refined',          // 4
+    'the Pure',             // 5
+    'the Pure',             // 6
+    'the Perfected',        // 7
+    'the Perfected',        // 8
+  ];
+  let suffix = '';
+  if (genome) {
+    let pureCount = 0;
+    for (const gene of Object.keys(GENES)) {
+      if (genome[gene]?.[0] === genome[gene]?.[1]) pureCount++;
+    }
+    if (PURITY_SUFFIX[pureCount]) suffix = ' ' + PURITY_SUFFIX[pureCount];
+  }
 
   // Rare fish get dramatic title patterns
   const score = computeRarityScore(ph);
@@ -361,14 +428,14 @@ function generateProceduralName(ph) {
 
   if (rarity === 'legendary' && Math.random() < 0.7) {
     const titleFn = pick(LEGENDARY_TITLES);
-    return `${glow}${titleFn(adj, noun)}${mut}`.replace(/  +/g, ' ').trim();
+    return `${mutPrefix}${glow}${titleFn(adj, noun)}${suffix}`.replace(/  +/g, ' ').trim();
   }
   if (rarity === 'epic' && Math.random() < 0.4) {
     const titleFn = pick(EPIC_TITLES);
-    return `${glow}${titleFn(adj, noun)}${mut}`.replace(/  +/g, ' ').trim();
+    return `${mutPrefix}${glow}${titleFn(adj, noun)}${suffix}`.replace(/  +/g, ' ').trim();
   }
 
-  return `${glow}${size}${pattern}${adj} ${noun}${fin}${mut}`.replace(/  +/g, ' ').trim();
+  return `${mutPrefix}${glow}${size}${pattern}${adj} ${noun}${fin}${suffix}`.replace(/  +/g, ' ').trim();
 }
 
 export const RARITY = {
@@ -385,6 +452,132 @@ export const GROWTH_STAGES = {
   adult:    { label: 'Adult',    durationMs: Infinity },
 };
 
+// ═══════════════════════════════════════════════════════════
+// CARRIER TRAITS — show hidden recessive alleles
+// ═══════════════════════════════════════════════════════════
+export function getCarrierTraits(genome) {
+  if (!genome) return [];
+  const carriers = [];
+  for (const gene of Object.keys(GENES)) {
+    if (!genome[gene]) continue;
+    const [a1, a2] = genome[gene];
+    const geneData = GENES[gene];
+    const d1 = geneData.alleles[a1]?.dominant ?? 0;
+    const d2 = geneData.alleles[a2]?.dominant ?? 0;
+    const expressed = d1 >= d2 ? a1 : a2;
+    const recessive = d1 >= d2 ? a2 : a1;
+    // If the two alleles differ, the recessive is "carried" but hidden
+    if (expressed !== recessive && geneData.alleles[recessive]) {
+      const recessiveName = geneData.alleles[recessive].name;
+      const expressedName = geneData.alleles[expressed].name;
+      // Skip boring carriers (None, Normal, Plain, Medium, Standard)
+      if (['None', 'Normal', 'Plain', 'Medium', 'Standard', 'Nub'].includes(recessiveName)) continue;
+      carriers.push({
+        gene: geneData.name,
+        geneKey: gene,
+        expressed: expressedName,
+        carried: recessiveName,
+        allele: recessive,
+      });
+    }
+  }
+  return carriers;
+}
+
+// ═══════════════════════════════════════════════════════════
+// LEGENDARY COMBINATIONS — named allele combos players chase
+// ═══════════════════════════════════════════════════════════
+export const LEGENDARY_COMBOS = [
+  {
+    id: 'void_flame',
+    name: 'Void Flame',
+    desc: 'Dark body with glowing crimson veins. Born from shadow and fire.',
+    traits: { mutation: 'Melanistic', primaryColor: 'Crimson', glow: 'Ultraviolet' },
+    emoji: '🔥',
+    priceBonus: 20,
+    particle: 'ember',
+  },
+  {
+    id: 'ghost_pearl',
+    name: 'Ghost Pearl',
+    desc: 'Translucent with a faint ethereal shimmer. Barely there, hauntingly beautiful.',
+    traits: { mutation: 'Albino', primaryColor: 'White', glow: 'Luminous' },
+    emoji: '👻',
+    priceBonus: 15,
+    particle: 'mist',
+  },
+  {
+    id: 'dragon_king',
+    name: 'Dragon King',
+    desc: 'A serpentine golden dragon. Legends say it grants wishes.',
+    traits: { bodyShape: 'Eel', primaryColor: 'Gold', glow: 'Radiant' },
+    emoji: '🐉',
+    priceBonus: 18,
+    particle: 'gold',
+  },
+  {
+    id: 'abyssal_star',
+    name: 'Abyssal Star',
+    desc: 'A violet orb pulsing with ultraviolet light from the deepest trench.',
+    traits: { bodyShape: 'Orb', primaryColor: 'Violet', glow: 'Ultraviolet' },
+    emoji: '⭐',
+    priceBonus: 22,
+    particle: 'star',
+  },
+  {
+    id: 'solar_eclipse',
+    name: 'Solar Eclipse',
+    desc: 'A dark delta with a blazing crimson corona. Blots out the light.',
+    traits: { bodyShape: 'Delta', primaryColor: 'Crimson', mutation: 'Melanistic' },
+    emoji: '🌑',
+    priceBonus: 16,
+    particle: 'corona',
+  },
+  {
+    id: 'jade_emperor',
+    name: 'Jade Emperor',
+    desc: 'A massive emerald sovereign. Ancient and wise beyond its years.',
+    traits: { primaryColor: 'Emerald', size: 'Giant', glow: 'Radiant' },
+    emoji: '🏯',
+    priceBonus: 14,
+    particle: 'jade',
+  },
+  {
+    id: 'frost_wraith',
+    name: 'Frost Wraith',
+    desc: 'An azure phantom trailing ice crystals. The water chills wherever it swims.',
+    traits: { primaryColor: 'Azure', mutation: 'Albino', bodyShape: 'Slender' },
+    emoji: '❄️',
+    priceBonus: 13,
+    particle: 'ice',
+  },
+  {
+    id: 'golden_enigma',
+    name: 'Golden Enigma',
+    desc: 'A marbled golden orb that seems to shift patterns as you watch.',
+    traits: { primaryColor: 'Gold', pattern: 'Marble', bodyShape: 'Orb' },
+    emoji: '✨',
+    priceBonus: 10,
+    particle: 'shimmer',
+  },
+];
+
+/**
+ * Check if a phenotype matches any legendary combo.
+ * Returns the combo object or null.
+ */
+export function checkLegendaryCombo(phenotype) {
+  if (!phenotype) return null;
+  for (const combo of LEGENDARY_COMBOS) {
+    let match = true;
+    for (const [trait, value] of Object.entries(combo.traits)) {
+      if (phenotype[trait] !== value) { match = false; break; }
+    }
+    if (match) return combo;
+  }
+  return null;
+}
+
 export function breedGenomes(genomeA, genomeB, donorGenome = null, mutationRate = 0.02) {
   const offspring = {};
   const DONOR_CHANCE = 0.18; // each allele slot has 18% chance to inherit from donor
@@ -394,7 +587,12 @@ export function breedGenomes(genomeA, genomeB, donorGenome = null, mutationRate 
     const [b1, b2] = genomeB[gene];
     const mutate = Math.random() < mutationRate;
     if (mutate) {
-      const alleleKeys = Object.keys(GENES[gene].alleles);
+      // For the mutation gene, restrict random rolls to Tier 1 only
+      // Tier 2/3 mutations (I,L,C,V,P) require specific breeding recipes
+      const TIER1_MUTATION_ALLELES = ['N', 'A', 'M', 'X', 'T', 'S'];
+      const alleleKeys = gene === 'mutation'
+        ? TIER1_MUTATION_ALLELES
+        : Object.keys(GENES[gene].alleles);
       offspring[gene] = [
         alleleKeys[Math.floor(Math.random() * alleleKeys.length)],
         alleleKeys[Math.floor(Math.random() * alleleKeys.length)],
@@ -409,7 +607,105 @@ export function breedGenomes(genomeA, genomeB, donorGenome = null, mutationRate 
       offspring[gene] = [allele0, allele1];
     }
   }
+
+  // ── Check mutation recipes ──────────────────────────────
+  // If breeding parents match a recipe, override the mutation gene
+  const recipeAllele = checkMutationRecipe(genomeA, genomeB);
+  if (recipeAllele && offspring.mutation) {
+    offspring.mutation = [recipeAllele, recipeAllele]; // homozygous legendary mutation
+  }
+
   return offspring;
+}
+
+// ── Mutation Recipes ────────────────────────────────────────
+// Tier 2-3 mutations can be triggered by specific parent combinations.
+// Recipe matches override random mutation for the mutation gene only.
+const MUTATION_RECIPES = [
+  // Tier 2
+  {
+    id: 'iridescent',
+    allele: 'I',
+    tier: 2,
+    chance: 0.15,
+    check: (phA, phB) =>
+      phA.glow !== 'Normal' && phB.glow !== 'Normal',
+    hint: 'Breed two fish that both have glow traits',
+  },
+  {
+    id: 'bioluminescent',
+    allele: 'L',
+    tier: 2,
+    chance: 0.10,
+    check: (phA, phB) =>
+      (phA.glow === 'Ultraviolet' || phB.glow === 'Ultraviolet') &&
+      (phA.glow !== 'Normal' && phB.glow !== 'Normal'),
+    hint: 'Breed an Ultraviolet fish with another glowing fish',
+  },
+  // Tier 3
+  {
+    id: 'crystalline',
+    allele: 'C',
+    tier: 3,
+    chance: 0.08,
+    check: (phA, phB) =>
+      phA.mutation === 'Albino' && phB.mutation === 'Albino' &&
+      (phA.glow === 'Ultraviolet' || phB.glow === 'Ultraviolet'),
+    hint: 'Ancient legends speak of Albino pairs touched by ultraviolet light...',
+  },
+  {
+    id: 'void',
+    allele: 'V',
+    tier: 3,
+    chance: 0.06,
+    check: (phA, phB) => {
+      const h = new Date().getHours();
+      const isNight = h >= 22 || h < 5;
+      return phA.mutation === 'Melanistic' && phB.mutation === 'Melanistic' && isNight;
+    },
+    hint: 'Two Melanistic fish bred under the darkest skies might become something more...',
+  },
+  {
+    id: 'phoenix',
+    allele: 'P',
+    tier: 3,
+    chance: 0.05,
+    check: (phA, phB, genomeA, genomeB) => {
+      // One parent must have a Tier 2+ mutation, the other must have 5+ pure genes
+      const hasTier2A = ['Iridescent','Bioluminescent','Crystalline','Void','Phoenix'].includes(phA.mutation);
+      const hasTier2B = ['Iridescent','Bioluminescent','Crystalline','Void','Phoenix'].includes(phB.mutation);
+      const countPure = (g) => {
+        let c = 0;
+        for (const gene of Object.keys(GENES)) {
+          if (g?.[gene]?.[0] === g?.[gene]?.[1]) c++;
+        }
+        return c;
+      };
+      const pureA = countPure(genomeA);
+      const pureB = countPure(genomeB);
+      return (hasTier2A && pureB >= 5) || (hasTier2B && pureA >= 5);
+    },
+    hint: 'A mutant paired with a pure-bred specimen may transcend nature itself...',
+  },
+];
+
+export { MUTATION_RECIPES };
+
+/**
+ * Check if a breeding pair triggers a mutation recipe.
+ * Returns the recipe allele key if triggered, null otherwise.
+ */
+export function checkMutationRecipe(genomeA, genomeB) {
+  const phA = computePhenotype(genomeA);
+  const phB = computePhenotype(genomeB);
+  // Check recipes in order (tier 3 first for priority)
+  const sorted = [...MUTATION_RECIPES].sort((a, b) => b.tier - a.tier);
+  for (const recipe of sorted) {
+    if (recipe.check(phA, phB, genomeA, genomeB) && Math.random() < recipe.chance) {
+      return recipe.allele;
+    }
+  }
+  return null;
 }
 
 // Exact Punnett-square offspring prediction.
@@ -451,8 +747,11 @@ export function predictOffspringPhenotypes(genomeA, genomeB) {
 
 export function randomGenome() {
   const genome = {};
+  const TIER1_MUTATION_ALLELES = ['N', 'A', 'M', 'X', 'T', 'S'];
   for (const [gene, geneData] of Object.entries(GENES)) {
-    const alleleKeys = Object.keys(geneData.alleles);
+    const alleleKeys = gene === 'mutation'
+      ? TIER1_MUTATION_ALLELES
+      : Object.keys(geneData.alleles);
     const dominantKey = Object.entries(geneData.alleles)
       .sort((a, b) => b[1].dominant - a[1].dominant)[0][0];
     const weighted = Math.random() < 0.7 ? dominantKey : alleleKeys[Math.floor(Math.random() * alleleKeys.length)];
@@ -475,13 +774,13 @@ const PERSONALITIES = [
 export function createFish({ genome = null, stage = 'adult', parentIds = [], tankId = 'tank_0', targetRarity = null, generation = 1 } = {}) {
   let resolvedGenome = genome || randomGenome();
   let phenotype = computePhenotype(resolvedGenome);
-  let species = getSpeciesFromPhenotype(phenotype);
+  let species = getSpeciesFromPhenotype(phenotype, resolvedGenome);
   // Retry up to 20 times to hit the target rarity tier (used by shop purchases)
   if (targetRarity && !genome) {
     for (let i = 0; i < 20 && species.rarity !== targetRarity; i++) {
       resolvedGenome = randomGenome();
       phenotype = computePhenotype(resolvedGenome);
-      species = getSpeciesFromPhenotype(phenotype);
+      species = getSpeciesFromPhenotype(phenotype, resolvedGenome);
     }
   }
   const now = Date.now();

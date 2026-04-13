@@ -15,9 +15,11 @@ export function useCoinDeltas() {
     const diff = coins - prevCoins.current;
     prevCoins.current = coins;
     if (diff === 0) return;
+    const abs = Math.abs(diff);
+    const tier = abs >= 500 ? 'mega' : abs >= 100 ? 'big' : abs >= 20 ? 'mid' : 'small';
     const id = ++counter.current;
-    setDeltas(prev => [...prev.slice(-6), { id, diff }]);
-    const t = setTimeout(() => setDeltas(prev => prev.filter(d => d.id !== id)), 1400);
+    setDeltas(prev => [...prev.slice(-6), { id, diff, tier }]);
+    const t = setTimeout(() => setDeltas(prev => prev.filter(d => d.id !== id)), 1800);
     return () => clearTimeout(t);
   }, [coins]);
 

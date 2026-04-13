@@ -45,8 +45,8 @@ export function rollMicroEvent(fish, tankId, lastEventAt) {
 
   // Pick position (near a random fish)
   const sourceFish = tankFish[Math.floor(Math.random() * tankFish.length)];
-  const x = Math.max(10, Math.min(90, (sourceFish.x || 50) + (Math.random() - 0.5) * 20));
-  const y = Math.max(15, Math.min(85, (sourceFish.y || 50) + (Math.random() - 0.5) * 15));
+  const x = Math.max(18, Math.min(82, (sourceFish.x || 50) + (Math.random() - 0.5) * 20));
+  const y = Math.max(20, Math.min(78, (sourceFish.y || 50) + (Math.random() - 0.5) * 15));
 
   // For nuzzle, pick a second fish
   let secondFishId = null;
