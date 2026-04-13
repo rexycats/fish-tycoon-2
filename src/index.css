@@ -107,8 +107,8 @@ body {
   inset: 0;
   background: linear-gradient(to bottom,
     transparent 0%,
-    rgba(0,0,0,0.08) 60%,
-    rgba(0,0,0,0.25) 100%);
+    rgba(0,0,0,0.04) 60%,
+    rgba(0,0,0,0.12) 100%);
   pointer-events: none;
   z-index: 1;
 }
@@ -116,7 +116,7 @@ body {
 .tank-depth-mid {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 110%, rgba(10,20,40,0.4) 0%, transparent 70%);
+  background: radial-gradient(ellipse at 50% 110%, rgba(10,20,40,0.15) 0%, transparent 70%);
   pointer-events: none;
   z-index: 2;
 }
@@ -2244,8 +2244,8 @@ body {
   right: 0;
   height: 38%;
   background: linear-gradient(to top,
-    rgba(0,0,18,0.42) 0%,
-    rgba(0,0,12,0.20) 50%,
+    rgba(0,0,18,0.18) 0%,
+    rgba(0,0,12,0.08) 50%,
     transparent 100%);
   pointer-events: none;
   z-index: 2;
@@ -2985,7 +2985,7 @@ button:active, .btn:active, .action-btn:active { transform: translateY(2px); box
   background: radial-gradient(
     ellipse 90% 88% at 50% 50%,
     transparent 55%,
-    rgba(4, 12, 28, 0.35) 100%
+    rgba(4, 12, 28, 0.15) 100%
   );
   pointer-events: none;
   z-index: 2;
@@ -4053,9 +4053,9 @@ button:active, .btn:active, .action-btn:active { transform: translateY(2px); box
   inset: 0;
   background: linear-gradient(to bottom,
     transparent 0%,
-    transparent 40%,
-    rgba(5,15,40,0.15) 70%,
-    rgba(5,15,40,0.35) 100%
+    transparent 50%,
+    rgba(5,15,40,0.06) 75%,
+    rgba(5,15,40,0.12) 100%
   );
   pointer-events: none;
   z-index: 4;
