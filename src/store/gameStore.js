@@ -1,4 +1,5 @@
 import { upgradeCost, BREEDING_BASE_MS, BREEDING_SPEED_FACTOR } from '../data/constants.js';
+import { generateWantedPoster, fishMatchesPoster } from '../data/wantedBoard.js';
 // ============================================================
 // FISH TYCOON 2 — ZUSTAND GAME STORE
 // Replaces: useGameEngine + useEconomy + useState(game)
@@ -657,6 +658,11 @@ export const useGameStore = create(
             bt.breedingStartedAt = Date.now();
             const fishA = findFish(state, bt.slots[0]);
             const fishB = findFish(state, bt.slots[1]);
+            // Feature 7: Bonding — fish that breed together become bonded
+            if (fishA && fishB) {
+              fishA.bondedWith = fishB.id;
+              fishB.bondedWith = fishA.id;
+            }
             bt.storedGenomeA = fishA?.genome || null;
             bt.storedGenomeB = fishB?.genome || null;
             bt.storedTankId = fishA?.tankId || state.tanks[0]?.id || 'tank_0';
@@ -713,10 +719,16 @@ export const useGameStore = create(
 
           // Create 1-3 eggs, each with unique genome
           const eggsToCreate = Math.min(clutchSize, roomAvailable);
+          const parentA = findFish(state, bt.slots?.[0]);
+          const parentB = findFish(state, bt.slots?.[1]);
+          const parentGenA = parentA?.generation || 1;
+          const parentGenB = parentB?.generation || 1;
+          const childGen = Math.max(parentGenA, parentGenB) + 1;
+          const parentIds = [bt.slots?.[0], bt.slots?.[1]].filter(Boolean);
           const newEggs = [];
           for (let i = 0; i < eggsToCreate; i++) {
             const childGenome = breedGenomes(bt.storedGenomeA, bt.storedGenomeB, null, mutationRate);
-            const egg = createFish({ stage: 'egg', tankId, genome: childGenome });
+            const egg = createFish({ stage: 'egg', tankId, genome: childGenome, parentIds, generation: childGen });
             newEggs.push(egg);
             state.fish.push(egg);
           }
@@ -743,6 +755,11 @@ export const useGameStore = create(
           }
 
           addXp(state, XP_REWARDS.breedEgg * eggsToCreate, 'breed');
+
+          // Queue hatch reveal for the first egg (gacha-style reveal)
+          if (newEggs.length > 0) {
+            state._pendingHatchReveal = newEggs[0];
+          }
 
           // Near-miss check — would the offspring have been higher rarity?
           for (const egg of newEggs) {
@@ -931,6 +948,74 @@ export const useGameStore = create(
           addXp(state, 30, 'milestone');
           playCoin();
           addLogDraft(state, `🏆 Milestone: ${m.title}! ${m.reward?.coins ? '+🪙' + m.reward.coins : ''}`);
+          // Trigger full-screen celebration
+          state._pendingCelebration = {
+            title: m.title,
+            desc: m.desc || '',
+            emoji: m.emoji || '🏆',
+            reward: m.reward?.coins ? `🪙 ${m.reward.coins}` : null,
+          };
+        }),
+
+        // ── Wanted Board ──────────────────────────────────
+        fulfillWanted: (posterId, fishId) => set(state => {
+          const poster = (state.wantedPosters || []).find(p => p.id === posterId);
+          if (!poster || poster.fulfilled) return;
+          const fish = findFish(state, fishId);
+          if (!fish || !fishMatchesPoster(fish, poster)) return;
+          poster.fulfilled = true;
+          state.player.coins += poster.reward;
+          // Remove the fish (delivered to buyer)
+          state.fish = state.fish.filter(f => f.id !== fishId);
+          state.shop.listedFish = (state.shop.listedFish || []).filter(id => id !== fishId);
+          playCoin();
+          playDiscover();
+          addXp(state, 30, 'wanted');
+          addLogDraft(state, `📋 Bounty fulfilled! Delivered ${fish.species?.name || 'fish'} to ${poster.buyer} for 🪙${poster.reward}!`);
+        }),
+
+        refreshWantedBoard: () => set(state => {
+          const level = Math.floor((state.player.xp || 0) / 500) + 1;
+          const active = (state.wantedPosters || []).filter(p => !p.fulfilled && p.expiresAt > Date.now());
+          const maxPosters = Math.min(3, 1 + Math.floor(level / 8));
+          while (active.length < maxPosters) {
+            const poster = generateWantedPoster(level, active);
+            if (poster) { active.push(poster); state.wantedPosters.push(poster); }
+            else break;
+          }
+        }),
+
+        // ── Micro-events ──────────────────────────────────
+        claimMicroEvent: (eventId, coins, xp) => set(state => {
+          state.player.coins += (coins || 0);
+          if (xp) addXp(state, xp, 'micro');
+          if (coins > 0) playCoin();
+          state.lastMicroEventAt = Date.now();
+        }),
+
+        // ── Fish memorial ─────────────────────────────────
+        addMemorial: (fish) => set(state => {
+          if (!state.memorials) state.memorials = [];
+          const descendants = state.fish.filter(f =>
+            f.parentIds?.includes(fish.id)
+          ).length;
+          const totalEarned = (state.shop.salesHistory || [])
+            .filter(s => s.fishName === fish.species?.name)
+            .reduce((sum, s) => sum + (s.price || 0), 0);
+          state.memorials.unshift({
+            id: fish.id,
+            name: fish.nickname || fish.species?.name || 'Unknown',
+            species: fish.species?.name,
+            rarity: fish.species?.rarity,
+            personality: fish.personality,
+            generation: fish.generation || 1,
+            livedDays: Math.round((Date.now() - (fish.bornAt || Date.now())) / 86400000 * 10) / 10,
+            descendants,
+            totalEarned,
+            diedAt: Date.now(),
+          });
+          // Keep last 50 memorials
+          if (state.memorials.length > 50) state.memorials.length = 50;
         }),
 
         resetGame: () => set(state => {
@@ -1205,6 +1290,9 @@ export function bootSideEffects() {
   // Sync existing achievements to Steam on startup
   const achs = useGameStore.getState().player?.achievements || [];
   if (achs.length > 0) syncAllSteamAchievements(achs);
+
+  // Refresh wanted board on startup
+  useGameStore.getState().refreshWantedBoard();
 }
 
 // ── Cleanup (for HMR) ──────────────────────────────────────

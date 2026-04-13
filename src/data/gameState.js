@@ -135,11 +135,20 @@ export function createDefaultState() {
 
     // ── Daily market price fluctuation ─────────────────────
     market: {
-      day: 0,              // UTC day when modifiers were last generated
-      modifiers: {},       // { rarity: multiplier } e.g. { common: 0.8, rare: 1.4 }
-      hotTrait: null,      // e.g. { gene: 'primaryColor', value: 'Gold', bonus: 1.5 }
-      headline: '',        // flavour text for today's market
+      day: 0,
+      modifiers: {},
+      hotTrait: null,
+      headline: '',
     },
+
+    // ── Wanted Board (breeding goals) ─────────────────────
+    wantedPosters: [],
+
+    // ── Fish memorials (death records) ────────────────────
+    memorials: [],
+
+    // ── Micro-event state ─────────────────────────────────
+    lastMicroEventAt: 0,
 
     dailyChallenges: {
       day: 0,               // UTC day number when challenges were generated

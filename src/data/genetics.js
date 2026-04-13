@@ -472,7 +472,7 @@ const PERSONALITIES = [
   { id: 'gluttonous',label: '🍽️ Gluttonous', desc: 'Gets hungry faster',       weight: 1.5 },
   { id: 'hardy',     label: '💪 Hardy',     desc: 'Resists disease better',     weight: 1.5 },
 ];
-export function createFish({ genome = null, stage = 'adult', parentIds = [], tankId = 'tank_0', targetRarity = null } = {}) {
+export function createFish({ genome = null, stage = 'adult', parentIds = [], tankId = 'tank_0', targetRarity = null, generation = 1 } = {}) {
   let resolvedGenome = genome || randomGenome();
   let phenotype = computePhenotype(resolvedGenome);
   let species = getSpeciesFromPhenotype(phenotype);
@@ -532,6 +532,7 @@ export function createFish({ genome = null, stage = 'adult', parentIds = [], tan
     age: 0,
     forSale: false,
     parentIds,
+    generation,
     tankId,
     x: 10 + Math.random() * 80,
     y: 20 + Math.random() * 60,

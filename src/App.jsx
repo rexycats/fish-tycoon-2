@@ -27,6 +27,8 @@ import CatchOfDayPanel from './components/CatchOfDayPanel.jsx';
 import { EventPopup, HagglePopup } from './components/EventPopup.jsx';
 import TitleScreen    from './components/TitleScreen.jsx';
 import Credits        from './components/Credits.jsx';
+import HatchReveal    from './components/HatchReveal.jsx';
+import WantedBoard    from './components/WantedBoard.jsx';
 import { TUTORIAL_STEPS } from './data/tutorial.js';
 
 import { useGameStore } from './store/gameStore.js';
@@ -131,6 +133,8 @@ export default function App() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
   const [showSettings, setShowSettings]   = useState(false);
+  const [hatchRevealFish, setHatchRevealFish] = useState(null);
+  const [celebration, setCelebration] = useState(null);
   const saveFlash = useGameStore(s => s._saveFlash);
   const paused = useGameStore(s => s.paused);
   const togglePause = useGameStore(s => s.togglePause);
@@ -176,6 +180,36 @@ export default function App() {
       return () => clearTimeout(t);
     }
   }, [player._levelUpPending]);
+
+  // ── Hatch reveal (gacha-style) ─────────────────────────
+  useEffect(() => {
+    const unsub = useGameStore.subscribe(
+      s => s._pendingHatchReveal,
+      (fish) => {
+        if (fish) {
+          setHatchRevealFish(fish);
+          useGameStore.setState({ _pendingHatchReveal: null });
+        }
+      }
+    );
+    return unsub;
+  }, []);
+
+  // ── Milestone celebration ──────────────────────────────
+  useEffect(() => {
+    const unsub = useGameStore.subscribe(
+      s => s._pendingCelebration,
+      (data) => {
+        if (data) {
+          setCelebration(data);
+          useGameStore.setState({ _pendingCelebration: null });
+          // Auto-dismiss after 5s
+          setTimeout(() => setCelebration(null), 5000);
+        }
+      }
+    );
+    return unsub;
+  }, []);
 
   // ── Start music on first click ─────────────────────────
   useEffect(() => {
@@ -381,6 +415,7 @@ export default function App() {
         {activeTab === 'challenges' && (
           <div className="tab-content-scroll">
             <GoalsPanel />
+            <WantedBoard />
             <FishShowPanel />
             <CatchOfDayPanel />
             <DailyChallengesPanel dailyChallenges={dailyChallenges} streak={player.challengeStreak || 0} />
@@ -473,6 +508,27 @@ export default function App() {
 
       {/* Level-up flash */}
       {levelFlash && <div className="level-up-flash" />}
+
+      {/* Hatch reveal overlay */}
+      {hatchRevealFish && (
+        <HatchReveal
+          fish={hatchRevealFish}
+          onComplete={() => setHatchRevealFish(null)}
+        />
+      )}
+
+      {/* Milestone celebration overlay */}
+      {celebration && (
+        <div className="milestone-celebration" onClick={() => setCelebration(null)}>
+          <div className="milestone-content">
+            <div className="milestone-emoji">{celebration.emoji}</div>
+            <div className="milestone-title">{celebration.title}</div>
+            {celebration.desc && <div className="milestone-desc">{celebration.desc}</div>}
+            {celebration.reward && <div className="milestone-reward">{celebration.reward}</div>}
+            <div className="milestone-tap">Tap to continue</div>
+          </div>
+        </div>
+      )}
 
       {/* Pause overlay */}
       {paused && (

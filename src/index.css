@@ -10237,3 +10237,577 @@ select { border-radius: 10px; }
   border-color: rgba(68,220,100,0.4);
   background: linear-gradient(135deg, rgba(10,40,20,0.97) 0%, rgba(5,20,10,0.99) 100%);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   ADDICTION FEATURES — Hatch reveal, micro-events, wanted board
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 1. HATCH REVEAL OVERLAY ─────────────────────────── */
+.hatch-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: hatchOverlayIn 0.5s ease-out;
+}
+@keyframes hatchOverlayIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+.hatch-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 360px;
+  width: 90%;
+  position: relative;
+}
+
+/* Egg */
+.hatch-egg {
+  font-size: 5rem;
+  position: relative;
+}
+.hatch-egg--wobble {
+  animation: eggWobble 0.5s ease-in-out infinite;
+}
+@keyframes eggWobble {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+.hatch-egg--cracking {
+  animation: eggCrack 0.8s ease-out forwards;
+}
+@keyframes eggCrack {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  80% { transform: scale(1.3); filter: brightness(2); }
+  100% { transform: scale(3); opacity: 0; filter: brightness(4); }
+}
+.hatch-egg-emoji { display: block; }
+.hatch-crack-light {
+  position: absolute;
+  inset: -30px;
+  background: radial-gradient(circle, rgba(255,255,200,0.6) 0%, transparent 60%);
+  animation: crackGlow 0.8s ease-out;
+}
+@keyframes crackGlow {
+  0% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; }
+  100% { opacity: 0; transform: scale(2); }
+}
+
+/* Fish spotlight */
+.hatch-fish-spotlight {
+  padding: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(40,100,200,0.15) 0%, transparent 70%);
+  animation: spotlightIn 0.6s var(--bounce);
+}
+.hatch-fish-spotlight--rare {
+  background: radial-gradient(circle, rgba(255,204,51,0.12) 0%, transparent 60%);
+  animation: spotlightIn 0.6s var(--bounce), rarePulse 2s ease-in-out infinite 0.6s;
+}
+@keyframes spotlightIn {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes rarePulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255,204,51,0); }
+  50% { box-shadow: 0 0 40px rgba(255,204,51,0.15); }
+}
+.hatch-fish-sprite {
+  animation: fishSwimIn 0.8s ease-out;
+}
+@keyframes fishSwimIn {
+  0% { transform: translateY(20px) scale(0.5); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Species name */
+.hatch-species-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+  text-shadow: 0 2px 12px currentColor;
+  animation: nameIn 0.4s ease-out;
+}
+@keyframes nameIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Trait roll */
+.hatch-traits {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.hatch-trait {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  animation: traitSlideIn 0.3s var(--bounce);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+}
+.hatch-trait--rare {
+  background: rgba(var(--trait-color), 0.1);
+  border-color: var(--trait-color);
+  box-shadow: 0 0 12px rgba(var(--trait-color), 0.15);
+  animation: traitSlideIn 0.3s var(--bounce), traitGlow 1.5s ease-in-out infinite 0.3s;
+}
+@keyframes traitSlideIn {
+  0% { opacity: 0; transform: translateX(-20px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes traitGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,255,255,0.05); }
+  50% { box-shadow: 0 0 16px rgba(255,255,255,0.1); }
+}
+.hatch-trait-label {
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.hatch-trait-value {
+  font-weight: 800;
+}
+
+/* Final reveal */
+.hatch-final {
+  text-align: center;
+  animation: finalReveal 0.6s var(--bounce);
+}
+@keyframes finalReveal {
+  0% { transform: scale(0.3); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.hatch-final-stars {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.6rem;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 20px currentColor;
+  margin-bottom: 8px;
+}
+.hatch-final--epic .hatch-final-stars,
+.hatch-final--legendary .hatch-final-stars {
+  animation: finalPulse 1s ease-in-out infinite;
+}
+@keyframes finalPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+.hatch-final-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--gold);
+}
+.hatch-final-gen {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+.hatch-tap-hint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 12px;
+  animation: hintBlink 1.5s ease-in-out infinite;
+}
+@keyframes hintBlink {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* Particles */
+.hatch-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.hatch-particle {
+  position: absolute;
+  left: var(--px);
+  top: var(--py);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color);
+  box-shadow: 0 0 8px var(--color);
+  animation: hatchParticle 2s ease-out var(--delay) infinite;
+}
+@keyframes hatchParticle {
+  0% { transform: scale(0) translateY(0); opacity: 1; }
+  100% { transform: scale(1) translateY(-80px); opacity: 0; }
+}
+
+/* ── 2. TANK MICRO-EVENTS ────────────────────────────── */
+.micro-event {
+  position: absolute;
+  z-index: 35;
+  cursor: pointer;
+  pointer-events: auto;
+  animation: microEventIn 0.4s var(--bounce);
+  transition: transform 0.15s var(--bounce);
+}
+.micro-event:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+.micro-event:active {
+  transform: translate(-50%, -50%) scale(0.9);
+}
+.micro-event-bubble {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: rgba(20,40,80,0.9);
+  border: 2px solid rgba(255,204,51,0.3);
+  box-shadow: 0 0 16px rgba(255,204,51,0.15), 0 4px 12px rgba(0,0,0,0.4);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--gold);
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+.micro-event-emoji {
+  font-size: 1.2rem;
+}
+.micro-event-coins {
+  color: #66ffaa;
+  font-size: 0.75rem;
+}
+@keyframes microEventIn {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0) translateY(10px); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1) translateY(0); }
+}
+.micro-event-fade {
+  animation: microEventOut 0.5s ease-in forwards;
+}
+@keyframes microEventOut {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(1) translateY(0); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.3) translateY(-20px); }
+}
+
+/* ── 3. WANTED BOARD ─────────────────────────────────── */
+.wanted-board { margin-top: 8px; }
+.wanted-title { margin-bottom: 8px; }
+.wanted-posters { display: flex; flex-direction: column; gap: 8px; }
+.wanted-poster {
+  background: linear-gradient(160deg, rgba(40,30,15,0.9) 0%, rgba(25,20,8,0.95) 100%);
+  border: 2px solid rgba(255,200,60,0.2);
+  border-radius: 14px;
+  padding: 12px;
+  position: relative;
+}
+.wanted-poster--urgent {
+  border-color: rgba(255,80,60,0.4);
+  animation: urgentPulse 2s ease-in-out infinite;
+}
+@keyframes urgentPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255,80,60,0); }
+  50% { box-shadow: 0 0 16px rgba(255,80,60,0.15); }
+}
+.wanted-poster-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.wanted-poster-buyer {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-style: italic;
+}
+.wanted-poster-timer {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.wanted-poster-timer--urgent {
+  color: #ff6655;
+  animation: urgentBlink 1s ease-in-out infinite;
+}
+@keyframes urgentBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.wanted-poster-wants {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.wanted-poster-label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+}
+.wanted-trait-tag {
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: rgba(255,204,51,0.1);
+  border: 1px solid rgba(255,204,51,0.25);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: #ffd866;
+}
+.wanted-poster-reward {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.wanted-reward-amount {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--gold);
+}
+.wanted-poster-matches {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wanted-match-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #66ffaa;
+}
+.wanted-poster-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.wanted-empty {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 16px;
+}
+
+/* ── 5. FISH MEMORIAL (shown in autopsy tab) ─────────── */
+.memorial-card {
+  background: linear-gradient(160deg, rgba(20,20,40,0.9) 0%, rgba(12,12,28,0.95) 100%);
+  border: 2px solid rgba(140,140,200,0.15);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 8px;
+  position: relative;
+}
+.memorial-card::before {
+  content: '🕊️';
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 1.2rem;
+  opacity: 0.3;
+}
+.memorial-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--text-bright);
+  margin-bottom: 4px;
+}
+.memorial-species {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.memorial-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.memorial-stat {
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  color: var(--text-dim);
+}
+.memorial-stat-value {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ── 8. MILESTONE CELEBRATION ────────────────────────── */
+.milestone-celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 6000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.7);
+  animation: milestoneIn 0.5s ease-out;
+  cursor: pointer;
+}
+@keyframes milestoneIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+.milestone-content {
+  text-align: center;
+  animation: milestoneContent 0.6s var(--bounce);
+}
+@keyframes milestoneContent {
+  0% { transform: scale(0.3) translateY(40px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.milestone-emoji {
+  font-size: 4rem;
+  margin-bottom: 12px;
+  animation: milestoneEmoji 1s var(--bounce);
+}
+@keyframes milestoneEmoji {
+  0% { transform: scale(0) rotate(-30deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.milestone-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.8rem;
+  background: linear-gradient(135deg, #ffdd55, #ff9944, #ffdd55);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 200%;
+  animation: milestoneShift 3s ease-in-out infinite;
+  margin-bottom: 8px;
+}
+@keyframes milestoneShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.milestone-desc {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+.milestone-reward {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--gold);
+}
+.milestone-tap {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 16px;
+}
+
+/* ── Feature 7: Bonded pair heart icon ───────────────── */
+.fish-status-icon--bonded {
+  color: #ff88aa;
+  animation: bondedPulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px rgba(255,100,150,0.4));
+}
+@keyframes bondedPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* ── Feature 9: Overnight mutation highlight ─────────── */
+.offline-discovery {
+  background: linear-gradient(160deg, rgba(40,30,10,0.9) 0%, rgba(20,15,5,0.95) 100%);
+  border: 2px solid rgba(255,204,51,0.25);
+  border-radius: 14px;
+  padding: 14px;
+  animation: discoveryReveal 0.6s var(--bounce);
+}
+@keyframes discoveryReveal {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.offline-discovery-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: 16px;
+  background: conic-gradient(from 0deg, transparent 0%, rgba(255,204,51,0.1) 25%, transparent 50%);
+  animation: discoveryGlow 4s linear infinite;
+  pointer-events: none;
+}
+@keyframes discoveryGlow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.offline-discovery-emoji {
+  font-size: 2rem;
+  margin-bottom: 6px;
+}
+.offline-discovery-headline {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.offline-discovery-detail {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.offline-discovery-reward {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #66ffaa;
+  margin-top: 6px;
+}
+.offline-discover-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 2px solid rgba(255,204,51,0.2);
+  background: rgba(255,204,51,0.06);
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s var(--bounce);
+  animation: discoverBtnPulse 2s ease-in-out infinite;
+}
+@keyframes discoverBtnPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255,204,51,0); }
+  50% { box-shadow: 0 0 20px rgba(255,204,51,0.12); }
+}
+.offline-discover-btn:hover {
+  background: rgba(255,204,51,0.1);
+  border-color: rgba(255,204,51,0.4);
+  transform: scale(1.02);
+}
+.offline-discover-chevron {
+  margin-left: auto;
+  font-size: 1.2rem;
+  animation: chevronBounce 1s ease-in-out infinite;
+}
+@keyframes chevronBounce {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}

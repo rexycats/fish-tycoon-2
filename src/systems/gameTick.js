@@ -3,6 +3,7 @@
 // ============================================================
 
 import { GROWTH_STAGES, createFish } from '../data/genetics.js';
+import { generateWantedPoster as _generateWantedPoster } from '../data/wantedBoard.js';
 import { addLog } from '../data/gameState.js';
 import { processRandomEvent } from './randomEvents.js';
 import { getDailyOrderSeed, generateOrders } from '../data/specialOrders.js';
@@ -722,8 +723,21 @@ export function processTick(state) {
         disease: f.disease || null,
       };
     });
+    // Build memorials for dead fish (Feature 5)
+    const memorials = [...(next.memorials || [])];
+    for (const f of deadFish) {
+      const desc2 = next.fish.filter(af => af.parentIds?.includes(f.id)).length;
+      memorials.unshift({
+        id: f.id, name: f.nickname || f.species?.name || 'Unknown',
+        species: f.species?.name, rarity: f.species?.rarity,
+        personality: f.personality, generation: f.generation || 1,
+        livedDays: Math.round((Date.now() - (f.bornAt || Date.now())) / 86400000 * 10) / 10,
+        descendants: desc2, diedAt: Date.now(),
+      });
+    }
     next = {
       ...next,
+      memorials: memorials.slice(0, 50),
       fish: next.fish.filter(f => !deadIds.has(f.id)),
       shop: {
         ...next.shop,
@@ -850,6 +864,15 @@ export function processTick(state) {
   next = refreshDailyChallenges(next);
   // Refresh market prices daily
   next = refreshMarket(next);
+  // Refresh wanted board — add new posters if slots available
+  if (!next.wantedPosters) next.wantedPosters = [];
+  const activePosters = next.wantedPosters.filter(p => !p.fulfilled && p.expiresAt > now);
+  const level = Math.floor((next.player?.xp || 0) / 500) + 1;
+  const maxPosters = Math.min(3, 1 + Math.floor(level / 8));
+  if (activePosters.length < maxPosters) {
+    const newPoster = _generateWantedPoster(level, next.wantedPosters);
+    if (newPoster) next.wantedPosters = [...next.wantedPosters, newPoster];
+  }
 
   // Early game events — scripted moments that fire once in the first minutes
   const playAge = (now - (next.player.firstPlayedAt || now)) / 1000;

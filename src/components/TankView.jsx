@@ -1,4 +1,6 @@
 import { PERSONALITY_EMOJI, SPRITE_SIZE, EGG_HATCH_ANIM_MS } from '../data/constants.js';
+import { rollMicroEvent } from '../systems/microEvents.js';
+import { useGameStore } from '../store/gameStore.js';
 // ============================================================
 // FISH TYCOON 2 — TANK VIEW (Phase 11: Pseudo-3D Visual Overhaul)
 // ============================================================
@@ -131,6 +133,36 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   const cursorRef = useRef({ x: -100, y: -100 });   // cursor position in % coords
   const tankElRef = useRef(null);
   const tickRef = useRef(0);
+
+  // ── Micro-events (pearl finds, nuzzles, etc.) ────────
+  const [microEvents, setMicroEvents] = useState([]);
+  const lastMicroRef = useRef(0);
+  const claimMicroEvent = useGameStore(s => s.claimMicroEvent);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const evt = rollMicroEvent(fish, tank?.id, lastMicroRef.current);
+      if (evt) {
+        lastMicroRef.current = Date.now();
+        setMicroEvents(prev => [...prev.slice(-3), evt]);
+        // Auto-expire
+        setTimeout(() => {
+          setMicroEvents(prev => prev.filter(e => e.id !== evt.id));
+        }, evt.duration);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [fish, tank?.id]);
+
+  const handleMicroTap = (evt) => {
+    claimMicroEvent(evt.id, evt.coins, evt.xp);
+    setMicroEvents(prev => prev.map(e =>
+      e.id === evt.id ? { ...e, tapped: true } : e
+    ));
+    setTimeout(() => {
+      setMicroEvents(prev => prev.filter(e => e.id !== evt.id));
+    }, 500);
+  };
 
   useEffect(() => {
     const t = setInterval(() => setDayPhase(getDayPhase()), 60_000);
@@ -769,6 +801,20 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           {[0,1].map(i => <div key={`cl-${i}`} className={`bubble bubble-cluster bubble-cl-${i}`}/>)}
         </div>
 
+        {/* Micro-events (Feature 2) */}
+        {microEvents.map(evt => (
+          <div key={evt.id}
+            className={`micro-event ${evt.tapped ? 'micro-event-fade' : ''}`}
+            style={{ left: `${evt.x}%`, top: `${evt.y}%`, transform: 'translate(-50%, -50%)' }}
+            onClick={(e) => { e.stopPropagation(); if (!evt.tapped) handleMicroTap(evt); }}>
+            <div className="micro-event-bubble">
+              <span className="micro-event-emoji">{evt.emoji}</span>
+              <span>{evt.label}</span>
+              {evt.coins > 0 && <span className="micro-event-coins">+{evt.coins}🪙</span>}
+            </div>
+          </div>
+        ))}
+
         <div className="day-night-overlay" style={{ background: ps.overlay }}/>
 
         {/* Step 2 & 6: Fish rendered sorted by depth, with tilt + animation */}
@@ -820,6 +866,9 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
                 )}
                 {listedFishIds.includes(f.id) && (
                   <span className="fish-status-icon fish-status-icon--listed" title="Listed for sale">💰</span>
+                )}
+                {f.bondedWith && fish.some(o => o.id === f.bondedWith) && (
+                  <span className="fish-status-icon fish-status-icon--bonded" title="Bonded pair 💕">💕</span>
                 )}
               </div>
 
