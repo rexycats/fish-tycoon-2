@@ -231,7 +231,7 @@ function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveD
   return (
     <div className="decor-panel">
       <div className="decor-header">
-        <h2>🎨 Tank Decorations</h2>
+        <h2>Tank Decorations</h2>
         {activeTank && (
           <span className="decor-tank-name">Decorating: {activeTank.name}</span>
         )}

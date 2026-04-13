@@ -259,36 +259,46 @@ const NAMED_SPECIES = {
 };
 
 const ALLELE_RARITY_SCORES = {
-  Orb: 1, Round: 2, Delta: 3, Slender: 4, Eel: 6,
-  Veil: 1, Flowing: 2, Broad: 3, Angular: 4, Nub: 5,
-  Marble: 1, Spotted: 2, Tiger: 2, Lined: 3, Plain: 4,
-  Crimson: 1, Gold: 2, Violet: 3, Azure: 2, Emerald: 3, White: 5,
-  Orange: 1, Rose: 2, Teal: 2, Indigo: 3, Silver: 3,
-  Normal: 1, Luminous: 10, Radiant: 18, Ultraviolet: 35,
-  Leviathan: 8, Giant: 1, Medium: 1, Tiny: 2, Dwarf: 5,
-  None: 1, Albino: 8, Melanistic: 8, Xanthic: 10, 'Twin-tail': 12, Starfish: 20,
-  Iridescent: 25, Bioluminescent: 28, Crystalline: 40, Void: 45, Phoenix: 50,
+  // Scores reflect how RARE the trait is to see, not its dominance.
+  // Dominant alleles appear often → low score. Recessive = high score.
+  // Body shapes (Orb dominant → Eel recessive)
+  Orb: 0, Round: 1, Delta: 2, Slender: 3, Eel: 5,
+  // Fin types (Veil dominant → Nub recessive)
+  Veil: 0, Flowing: 1, Broad: 2, Angular: 3, Nub: 5,
+  // Patterns (Marble dominant → Plain recessive)
+  Marble: 0, Spotted: 1, Tiger: 2, Lined: 3, Plain: 4,
+  // Primary colors (Crimson dominant → White recessive)
+  Crimson: 0, Gold: 1, Violet: 2, Azure: 1, Emerald: 2, White: 4,
+  // Secondary colors (Orange dominant → Silver recessive)
+  Orange: 0, Rose: 1, Teal: 1, Indigo: 2, Silver: 3,
+  // Glow (Ultraviolet is DOMINANT so it's common — low score!)
+  Ultraviolet: 0, Radiant: 1, Luminous: 2, Normal: 3,
+  // Size (Leviathan is DOMINANT so it's common — low score!)
+  Leviathan: 0, Giant: 1, Medium: 1, Tiny: 2, Dwarf: 4,
+  // Mutations (None is very dominant = common. Tier 2-3 only via recipes)
+  None: 0, Albino: 4, Melanistic: 4, Xanthic: 5, 'Twin-tail': 5, Starfish: 6,
+  Iridescent: 8, Bioluminescent: 9, Crystalline: 14, Void: 16, Phoenix: 18,
 };
 
 function computeRarityScore(phenotype) {
   let score = 0;
   for (const val of Object.values(phenotype)) {
-    score += ALLELE_RARITY_SCORES[val] || 1;
+    score += ALLELE_RARITY_SCORES[val] ?? 1;
   }
   return score;
 }
 
 function rarityFromScore(score) {
-  if (score >= 55) return 'legendary';
-  if (score >= 30) return 'epic';
-  if (score >= 18) return 'rare';
-  if (score >= 10) return 'uncommon';
+  if (score >= 18) return 'legendary';
+  if (score >= 12) return 'epic';
+  if (score >= 7) return 'rare';
+  if (score >= 3) return 'uncommon';
   return 'common';
 }
 
 function basePriceFromScore(score, rarity) {
-  const base = score * 3;
-  const mult = { common: 1, uncommon: 2.5, rare: 6, epic: 15, legendary: 40 }[rarity] || 1;
+  const base = Math.max(8, score * 4 + 8);
+  const mult = { common: 1, uncommon: 2, rare: 5, epic: 12, legendary: 30 }[rarity] || 1;
   return Math.round(base * mult);
 }
 

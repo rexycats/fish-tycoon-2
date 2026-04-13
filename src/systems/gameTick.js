@@ -641,7 +641,7 @@ export function updateChallengeProgress(state, eventType, payload = {}) {
       const reward = Math.round(c.reward * mult);
       coinsAwarded += reward;
       const multLabel = mult > 1 ? ` (×${mult.toFixed(1)} streak bonus)` : '';
-      messages.push(`🎯 Daily challenge complete: ${c.emoji} ${c.desc}! +🪹${reward}${multLabel}`);
+      messages.push(`🎯 Daily challenge complete: ${c.emoji} ${c.desc}! +🪙${reward}${multLabel}`);
     }
     return { ...c, progress: Math.min(progress, c.goal), completed };
   });
@@ -1005,9 +1005,25 @@ export function processTick(state) {
       const sorted = [...next.fish].filter(f => f.stage === 'adult').sort((a, b) => (b.species?.basePrice || 0) - (a.species?.basePrice || 0));
       if (sorted.length > 0) {
         const seized = sorted[0];
+        const seizedId = seized.id;
         next = {
           ...next,
-          fish: next.fish.filter(f => f.id !== seized.id),
+          fish: next.fish.filter(f => f.id !== seizedId),
+          shop: {
+            ...next.shop,
+            listedFish: (next.shop.listedFish || []).filter(id => id !== seizedId),
+            fishPrices: Object.fromEntries(
+              Object.entries(next.shop.fishPrices || {}).filter(([id]) => id !== seizedId)
+            ),
+          },
+          breedingTank: {
+            ...next.breedingTank,
+            slots: (next.breedingTank.slots || []).map(s => s === seizedId ? null : s),
+          },
+          extraBays: (next.extraBays || []).map(bay => ({
+            ...bay,
+            slots: (bay.slots || []).map(s => s === seizedId ? null : s),
+          })),
           player: { ...next.player, activeLoan: { active: false } },
         };
         messages.push(`🏦 Loan overdue! The bank seized your ${seized.species?.name || 'fish'} as collateral!`);
@@ -1406,8 +1422,9 @@ export function applyOfflineProgress(state) {
       if (f.hunger >= 90) f.health = Math.max(0, f.health - HEALTH_HUNGER_DMG * secondsElapsed * 0.5);
       // Apply disease damage offline — diseased fish should still deteriorate while away
       if (f.disease) {
-        const disease = DISEASES[f.disease];
-        if (disease) f.health = Math.max(0, f.health - disease.healthDmgPerSec * secondsElapsed * 0.5);
+        const stage = getDiseaseStage(f.diseaseSince);
+        const dmg = getDiseaseDamage(f.disease, stage);
+        if (dmg > 0) f.health = Math.max(0, f.health - dmg * secondsElapsed * 0.5);
       }
     }
 
@@ -1479,6 +1496,19 @@ export function applyOfflineProgress(state) {
         ...next.breedingTank,
         slots: next.breedingTank.slots.map(s => deadIds.has(s) ? null : s),
       },
+      extraBays: (next.extraBays || []).map(bay => {
+        const slot0Dead = deadIds.has(bay.slots?.[0]);
+        const slot1Dead = deadIds.has(bay.slots?.[1]);
+        if (!slot0Dead && !slot1Dead) return bay;
+        return {
+          ...bay,
+          slots: (bay.slots || []).map(s => deadIds.has(s) ? null : s),
+          storedGenomeA: slot0Dead ? null : bay.storedGenomeA,
+          storedGenomeB: slot1Dead ? null : bay.storedGenomeB,
+          breedingStartedAt: (slot0Dead || slot1Dead) ? null : bay.breedingStartedAt,
+          eggReady: (slot0Dead || slot1Dead) ? false : bay.eggReady,
+        };
+      }),
       player: {
         ...next.player,
         autopsies: [...(next.player.autopsies || []), ...offlineAutopsies].slice(0, 50),

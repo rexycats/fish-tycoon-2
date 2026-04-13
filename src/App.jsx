@@ -5,7 +5,7 @@ import { TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
 import { getApiKey, setApiKey } from './services/aiService.js';
 import { getActiveEvent } from './data/seasonal.js';
 import { canPrestige } from './data/prestige.js';
-import { startMusic,isMusicPlaying } from './services/soundService.js';
+import { startMusic, isMusicPlaying, playTabSwitch as _playTabSwitch } from './services/soundService.js';
 import TankView       from './components/TankView.jsx';
 import FishPanel      from './components/FishPanel.jsx';
 import HUD            from './components/HUD.jsx';
@@ -32,27 +32,14 @@ import WantedBoard    from './components/WantedBoard.jsx';
 import GeneJournal    from './components/GeneJournal.jsx';
 import TabErrorBoundary from './components/TabErrorBoundary.jsx';
 import DiscoveryCeremony from './components/DiscoveryCeremony.jsx';
+import NavRail, { NAV_TO_TABS } from './components/NavRail.jsx';
 import { TUTORIAL_STEPS } from './data/tutorial.js';
 
 import { useGameStore } from './store/gameStore.js';
 import { useFishSelection } from './hooks/useFishSelection.js';
 import { useCoinDeltas }    from './hooks/useCoinDeltas.js';
 
-const PRIMARY_TABS = [
-  ["tank",       "🐠", "Tank"],
-  ["shop",       "🏪", "Shop"],
-  ["breed",      "🧬", "Breed"],
-  ["challenges", "🎯", "Goals"],
-  ["fishdex",    "📖", "Fishdex"],
-];
-const OVERFLOW_TABS = [
-  ["magic",    "🔮", "Magic"],
-  ["decor",    "🎨", "Decor"],
-  ["autopsy",  "🔬", "Autopsy"],
-  ["stats",    "📊", "Stats"],
-  ["achieve",  "🏆", "Awards"],
-];
-const TAB_LIST = [...PRIMARY_TABS, ...OVERFLOW_TABS];
+// Navigation sections defined in NavRail.jsx
 
 // ============================================================
 // Memoized tab content components — only re-render when their
@@ -135,6 +122,7 @@ export default function App() {
 
   // ── Tab + badge state ──────────────────────────────────────
   const [activeTab, setActiveTab]         = useState('tank');
+  const [activeSection, setActiveSection] = useState('aquarium');
   const [showApiSetup, setShowApiSetup]   = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
@@ -167,9 +155,9 @@ export default function App() {
         case 'escape': setShowSettings(false); setShowResetConfirm(false); setShowApiSetup(false); break;
         case 'tab': {
           e.preventDefault();
-          const tabs = TAB_LIST.map(t => t[0]);
-          const idx2 = tabs.indexOf(activeTab);
-          handleTabChange(tabs[(idx2 + 1) % tabs.length]);
+          const sections = ['aquarium', 'market', 'breeding', 'records', 'office'];
+          const idx2 = sections.indexOf(activeSection);
+          handleNavChange(sections[(idx2 + 1) % sections.length]);
           break;
         }
       }
@@ -246,10 +234,14 @@ export default function App() {
   const currentAchCount      = (player.achievements || []).length;
   const newAchCount          = Math.max(0, currentAchCount - (player.seenAchCount || 0));
 
-  const playTabSwitch = () => {}; // SFX placeholder
+  const playTabSwitch = _playTabSwitch;
   const handleTabChange = useCallback((tab) => {
     playTabSwitch();
     setActiveTab(tab);
+    // Sync section to match the tab
+    for (const [section, tabs] of Object.entries(NAV_TO_TABS)) {
+      if (tabs.includes(tab)) { setActiveSection(section); break; }
+    }
     if (tab === 'fishdex') {
       useGameStore.setState(state => {
         state.player.seenFishdexCount = (state.player.fishdex || []).length;
@@ -267,13 +259,17 @@ export default function App() {
     }
   }, []);
 
-  const tabBarRef = useRef(null);
-  const [showMoreTabs, setShowMoreTabs] = useState(false);
+  const handleNavChange = useCallback((section) => {
+    if (section === 'settings') {
+      setShowSettings(true);
+      return;
+    }
+    setActiveSection(section);
+    const defaultTab = NAV_TO_TABS[section]?.[0] || 'tank';
+    handleTabChange(defaultTab);
+  }, [handleTabChange]);
 
-  const isOverflowTab = OVERFLOW_TABS.some(([t]) => t === activeTab);
-  const visibleTabs = showMoreTabs || isOverflowTab ? TAB_LIST : PRIMARY_TABS;
-  const VISIBLE_TAB_COUNT = visibleTabs.length;
-  const pillIdx = visibleTabs.findIndex(([t]) => t === activeTab);
+  // (Old tab bar state removed — now using NavRail)
 
   const magicCount     = (player.magicFishFound || []).length;
   const autopsyCount   = (player.autopsies || []).length;
@@ -321,222 +317,232 @@ export default function App() {
         <OfflineSummary summary={offlineSummary} onDismiss={dismissOffline} />
       )}
 
-      <MemoHUD
-        player={player}
-        shop={shop}
-        tanks={tanks}
-        activeTank={activeTank}
-        selectedFishTankId={selectedFish?.tankId}
-        fish={fish}
-        onBuyFood={() => buySupply('food', 10, 10, activeTank?.id)}
-        onTreatWater={treatWater}
-        onToggleAutoFeed={toggleAutoFeed}
-        onUseHeater={useHeater}
-        soundOn={soundOn}
-        onToggleSound={toggleSound}
+      <div className="sim-shell">
+      <NavRail
+        active={activeSection}
+        onNavigate={handleNavChange}
+        badges={{
+          market: newShopFishCount > 0 ? 'NEW' : null,
+          records: (newFishdexCount > 0 || newAchCount > 0) ? '!' : null,
+          office: (challengeDone > 0 && challengeDone === challengeTotal) ? '✓' : null,
+        }}
       />
 
-      <TankTabs
-        tanks={tanks}
-        activeTankId={activeTank?.id}
-        onSelectTank={setActiveTankId}
-        onUnlockTank={unlockTank}
-        canUnlock={TANK_UNLOCK[tanks.length]}
-        playerCoins={player.coins}
-        fish={fish}
-        onRename={renameTank}
-        prestigeLevel={player.prestigeLevel || 0}
-      />
-
-      {activeTank && (activeTank.supplies?.food ?? 0) <= 5 && (
-        <div className="low-supply-banner">
-          ⚠️ Low food supply in <strong>{activeTank.name}</strong> — only {activeTank.supplies?.food ?? 0} left!{' '}
-          <button className="low-supply-banner__btn" onClick={() => buySupply('food', 10, 10, activeTank.id)}>
-            Buy food (+10)
-          </button>
-        </div>
-      )}
-
-      <nav ref={tabBarRef} className="tab-bar" style={{ '--tab-count': VISIBLE_TAB_COUNT }}>
-        <div className="tab-pill" style={{ '--pill-idx': pillIdx >= 0 ? pillIdx : 0, '--pill-total': VISIBLE_TAB_COUNT }} />
-        {visibleTabs.map(([tab, icon, label]) => {
-          let badge = null;
-          if (tab === 'shop' && newShopFishCount > 0) badge = (
-            <span className="tab-new-badge tab-new-badge--standalone">NEW</span>
-          );
-          if (tab === 'challenges') badge = (
-            <span className={`tab-dot ${challengeDone === challengeTotal && challengeTotal > 0 ? 'tab-dot--gold' : ''}`}>
-              {challengeDone}/{challengeTotal}
-            </span>
-          );
-          if (tab === 'fishdex' && newFishdexCount > 0) badge = (
-            <span className="tab-new-badge tab-new-badge--standalone">NEW</span>
-          );
-          if (tab === 'magic')   badge = <span className="tab-dot tab-dot--magic">{magicCount}/7</span>;
-          if (tab === 'autopsy' && autopsyCount > 0) badge = <span className="tab-dot tab-dot--warn">{autopsyCount}</span>;
-          if (tab === 'achieve' && newAchCount > 0)  badge = <span className="tab-dot tab-dot--gold">{newAchCount}</span>;
-          return (
-            <button
-              key={tab}
-              className={`tab-btn ${activeTab === tab ? 'active' : ''}${tutorialHighlight === tab ? ' tutorial-highlight' : ''}`}
-              onClick={() => handleTabChange(tab)}
-            >
-              <span className="tab-btn-icon">{icon}</span>
-              <span className="tab-btn-label">{label}</span>
-              {badge}
+      <div className="sim-main">
+      {/* ── Sim header: HUD + contextual controls ──── */}
+      <div className="sim-header">
+        <MemoHUD
+          player={player}
+          shop={shop}
+          tanks={tanks}
+          activeTank={activeTank}
+          selectedFishTankId={selectedFish?.tankId}
+          fish={fish}
+          onBuyFood={() => buySupply('food', 10, 10, activeTank?.id)}
+          onTreatWater={treatWater}
+          onToggleAutoFeed={toggleAutoFeed}
+          onUseHeater={useHeater}
+          soundOn={soundOn}
+          onToggleSound={toggleSound}
+        />
+        {activeSection === 'aquarium' && (
+          <TankTabs
+            tanks={tanks}
+            activeTankId={activeTank?.id}
+            onSelectTank={setActiveTankId}
+            onUnlockTank={unlockTank}
+            canUnlock={TANK_UNLOCK[tanks.length]}
+            playerCoins={player.coins}
+            fish={fish}
+            onRename={renameTank}
+            prestigeLevel={player.prestigeLevel || 0}
+          />
+        )}
+        {activeSection === 'aquarium' && activeTank && (activeTank.supplies?.food ?? 0) <= 5 && (
+          <div className="low-supply-banner">
+            Low food in <strong>{activeTank.name}</strong> — {activeTank.supplies?.food ?? 0} left{' '}
+            <button className="low-supply-banner__btn" onClick={() => buySupply('food', 10, 10, activeTank.id)}>
+              Buy food
             </button>
-          );
-        })}
-        {!showMoreTabs && !isOverflowTab && (
-          <button className="tab-btn tab-btn--more" onClick={() => setShowMoreTabs(true)}>
-            <span className="tab-btn-icon">···</span>
-            <span className="tab-btn-label">More</span>
-          </button>
+          </div>
         )}
-        {(showMoreTabs || isOverflowTab) && (
-          <button className="tab-btn tab-btn--more" onClick={() => { setShowMoreTabs(false); if (isOverflowTab) handleTabChange('tank'); }}>
-            <span className="tab-btn-icon">✕</span>
-            <span className="tab-btn-label">Less</span>
-          </button>
-        )}
-      </nav>
+      </div>
 
-      <main className="main-layout">
-        {activeTab === 'tank' && (
+      <main className="sim-viewport">
+        {/* ── Aquarium section ─────────────────────────── */}
+        {activeSection === 'aquarium' && (
           <>
             {tanks.length > 1
               ? <AquariumOverview tanks={tanks} fish={fish} activeTankId={activeTank?.id} onSelectTank={setActiveTankId} />
-              : <div className="aquarium-overview aquarium-overview--teaser">
-                  <div className="aquarium-overview-title">🌊 Aquarium Overview</div>
-                  <div className="overview-unlock-cta">
-                    <span>🔓 Unlock a second tank to manage multiple habitats</span>
-                    <button className="btn btn-sm" onClick={() => handleTabChange('shop')}>Tank Expansion →</button>
-                  </div>
-                </div>
+              : null
             }
-            <div className="tank-col">
-              <MemoTankView
-                fish={tankFish}
-                selectedFishId={selectedFishId}
-                onSelectFish={setSelectedFishId}
-                waterQuality={activeTank?.waterQuality ?? 100}
-                tank={activeTank}
-                listedFishIds={shop.listedFish || []}
-              />
-            </div>
-            <div className="side-col">
-              <MemoFishPanel
-                fish={selectedFish}
-                onFeed={feedFish}
-                onSell={toggleSellFish}
-                onMedicine={useMedicine}
-                isListed={isListed}
-                isFirstRun={(player.fishdex || []).length === 0}
-                foodStock={
-                  (tanks.find(t => t.id === selectedFish?.tankId) ?? activeTank)?.supplies?.food ?? 0
-                }
-                medicineStock={(() => {
-                  const fishTank = tanks.find(t => t.id === selectedFish?.tankId) ?? activeTank;
-                  return selectedFish?.disease === 'bloat'  ? (fishTank?.supplies?.digestiveRemedy ?? 0)
-                       : selectedFish?.disease === 'velvet' ? (fishTank?.supplies?.antiparasitic   ?? 0)
-                       :                                      (fishTank?.supplies?.antibiotic       ?? 0);
-                })()}
-                tanks={tanks}
-                onMoveFish={moveFishToTank}
-                onNavigate={handleTabChange}
-              />
-              <MemoLogPanel log={log} />
+            <div className="sim-aquarium">
+              <div className="tank-col">
+                <MemoTankView
+                  fish={tankFish}
+                  selectedFishId={selectedFishId}
+                  onSelectFish={setSelectedFishId}
+                  waterQuality={activeTank?.waterQuality ?? 100}
+                  tank={activeTank}
+                  listedFishIds={shop.listedFish || []}
+                />
+              </div>
+              <div className="sim-inspector">
+                <MemoFishPanel
+                  fish={selectedFish}
+                  onFeed={feedFish}
+                  onSell={toggleSellFish}
+                  onMedicine={useMedicine}
+                  isListed={isListed}
+                  isFirstRun={(player.fishdex || []).length === 0}
+                  foodStock={
+                    (tanks.find(t => t.id === selectedFish?.tankId) ?? activeTank)?.supplies?.food ?? 0
+                  }
+                  medicineStock={(() => {
+                    const fishTank = tanks.find(t => t.id === selectedFish?.tankId) ?? activeTank;
+                    return selectedFish?.disease === 'bloat'  ? (fishTank?.supplies?.digestiveRemedy ?? 0)
+                         : selectedFish?.disease === 'velvet' ? (fishTank?.supplies?.antiparasitic   ?? 0)
+                         :                                      (fishTank?.supplies?.antibiotic       ?? 0);
+                  })()}
+                  tanks={tanks}
+                  onMoveFish={moveFishToTank}
+                  onNavigate={handleTabChange}
+                />
+              </div>
             </div>
           </>
         )}
-        {activeTab === 'challenges' && (
-          <TabErrorBoundary name="challenges"><div className="tab-content-scroll">
-            <GoalsPanel />
+
+        {/* ── Market section ──────────────────────────── */}
+        {activeSection === 'market' && (
+          <TabErrorBoundary name="market"><div className="tab-content-scroll">
+            <MemoShop
+              game={game}
+              activeTank={activeTank}
+              onToggleSell={toggleSellFish}
+              onSetPrice={setFishPrice}
+              onBuyUpgrade={buyUpgrade}
+              onBuySupply={(k, c, a) => buySupply(k, c, a, activeTank?.id)}
+              onBuyFish={buyFish}
+              onBuyRareItem={buyRareMarketItem}
+              onNavigate={handleTabChange}
+            />
             <WantedBoard />
-            <FishShowPanel />
             <CatchOfDayPanel />
-            <DailyChallengesPanel dailyChallenges={dailyChallenges} streak={player.challengeStreak || 0} />
           </div></TabErrorBoundary>
         )}
-        {activeTab === 'shop' && (
-          <TabErrorBoundary name="shop"><div className="tab-content-scroll">
-          <MemoShop
-            game={game}
-            activeTank={activeTank}
-            onToggleSell={toggleSellFish}
-            onSetPrice={setFishPrice}
-            onBuyUpgrade={buyUpgrade}
-            onBuySupply={(k, c, a) => buySupply(k, c, a, activeTank?.id)}
-            onBuyFish={buyFish}
-            onBuyRareItem={buyRareMarketItem}
-            onNavigate={handleTabChange}
-          />
-          </div></TabErrorBoundary>
-        )}
-        {activeTab === 'breed' && (
+
+        {/* ── Breeding Lab section ────────────────────── */}
+        {activeSection === 'breeding' && (
           <TabErrorBoundary name="breed"><div className="tab-content-scroll">
-          <MemoBreedingLab
-            fish={fish}
-            breedingTank={breedingTank}
-            extraBays={game.extraBays || []}
-            maxBays={game.maxBays || 1}
-            onSelectForBreeding={selectForBreeding}
-            onCollectEgg={collectEgg}
-            onCancelBreeding={cancelBreeding}
-            onNavigate={handleTabChange}
-          />
+            <MemoBreedingLab
+              fish={fish}
+              breedingTank={breedingTank}
+              extraBays={game.extraBays || []}
+              maxBays={game.maxBays || 1}
+              onSelectForBreeding={selectForBreeding}
+              onCollectEgg={collectEgg}
+              onCancelBreeding={cancelBreeding}
+              onNavigate={handleTabChange}
+            />
           </div></TabErrorBoundary>
         )}
-        {activeTab === 'fishdex' && (
-          <div className="tab-content-scroll">
-          <TabErrorBoundary name="fishdex">
-          <MemoFishdex
-            fishdex={player.fishdex || []}
-            onGenerateLore={handleGenerateLore}
-            generatingLoreFor={generatingLoreFor}
-            aiError={aiError}
-            legendFishUnlocked={!!player.legendFishUnlocked}
-          />
-          <GeneJournal />
-          </TabErrorBoundary>
+
+        {/* ── Records section (sub-tabs) ──────────────── */}
+        {activeSection === 'records' && (
+          <div className="sim-section-with-tabs">
+            <div className="sim-sub-tabs">
+              <button className={`sim-sub-tab${activeTab === 'fishdex' ? ' active' : ''}`} onClick={() => handleTabChange('fishdex')}>Fishdex</button>
+              <button className={`sim-sub-tab${activeTab === 'achieve' ? ' active' : ''}`} onClick={() => handleTabChange('achieve')}>Achievements</button>
+              <button className={`sim-sub-tab${activeTab === 'magic' ? ' active' : ''}`} onClick={() => handleTabChange('magic')}>Magic Fish</button>
+              <button className={`sim-sub-tab${activeTab === 'stats' ? ' active' : ''}`} onClick={() => handleTabChange('stats')}>Statistics</button>
+            </div>
+            <div className="tab-content-scroll">
+              {activeTab === 'fishdex' && (
+                <TabErrorBoundary name="fishdex">
+                  <MemoFishdex
+                    fishdex={player.fishdex || []}
+                    onGenerateLore={handleGenerateLore}
+                    generatingLoreFor={generatingLoreFor}
+                    aiError={aiError}
+                    legendFishUnlocked={!!player.legendFishUnlocked}
+                  />
+                  <GeneJournal />
+                </TabErrorBoundary>
+              )}
+              {activeTab === 'achieve' && (
+                <MemoAchievements achievements={player.achievements || []} player={player} onNavigate={handleTabChange} />
+              )}
+              {activeTab === 'magic' && (
+                <MemoMagicFishPanel magicFishFound={player.magicFishFound || []} />
+              )}
+              {activeTab === 'stats' && <StatsPanel />}
+            </div>
           </div>
         )}
-        {activeTab === 'achieve' && (
-          <div className="tab-content-scroll">
-          <MemoAchievements achievements={player.achievements || []} player={player} onNavigate={handleTabChange} />
-          </div>
-        )}
-        {activeTab === 'magic' && (
-          <div className="tab-content-scroll">
-          <MemoMagicFishPanel magicFishFound={player.magicFishFound || []} />
-          </div>
-        )}
-        {activeTab === 'decor' && (
-          <div className="tab-content-scroll">
-          <MemoDecorationPanel
-            game={game}
-            activeTank={activeTank}
-            onBuyDecor={buyDecoration}
-            onPlaceDecor={placeDecoration}
-            onRemoveDecor={removeDecoration}
-            unlockedDecorations={player.unlockedDecorations || []}
-            onClaimUnlockedDecor={claimUnlockedDecoration}
-            onBuyTheme={buyTheme}
-            onApplyTheme={applyTheme}
-          />
-          </div>
-        )}
-        {activeTab === 'autopsy' && (
-          <div className="tab-content-scroll">
-          <MemoFishAutopsy autopsies={player.autopsies || []} />
-          </div>
-        )}
-        {activeTab === 'stats' && (
-          <div className="tab-content-scroll">
-          <StatsPanel />
+
+        {/* ── Office section (sub-tabs) ───────────────── */}
+        {activeSection === 'office' && (
+          <div className="sim-section-with-tabs">
+            <div className="sim-sub-tabs">
+              <button className={`sim-sub-tab${activeTab === 'challenges' ? ' active' : ''}`} onClick={() => handleTabChange('challenges')}>Contracts</button>
+              <button className={`sim-sub-tab${activeTab === 'decor' ? ' active' : ''}`} onClick={() => handleTabChange('decor')}>Decor</button>
+              <button className={`sim-sub-tab${activeTab === 'autopsy' ? ' active' : ''}`} onClick={() => handleTabChange('autopsy')}>Autopsy</button>
+            </div>
+            <div className="tab-content-scroll">
+              {activeTab === 'challenges' && (
+                <TabErrorBoundary name="challenges">
+                  <GoalsPanel />
+                  <FishShowPanel />
+                  <DailyChallengesPanel dailyChallenges={dailyChallenges} streak={player.challengeStreak || 0} />
+                </TabErrorBoundary>
+              )}
+              {activeTab === 'decor' && (
+                <MemoDecorationPanel
+                  game={game}
+                  activeTank={activeTank}
+                  onBuyDecor={buyDecoration}
+                  onPlaceDecor={placeDecoration}
+                  onRemoveDecor={removeDecoration}
+                  unlockedDecorations={player.unlockedDecorations || []}
+                  onClaimUnlockedDecor={claimUnlockedDecoration}
+                  onBuyTheme={buyTheme}
+                  onApplyTheme={applyTheme}
+                />
+              )}
+              {activeTab === 'autopsy' && (
+                <MemoFishAutopsy autopsies={player.autopsies || []} />
+              )}
+            </div>
           </div>
         )}
       </main>
+
+      {/* ── Bottom log strip ──────────────────────────── */}
+      <div className="sim-log">
+        <MemoLogPanel log={log} />
+      </div>
+
+      <footer className="app-footer">
+        <button className="btn btn-sm" onClick={() => setShowSettings(true)} title="Settings">Settings</button>
+        <button className="btn btn-sm btn-danger" onClick={() => setShowResetConfirm(true)}>Reset</button>
+        <button className="btn btn-sm" onClick={handleExportSave} title="Download save">Export</button>
+        <label className="btn btn-sm" title="Load save" style={{ cursor: 'pointer' }}>
+          Import
+          <input type="file" accept=".json" style={{ display: 'none' }} onChange={e => handleImportSave(e.target.files[0])} />
+        </label>
+        {canPrestige(useGameStore.getState()) && (
+          <button className="btn btn-sm btn-prestige" onClick={performPrestige} title="Reset for permanent bonuses">
+            Prestige
+          </button>
+        )}
+        <button className="btn btn-sm" onClick={() => setShowApiSetup(true)} title="Configure AI key">
+          AI {getApiKey() ? '(on)' : '(off)'}
+        </button>
+        <span className="footer-tip">Auto-saves every 30s</span>
+      </footer>
+      </div>{/* /sim-main */}
+      </div>{/* /sim-shell */}
 
       {/* Seasonal event banner */}
       {seasonalEvent && (
@@ -608,27 +614,6 @@ export default function App() {
         />
       )}
 
-      <footer className="app-footer">
-        <button className="btn btn-sm" onClick={() => setShowSettings(true)} title="Settings">⚙️ Settings</button>
-        <button className="btn btn-sm btn-danger" onClick={() => setShowResetConfirm(true)}>🔄 Reset</button>
-        <button className="btn btn-sm" onClick={handleExportSave} title="Download your save as a JSON file">💾 Export</button>
-        <label className="btn btn-sm" title="Load a previously exported save file" style={{ cursor: 'pointer' }}>
-          📂 Import
-          <input type="file" accept=".json" style={{ display: 'none' }} onChange={e => handleImportSave(e.target.files[0])} />
-        </label>
-        <button className="btn btn-sm" onClick={() => setShowCredits(true)}>ℹ️ Credits</button>
-        <span className="footer-tip">Auto-saves every 30s</span>
-        
-        <button className="btn btn-sm" onClick={() => setShowCredits(true)} title="Credits">ℹ️</button>
-        {canPrestige(useGameStore.getState()) && (
-          <button className="btn btn-sm btn-prestige" onClick={performPrestige} title="Reset for permanent bonuses">
-            🌟 Prestige
-          </button>
-        )}
-        <button className="btn btn-sm" onClick={() => setShowApiSetup(true)} title="Configure Anthropic API key for AI fish names">
-          🤖 AI Key {getApiKey() ? '✅' : '⚠️'}
-        </button>
-      </footer>
     </div>
   );
 }
@@ -637,7 +622,7 @@ export default function App() {
 function AquariumOverview({ tanks, fish, activeTankId, onSelectTank }) {
   return (
     <div className="aquarium-overview">
-      <div className="aquarium-overview-title">🌊 Aquarium Overview</div>
+      <div className="aquarium-overview-title">Aquarium Overview</div>
       <div className="aquarium-overview-grid">
         {tanks.map(tank => {
           const tankFish  = fish.filter(f => f.tankId === tank.id);

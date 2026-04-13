@@ -101,7 +101,7 @@ function Achievements({ achievements, player, onNavigate }) {
     <div className="ach-panel">
       <div className="ach-header">
         <div className="ach-title-row">
-          <h2>🏆 Achievements</h2>
+          <h2>Achievements</h2>
           <div className="ach-progress-label">{count} / {total}</div>
         </div>
 

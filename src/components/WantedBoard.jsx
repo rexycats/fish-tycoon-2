@@ -15,7 +15,7 @@ export default function WantedBoard() {
   if (activePosters.length === 0) {
     return (
       <div className="wanted-board">
-        <h3 className="wanted-title section-title">📋 Wanted Board</h3>
+        <h3 className="wanted-title section-title">Wanted Board</h3>
         <div className="wanted-empty">No active bounties. New ones appear as you level up!</div>
       </div>
     );
@@ -23,7 +23,7 @@ export default function WantedBoard() {
 
   return (
     <div className="wanted-board">
-      <h3 className="wanted-title section-title">📋 Wanted Board</h3>
+      <h3 className="wanted-title section-title">Wanted Board</h3>
       <div className="wanted-posters">
         {activePosters.map(poster => {
           const matchingFish = fish.filter(f => fishMatchesPoster(f, poster));

@@ -332,7 +332,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
       {/* Shop header */}
       <div className="shop-header">
         <div className="shop-header-left">
-          <h2>🏪 Your Aquarium Shop</h2>
+          <h2>Your Aquarium Shop</h2>
           <ReputationBar rep={shop.reputation || 0} />
         </div>
         <div className="shop-header-right">

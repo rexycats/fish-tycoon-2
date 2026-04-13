@@ -76,7 +76,7 @@ export default function FishShowPanel() {
 
   return (
     <div className="fish-show">
-      <div className="fish-show-title">🏆 Fish Show</div>
+      <div className="fish-show-title">Fish Show</div>
 
       {!eligible && phase === 'select' && (
         <div className="fish-show-cooldown">

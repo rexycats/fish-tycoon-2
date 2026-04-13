@@ -37,7 +37,7 @@ function TraitOddsGrid({ genomeA, genomeB }) {
   if (odds.length === 0) return null;
   return (
     <div className="trait-odds-grid">
-      <div className="trait-odds-title">🧬 Trait Inheritance</div>
+      <div className="trait-odds-title">Trait Inheritance</div>
       <div className="trait-odds-rows">
         {odds.map(({ gene, label, outcomes }) => (
           <div key={gene} className="trait-odds-row">
@@ -317,7 +317,7 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
         {/* Offspring predictions */}
         {bothSelected && !canPredict && (
           <div className="breed-predictions">
-            <div className="breed-predictions-title">🔮 Offspring Prediction</div>
+            <div className="breed-predictions-title">Offspring Prediction</div>
             <div className="predict-more" style={{ padding: '8px 0', color: '#6ab0de' }}>
               Offspring genetics are unpredictable when one or both parents are a real species.
               Breed them to find out!
@@ -326,7 +326,7 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
         )}
         {bothSelected && predictions.length > 0 && (
           <div className="breed-predictions">
-            <div className="breed-predictions-title">🔮 Possible Offspring</div>
+            <div className="breed-predictions-title">Possible Offspring</div>
             {predictions.slice(0, 6).map(o => (
               <PredictionBar key={o.species?.name || o.chance} outcome={o} />
             ))}

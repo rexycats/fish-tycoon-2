@@ -88,7 +88,7 @@ export default function GeneJournal() {
 
   return (
     <div className="gene-journal">
-      <h3 className="section-title">🧬 Gene Journal</h3>
+      <h3 className="section-title">Gene Journal</h3>
 
       {/* Discovery progress bar */}
       <div className="gj-progress">
@@ -163,7 +163,7 @@ export default function GeneJournal() {
 
       {/* Mutation recipes */}
       <div className="gj-recipes">
-        <div className="gj-section-title">🔮 Mutation Recipes</div>
+        <div className="gj-section-title">Mutation Recipes</div>
         {MUTATION_RECIPES.map(recipe => {
           const mutName = GENES.mutation?.alleles[recipe.allele]?.name || '???';
           const discovered = disc.seenMutations.has(mutName);

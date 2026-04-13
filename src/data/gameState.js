@@ -104,10 +104,8 @@ export function createDefaultState() {
       lastDailyClaimDate: null,
       unlockedBackgrounds: ['tropical'],
       completedMilestones: [],
-      completedMilestones: [],
       tutorialStep: 0,
       tutorialDone: false,
-      completedMilestones: [],
       shopLevel: 1,
       fishdex: [],
       achievements: [],
@@ -312,7 +310,6 @@ function migrateSave(parsed, fromVersion) {
   if (parsed.player.dailyStreak === undefined) parsed.player.dailyStreak = 0;
   if (!parsed.player.unlockedBackgrounds) parsed.player.unlockedBackgrounds = ['tropical'];
   if (!parsed.player.completedMilestones) parsed.player.completedMilestones = [];
-  if (!parsed.player.completedMilestones) parsed.player.completedMilestones = []; // Retroactive XP from earnings
   if (!parsed.player.magicFishFound) parsed.player.magicFishFound = [];
   if (!parsed.player.autopsies) parsed.player.autopsies = [];
   if (!parsed.shop?.fishPrices) {
@@ -495,13 +492,11 @@ export function loadGame() {
     try {
       parsed = JSON.parse(raw);
     } catch {
-      // Main save corrupted — try backup
       console.warn('Main save corrupted, trying backup...');
       const backup = localStorage.getItem(SAVE_KEY + '_backup');
       if (!backup) return null;
       parsed = JSON.parse(backup);
     }
-    // Validate minimum structure
     if (!parsed || !parsed.player || !Array.isArray(parsed.fish)) {
       console.warn('Save missing required fields, trying backup...');
       const backup = localStorage.getItem(SAVE_KEY + '_backup');
@@ -518,6 +513,25 @@ export function loadGame() {
     }
     return parsed;
   } catch (e) { console.error('Load failed:', e); return null; }
+}
+
+// Async version for Electron — tries filesystem first, falls back to localStorage
+export async function loadGameAsync() {
+  try {
+    if (isElectron()) {
+      const result = await window.electronAPI.loadGame();
+      if (result?.ok && result.data) {
+        const parsed = result.data;
+        if (parsed?.player && Array.isArray(parsed?.fish)) {
+          const fromVersion = parsed.version ?? 0;
+          return fromVersion !== SAVE_VERSION ? migrateSave(parsed, fromVersion) : parsed;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[Electron] Filesystem load failed, falling back to localStorage:', e);
+  }
+  return loadGame();
 }
 // ── Export / Import ────────────────────────────────────────
 export async function exportSave(state) {

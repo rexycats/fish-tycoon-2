@@ -34,7 +34,7 @@ export default function BreedingForecast({ fishA, fishB }) {
 
   return (
     <div className="breed-forecast">
-      <div className="breed-forecast-title">🧬 Gene Mixer</div>
+      <div className="breed-forecast-title">Gene Mixer</div>
 
       {/* Parent Chromacodes */}
       <div className="breed-forecast-parents">

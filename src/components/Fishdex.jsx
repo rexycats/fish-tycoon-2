@@ -358,7 +358,7 @@ function Fishdex({ fishdex: _fishdex, onGenerateLore, generatingLoreFor, aiError
       {/* Header with progress bar */}
       <div className="fdex-header">
         <div className="fdex-title-row">
-          <h2>📖 Fishdex</h2>
+          <h2>Fishdex</h2>
           <div className="fdex-count">{totalFound} species discovered</div>
         </div>
         <div className="fdex-progress">

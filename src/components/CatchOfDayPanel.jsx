@@ -146,7 +146,7 @@ export default function CatchOfDayPanel() {
 
   return (
     <div className="catch-game">
-      <div className="catch-title">🎣 Catch of the Day</div>
+      <div className="catch-title">Catch of the Day</div>
 
       {phase === 'intro' && (
         <div className="catch-intro">

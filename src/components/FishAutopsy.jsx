@@ -137,7 +137,7 @@ function FishAutopsyPanel({ autopsies = [] }) {
     return (
       <div className="autopsy-panel">
         <div className="autopsy-header">
-          <h2 className="autopsy-title">🔬 Fish Autopsy</h2>
+          <h2 className="autopsy-title">Fish Autopsy</h2>
           <p className="autopsy-subtitle">Understand why your fish died. Improve. Prevent.</p>
         </div>
         <div className="autopsy-empty">
@@ -159,7 +159,7 @@ function FishAutopsyPanel({ autopsies = [] }) {
     <div className="autopsy-panel">
       <div className="autopsy-header">
         <div className="autopsy-header-left">
-          <h2 className="autopsy-title">🔬 Fish Autopsy</h2>
+          <h2 className="autopsy-title">Fish Autopsy</h2>
           <p className="autopsy-subtitle">Post-mortem records — understand and prevent future losses.</p>
         </div>
         <div className="autopsy-stats-wrap">

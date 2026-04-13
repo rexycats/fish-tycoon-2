@@ -13597,3 +13597,261 @@ select { border-radius: var(--radius-sm); }
 .fdex-breed-hint-text strong {
   color: var(--gold-light);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   SIM SHELL — Left rail + main + inspector + bottom log
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Shell grid ────────────────────────────────────────── */
+.sim-shell {
+  display: flex;
+  flex: 1 1 auto;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Left navigation rail ──────────────────────────────── */
+.nav-rail {
+  display: flex;
+  flex-direction: column;
+  width: 72px;
+  flex-shrink: 0;
+  background: rgba(4, 10, 24, 0.98);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  padding: 8px 0;
+  z-index: 100;
+}
+.nav-rail-brand {
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.08em;
+  color: var(--foam);
+  padding: 6px 0 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 8px;
+}
+.nav-rail-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  padding: 0 6px;
+}
+.nav-rail-footer {
+  padding: 0 6px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  margin-top: 8px;
+  padding-top: 8px;
+}
+.nav-rail-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: background var(--tr-fast), color var(--tr-fast);
+  position: relative;
+  font-family: var(--font-body);
+}
+.nav-rail-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-light);
+}
+.nav-rail-btn--active {
+  background: rgba(60, 140, 200, 0.12);
+  color: var(--foam);
+}
+.nav-rail-btn--active::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 25%;
+  bottom: 25%;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--foam);
+}
+.nav-rail-icon {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--fs-sm);
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs);
+}
+.nav-rail-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.nav-rail-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 8px;
+  font-weight: 800;
+  background: var(--accent-sell);
+  color: #fff;
+  padding: 1px 4px;
+  border-radius: 6px;
+  line-height: 1.2;
+}
+
+/* ── Sim main area ─────────────────────────────────────── */
+.sim-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ── Sim viewport (content area) ───────────────────────── */
+.sim-viewport {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+/* ── Aquarium layout (tank + inspector side by side) ───── */
+.sim-aquarium {
+  display: flex;
+  flex: 1 1 auto;
+  overflow: hidden;
+  min-height: 0;
+}
+.sim-aquarium .tank-col {
+  flex: 1 1 auto;
+  min-width: 0;
+  position: relative;
+}
+.sim-inspector {
+  border-left: 1px solid rgba(255,255,255,0.06);
+  background: rgba(7, 15, 34, 0.98);
+  flex: 0 0 300px;
+  width: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ── Bottom log strip ──────────────────────────────────── */
+.sim-log {
+  flex: 0 0 auto;
+  max-height: 120px;
+  overflow-y: auto;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(4, 10, 24, 0.95);
+}
+.sim-log .log-panel {
+  padding: 4px 8px;
+}
+
+/* ── Sub-tabs for Records / Office ─────────────────────── */
+.sim-section-with-tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  overflow: hidden;
+  min-height: 0;
+}
+.sim-sub-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(4, 10, 24, 0.6);
+  padding: 0 12px;
+  flex-shrink: 0;
+}
+.sim-sub-tab {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color var(--tr-fast), border-color var(--tr-fast);
+}
+.sim-sub-tab:hover {
+  color: var(--text-light);
+}
+.sim-sub-tab.active {
+  color: var(--foam);
+  border-bottom-color: var(--foam);
+}
+
+/* ── Hide old tab-bar (safety) ─────────────────────────── */
+.tab-bar { display: none !important; }
+
+/* ── Mobile: collapse rail to bottom bar ───────────────── */
+@media (max-width: 768px) {
+  .sim-shell { flex-direction: column-reverse; }
+  .nav-rail {
+    flex-direction: row;
+    width: 100%;
+    height: 56px;
+    border-right: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 0 4px;
+    overflow-x: auto;
+  }
+  .nav-rail-brand { display: none; }
+  .nav-rail-items { flex-direction: row; gap: 0; padding: 0; }
+  .nav-rail-footer { display: none; }
+  .nav-rail-btn { padding: 6px 10px; }
+  .nav-rail-btn--active::before {
+    left: 25%; right: 25%; top: -1px; bottom: auto;
+    width: auto; height: 2px;
+    border-radius: 0 0 2px 2px;
+  }
+  .nav-rail-label { font-size: 8px; }
+  .sim-inspector { display: none; } /* full-screen on mobile — later phase */
+  .sim-log { max-height: 80px; }
+}
+
+/* ── Sim header (HUD + TankTabs + banners) ─────────────── */
+.sim-header {
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* ── Compact footer inside sim layout ──────────────────── */
+.sim-shell .app-footer {
+  border-top: 1px solid rgba(255,255,255,0.04);
+  padding: 4px 12px;
+  gap: 6px;
+  font-size: var(--fs-2xs);
+  opacity: 0.6;
+  transition: opacity var(--tr-normal);
+}
+.sim-shell .app-footer:hover { opacity: 1; }
+
+/* ── Nav rail SVG sizing ───────────────────────────────── */
+.nav-rail-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}

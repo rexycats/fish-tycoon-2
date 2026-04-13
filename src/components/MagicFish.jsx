@@ -138,7 +138,7 @@ export default function MagicFishPanel({ magicFishFound = [] }) {
       {/* Header */}
       <div className="magic-header">
         <div className="magic-header-left">
-          <h2 className="magic-title">🔮 The 7 Magic Fish</h2>
+          <h2 className="magic-title">The 7 Magic Fish</h2>
           <p className="magic-subtitle">
             Ancient legends speak of seven extraordinary fish — each more wondrous than the last.
             Breed your way to the truth.

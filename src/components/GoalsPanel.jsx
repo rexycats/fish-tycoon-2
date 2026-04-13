@@ -132,7 +132,7 @@ export default function GoalsPanel() {
       {/* ── Special Orders ─────────────────────────────── */}
       {subTab === 'orders' && (
         <div className="goals-section">
-          <div className="goals-section-title">📋 Special Orders — refreshes daily</div>
+          <div className="goals-section-title">Special Orders — refreshes daily</div>
           {orders.length === 0 && <div className="goals-empty">No orders available yet. Keep playing!</div>}
           {orders.map(order => {
             const matchingFish = fish.filter(f => f.stage === 'adult' && checkOrderFulfillment(f, order));

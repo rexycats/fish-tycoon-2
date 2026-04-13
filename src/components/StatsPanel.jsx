@@ -77,7 +77,7 @@ export default function StatsPanel() {
 
   return (
     <div className="stats-panel">
-      <h2 className="stats-title">📊 Aquarium Statistics</h2>
+      <h2 className="stats-title">Aquarium Statistics</h2>
 
       <div className="stats-grid">
         <StatCard icon="⏱" label="Time Played" value={timePlayed} />

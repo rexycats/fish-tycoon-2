@@ -1,5 +1,6 @@
 import { upgradeCost, BREEDING_BASE_MS, BREEDING_SPEED_FACTOR } from '../data/constants.js';
 import { generateWantedPoster, fishMatchesPoster } from '../data/wantedBoard.js';
+import { checkOrderFulfillment } from '../data/specialOrders.js';
 // ============================================================
 // FISH TYCOON 2 — ZUSTAND GAME STORE
 // Replaces: useGameEngine + useEconomy + useState(game)
@@ -15,7 +16,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import {
-  createDefaultState, saveGame, loadGame, checkAchievements,
+  createDefaultState, saveGame, loadGame, loadGameAsync, checkAchievements,
   addLogDraft, createDefaultTank, TANK_UNLOCK, exportSave, importSave,
 } from '../data/gameState.js';
 import {
@@ -39,7 +40,7 @@ import { MILESTONES } from '../data/milestones.js';
 import { checkNearMiss, getStreakMultiplier, getStreakLabel } from '../data/retention.js';
 import {
   playCoin, playBubble, playFeed, playBreed, playWarning,
-  playDiscover, playSale, setSoundEnabled,
+  playDiscover, setSoundEnabled,
   playSaleScaled, playDiscoverScaled, playCoinScaled, playAscension,
   playClick, playTabSwitch, playDeath, playSick, playLevelUp, playSplash,
 } from '../services/soundService.js';
@@ -284,6 +285,8 @@ export const useGameStore = create(
             playCoin();
             addLogDraft(state, `💊 Cured ${fish.nickname || fish.species?.name || 'fish'} of ${diseaseName}! (${stage} stage, ${Math.round(successRate * 100)}% chance)`);
             addXp(state, XP_REWARDS.cureFish, 'cure');
+            const updated = updateChallengeProgress(state, 'cure_fish');
+            Object.assign(state, updated);
           } else {
             playWarning();
             addLogDraft(state, `💊 Treatment failed on ${fish.nickname || fish.species?.name || 'fish'}! (${stage} stage, ${Math.round(successRate * 100)}% chance — try again)`);
@@ -842,28 +845,42 @@ export const useGameStore = create(
             return;
           }
 
-          const price = action === 'counter' ? counterPrice : h.offer;
-          if (!price || price <= 0) return;
+          // Bug 3 fix: clamp counter to buyer's budget
+          let price;
+          if (action === 'counter') {
+            const requested = Math.round(Number(counterPrice) || 0);
+            if (requested <= 0) return;
+            if (requested > (h.maxBudget || h.offer * 2)) {
+              addLogDraft(state, `🙅 ${h.customerName} refused your counteroffer.`);
+              return;
+            }
+            price = requested;
+          } else {
+            price = h.offer;
+          }
 
+          // Bug 2 fix: capture fish BEFORE deletion
           const fish = findFish(state, h.fishId);
           if (!fish) {
             addLogDraft(state, `⚠️ Fish no longer available.`);
             return;
           }
+          const soldRarity = fish.species?.rarity;
+          const fishName = fish.nickname || fish.species?.name || h.fishName || 'Unknown';
 
           // Complete the sale
           state.player.coins += price;
           state.player.totalCoinsEarned = (state.player.totalCoinsEarned || 0) + price;
           state.fish = state.fish.filter(f => f.id !== h.fishId);
-          state.shop.listedFish = state.shop.listedFish.filter(id => id !== h.fishId);
+          state.shop.listedFish = (state.shop.listedFish || []).filter(id => id !== h.fishId);
           if (state.shop.fishPrices) delete state.shop.fishPrices[h.fishId];
+          removeFishFromBreedSlots(state, h.fishId);
           state.player.stats.fishSold = (state.player.stats.fishSold || 0) + 1;
           state.shop.reputation = (state.shop.reputation || 0) + 1;
           if (!state.shop.salesHistory) state.shop.salesHistory = [];
-          state.shop.salesHistory.push({ fishName: h.fishName, price, customer: h.customerName, at: Date.now() });
-          playCoin();
-          addLogDraft(state, `🤝 ${h.customerName}: Sold ${h.fishName} for 🪙${price}!`);
-          const soldRarity = findFish(state, h.fishId)?.species?.rarity;
+          state.shop.salesHistory.unshift({ fishName, coins: price, customer: h.customerName, at: Date.now(), rarity: soldRarity });
+          playCoinScaled(price);
+          addLogDraft(state, `🤝 ${h.customerName}: Sold ${fishName} for 🪙${price}!`);
           addXp(state, soldRarity === 'epic' ? XP_REWARDS.sellEpicFish : soldRarity === 'rare' ? XP_REWARDS.sellRareFish : XP_REWARDS.sellFish, 'sell');
         }),
 
@@ -887,13 +904,20 @@ export const useGameStore = create(
           if (!order || order.fulfilled) return;
           const fish = findFish(state, fishId);
           if (!fish) return;
+          if (!checkOrderFulfillment(fish, order)) {
+            playWarning();
+            addLogDraft(state, '⚠️ That fish does not satisfy the special order.');
+            return;
+          }
           order.fulfilled = true;
           state.player.coins += order.reward;
           state.player.totalCoinsEarned = (state.player.totalCoinsEarned || 0) + order.reward;
           state.fish = state.fish.filter(f => f.id !== fishId);
           state.shop.listedFish = (state.shop.listedFish || []).filter(id => id !== fishId);
+          if (state.shop.fishPrices) delete state.shop.fishPrices[fishId];
+          removeFishFromBreedSlots(state, fishId);
           addXp(state, order.xpReward || 25, 'order');
-          playCoin();
+          playCoinScaled(order.reward);
           addLogDraft(state, `📋 Order fulfilled for ${order.customer}! +🪙${order.reward}`);
         }),
 
@@ -1114,14 +1138,13 @@ function startAutoSave() {
 
 // 2. Save on tab close / hide
 function handleUnload() { saveGame(useGameStore.getState()); }
+const HIDDEN_TICK_MS = 5000; // 5s tick when tab hidden (saves CPU/battery)
 function handleVisibility() {
   if (document.visibilityState === 'hidden') {
     saveGame(useGameStore.getState());
-    // Throttle tick to every 5s when hidden (saves CPU/battery)
     if (_tickInterval) clearInterval(_tickInterval);
-    _tickInterval = setInterval(() => useGameStore.getState().tick(), TICK_INTERVAL_MS);
+    _tickInterval = setInterval(() => useGameStore.getState().tick(), HIDDEN_TICK_MS);
   } else {
-    // Restore normal tick rate when visible
     if (_tickInterval) clearInterval(_tickInterval);
     _tickInterval = setInterval(() => useGameStore.getState().tick(), TICK_INTERVAL_MS);
   }
@@ -1341,18 +1364,38 @@ export function bootSideEffects() {
 
   // Refresh wanted board on startup
   useGameStore.getState().refreshWantedBoard();
+
+  // Electron: async-hydrate from filesystem save (may be newer than localStorage)
+  if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
+    loadGameAsync().then(save => {
+      if (!save) return;
+      const current = useGameStore.getState();
+      // Only hydrate if filesystem save is newer
+      if ((save.lastSavedAt || 0) > (current.lastSavedAt || 0)) {
+        console.log('[Electron] Hydrating from filesystem save (newer)');
+        try {
+          const hydrated = applyOfflineProgress(save);
+          useGameStore.setState(hydrated);
+        } catch (err) {
+          console.warn('[Electron] Hydration failed, keeping localStorage state:', err);
+        }
+      }
+    }).catch(err => console.warn('[Electron] Async load failed:', err));
+  }
 }
 
 // ── Cleanup (for HMR) ──────────────────────────────────────
 export function teardownSideEffects() {
   clearInterval(_saveInterval); _saveInterval = null;
   clearInterval(_tickInterval); _tickInterval = null;
-  _achUnsub?.();    _achUnsub = null;
-  _salesUnsub?.();  _salesUnsub = null;
+  _achUnsub?.();      _achUnsub = null;
+  _salesUnsub?.();    _salesUnsub = null;
   _achSoundUnsub?.(); _achSoundUnsub = null;
   _diseaseUnsub?.();  _diseaseUnsub = null;
+  _levelUpUnsub?.();  _levelUpUnsub = null;
   _breedUnsub?.();    _breedUnsub = null;
   _deathUnsub?.();    _deathUnsub = null;
+  _eventUnsub?.();    _eventUnsub = null;
   window.removeEventListener('beforeunload', handleUnload);
   document.removeEventListener('visibilitychange', handleVisibility);
 }
