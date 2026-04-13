@@ -269,6 +269,19 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
           </div>
         </div>
       )}
+
+      {/* Breeding hint — how to recreate this species */}
+      {hasProceduralPhenotype && traitRows.length >= 2 && (
+        <div className="fdex-breed-hint">
+          <span className="fdex-breed-hint-icon">🧬</span>
+          <span className="fdex-breed-hint-text">
+            Breed fish with <strong>{traitRows[0][1]}</strong> + <strong>{traitRows[1][1]}</strong> traits to recreate this species.
+            {ph.mutation && ph.mutation !== 'None' && (
+              <> Requires <strong>{ph.mutation}</strong> mutation.</>
+            )}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -325,19 +338,34 @@ function Fishdex({ fishdex: _fishdex, onGenerateLore, generatingLoreFor, aiError
     return c;
   }, [fishdex]);
 
+  // Estimated species per rarity (for progress tracking)
+  const SPECIES_TARGETS = { common: 15, uncommon: 12, rare: 8, epic: 5, legendary: 3 };
+  const totalTarget = Object.values(SPECIES_TARGETS).reduce((a, b) => a + b, 0);
+  const totalFound = (fishdex || []).length;
+  const isFiltered = search || filterRarity !== 'all';
+
+  // Group entries by rarity for the grouped view
+  const groupedByRarity = useMemo(() => {
+    const groups = {};
+    for (const r of ['common', 'uncommon', 'rare', 'epic', 'legendary']) {
+      groups[r] = (fishdex || []).filter(e => e.rarity === r);
+    }
+    return groups;
+  }, [fishdex]);
+
   return (
     <div className="fishdex-panel">
-      {/* Header */}
+      {/* Header with progress bar */}
       <div className="fdex-header">
         <div className="fdex-title-row">
           <h2>📖 Fishdex</h2>
-          <div className="fdex-count">{(fishdex||[]).length} species discovered</div>
-        <div className="fdex-diversity">
-          <span className="fdex-diversity-bar" style={{ width: `${Math.min(100, (fishdex.length / 80) * 100)}%` }} />
-          <span className="fdex-diversity-label">
-            Genetic diversity: {fishdex.length} of 400+ possible species found
-          </span>
+          <div className="fdex-count">{totalFound} species discovered</div>
         </div>
+        <div className="fdex-progress">
+          <div className="fdex-progress-track">
+            <div className="fdex-progress-fill" style={{ width: `${Math.min(100, (totalFound / totalTarget) * 100)}%` }} />
+          </div>
+          <span className="fdex-progress-label">{totalFound}/{totalTarget} ({Math.round((totalFound / totalTarget) * 100)}%)</span>
         </div>
         <div className="fdex-rarity-summary">
           {Object.entries(rarityCounts).map(([r, n]) => (
@@ -379,7 +407,7 @@ function Fishdex({ fishdex: _fishdex, onGenerateLore, generatingLoreFor, aiError
 
       {/* Main layout */}
       <div className="fdex-layout">
-        {/* Card grid */}
+        {/* Card grid — grouped by rarity when unfiltered */}
         <div className="fdex-grid">
           {filtered.length === 0 ? (
             <div className="fdex-empty">
@@ -387,7 +415,8 @@ function Fishdex({ fishdex: _fishdex, onGenerateLore, generatingLoreFor, aiError
                 ? 'Breed fish to start discovering species!'
                 : 'No species match your filter.'}
             </div>
-          ) : (
+          ) : isFiltered ? (
+            /* Flat list when search/filter active */
             filtered.map(entry => (
               <FishdexCard
                 key={entry.name}
@@ -396,6 +425,49 @@ function Fishdex({ fishdex: _fishdex, onGenerateLore, generatingLoreFor, aiError
                 isSelected={selected === entry.name}
               />
             ))
+          ) : (
+            /* Grouped by rarity with mystery slots */
+            ['common', 'uncommon', 'rare', 'epic', 'legendary'].map(rarity => {
+              const entries = groupedByRarity[rarity] || [];
+              const target = SPECIES_TARGETS[rarity];
+              const remaining = Math.max(0, target - entries.length);
+              const rc = RARITY[rarity]?.color || '#888';
+              return (
+                <div key={rarity} className="fdex-rarity-group">
+                  <div className="fdex-rarity-header" style={{ color: rc }}>
+                    <span className="fdex-rarity-title">{RARITY[rarity]?.label || rarity}</span>
+                    <span className="fdex-rarity-count">{entries.length}/{target}</span>
+                    <div className="fdex-rarity-bar">
+                      <div className="fdex-rarity-bar-fill" style={{ width: `${Math.min(100, (entries.length / target) * 100)}%`, background: rc }} />
+                    </div>
+                  </div>
+                  <div className="fdex-rarity-cards">
+                    {entries.map(entry => (
+                      <FishdexCard
+                        key={entry.name}
+                        entry={entry}
+                        onClick={() => setSelected(selected === entry.name ? null : entry.name)}
+                        isSelected={selected === entry.name}
+                      />
+                    ))}
+                    {/* Legend fish slot */}
+                    {rarity === 'legendary' && !entries.some(e => e._isLegend) && (
+                      <FishdexCard
+                        entry={LEGEND_FISH_ENTRY}
+                        onClick={() => {}}
+                        isSelected={false}
+                      />
+                    )}
+                    {/* Mystery slots for undiscovered species */}
+                    {Array.from({ length: remaining }, (_, i) => (
+                      <div key={`mystery-${rarity}-${i}`} className="fdex-mystery-slot" style={{ '--mc': rc }}>
+                        <div className="fdex-mystery-icon">?</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
 

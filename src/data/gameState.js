@@ -83,8 +83,8 @@ export function createDefaultTank(id, type = 'display') {
 export function createDefaultState() {
   const tank0 = createDefaultTank('tank_0', 'display');
   const starterFish = [
-    createFish({ stage: 'juvenile', tankId: 'tank_0' }),
-    createFish({ stage: 'juvenile', tankId: 'tank_0' }),
+    createFish({ stage: 'adult', tankId: 'tank_0', targetRarity: 'common' }),
+    createFish({ stage: 'adult', tankId: 'tank_0', targetRarity: 'uncommon' }),
     createFish({ stage: 'juvenile', tankId: 'tank_0' }),
   ];
 

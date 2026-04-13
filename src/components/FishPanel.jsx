@@ -56,6 +56,9 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
   if (!fish.species) return <div className="fish-panel"><p>Fish data missing</p></div>;
   const rarity = RARITY[fish.species?.rarity] || { label: 'Unknown', color: '#888', priceMultiplier: 1 };
   const market = useGameStore(s => s.market);
+  // Progressive disclosure — hide advanced sections until player has context
+  const hasBredBefore = useGameStore(s => (s.player?.stats?.eggsCollected || 0) > 0);
+  const hasMutationSeen = useGameStore(s => (s.player?.fishdex || []).some(e => e.phenotype?.mutation && e.phenotype.mutation !== 'None'));
   const marketMult = getMarketMultiplier(fish, market);
   const basePrice = Math.round((fish.species?.basePrice || 100) * ((fish.health || 100) / 100));
   const salePrice = Math.round(basePrice * marketMult);
@@ -247,8 +250,8 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
         )}
       </div>
 
-      {/* ── Step 8: Collapsible genetics ── */}
-      {hasGenetics && (() => {
+      {/* ── Step 8: Collapsible genetics (hidden until first breed) ── */}
+      {hasGenetics && hasBredBefore && (() => {
         const carriers = getCarrierTraits(fish.genome);
         const legendary = checkLegendaryCombo(fish.phenotype);
         return (

@@ -38,18 +38,21 @@ import { useGameStore } from './store/gameStore.js';
 import { useFishSelection } from './hooks/useFishSelection.js';
 import { useCoinDeltas }    from './hooks/useCoinDeltas.js';
 
-const TAB_LIST = [
-  ["tank",     "🐠", "Tank"],
-  ["shop",     "🏪", "Shop"],
-  ["breed",    "🧬", "Breed"],
+const PRIMARY_TABS = [
+  ["tank",       "🐠", "Tank"],
+  ["shop",       "🏪", "Shop"],
+  ["breed",      "🧬", "Breed"],
   ["challenges", "🎯", "Goals"],
-  ["fishdex",  "📖", "Fishdex"],
+  ["fishdex",    "📖", "Fishdex"],
+];
+const OVERFLOW_TABS = [
   ["magic",    "🔮", "Magic"],
   ["decor",    "🎨", "Decor"],
   ["autopsy",  "🔬", "Autopsy"],
   ["stats",    "📊", "Stats"],
   ["achieve",  "🏆", "Awards"],
 ];
+const TAB_LIST = [...PRIMARY_TABS, ...OVERFLOW_TABS];
 
 // ============================================================
 // Memoized tab content components — only re-render when their
@@ -265,9 +268,12 @@ export default function App() {
   }, []);
 
   const tabBarRef = useRef(null);
+  const [showMoreTabs, setShowMoreTabs] = useState(false);
 
-  const VISIBLE_TAB_COUNT = TAB_LIST.length;
-  const pillIdx = TAB_LIST.findIndex(([t]) => t === activeTab);
+  const isOverflowTab = OVERFLOW_TABS.some(([t]) => t === activeTab);
+  const visibleTabs = showMoreTabs || isOverflowTab ? TAB_LIST : PRIMARY_TABS;
+  const VISIBLE_TAB_COUNT = visibleTabs.length;
+  const pillIdx = visibleTabs.findIndex(([t]) => t === activeTab);
 
   const magicCount     = (player.magicFishFound || []).length;
   const autopsyCount   = (player.autopsies || []).length;
@@ -352,8 +358,8 @@ export default function App() {
       )}
 
       <nav ref={tabBarRef} className="tab-bar" style={{ '--tab-count': VISIBLE_TAB_COUNT }}>
-        <div className="tab-pill" style={{ '--pill-idx': pillIdx, '--pill-total': VISIBLE_TAB_COUNT }} />
-        {TAB_LIST.map(([tab, icon, label]) => {
+        <div className="tab-pill" style={{ '--pill-idx': pillIdx >= 0 ? pillIdx : 0, '--pill-total': VISIBLE_TAB_COUNT }} />
+        {visibleTabs.map(([tab, icon, label]) => {
           let badge = null;
           if (tab === 'shop' && newShopFishCount > 0) badge = (
             <span className="tab-new-badge tab-new-badge--standalone">NEW</span>
@@ -381,6 +387,18 @@ export default function App() {
             </button>
           );
         })}
+        {!showMoreTabs && !isOverflowTab && (
+          <button className="tab-btn tab-btn--more" onClick={() => setShowMoreTabs(true)}>
+            <span className="tab-btn-icon">···</span>
+            <span className="tab-btn-label">More</span>
+          </button>
+        )}
+        {(showMoreTabs || isOverflowTab) && (
+          <button className="tab-btn tab-btn--more" onClick={() => { setShowMoreTabs(false); if (isOverflowTab) handleTabChange('tank'); }}>
+            <span className="tab-btn-icon">✕</span>
+            <span className="tab-btn-label">Less</span>
+          </button>
+        )}
       </nav>
 
       <main className="main-layout">

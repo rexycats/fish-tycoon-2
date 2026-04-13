@@ -13470,3 +13470,130 @@ select { border-radius: var(--radius-sm); }
   0% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-10px); }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   FISHDEX — Rarity grouping + progress + mystery slots
+   ═══════════════════════════════════════════════════════════ */
+
+/* Progress bar */
+.fdex-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+.fdex-progress-track {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-xs);
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+.fdex-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-xs);
+  background: linear-gradient(90deg, var(--accent-2), var(--foam));
+  transition: width var(--tr-slow);
+}
+.fdex-progress-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* Rarity group sections */
+.fdex-rarity-group {
+  margin-bottom: 12px;
+}
+.fdex-rarity-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding: 4px 0;
+}
+.fdex-rarity-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--fs-sm);
+}
+.fdex-rarity-count {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-2xs);
+  opacity: 0.7;
+}
+.fdex-rarity-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+.fdex-rarity-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width var(--tr-slow);
+}
+.fdex-rarity-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: var(--sp-2);
+}
+
+/* Mystery slots — undiscovered species */
+.fdex-mystery-slot {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  border: 2px dashed rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.15);
+  transition: border-color var(--tr-normal);
+  cursor: default;
+}
+.fdex-mystery-slot:hover {
+  border-color: var(--mc, rgba(255,255,255,0.15));
+}
+.fdex-mystery-icon {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: rgba(255,255,255,0.1);
+  user-select: none;
+}
+
+@media (max-width: 768px) {
+  .fdex-rarity-cards {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: var(--sp-1);
+  }
+}
+
+/* ── Fishdex breeding hint ───────────────────────────── */
+.fdex-breed-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--gold-dim);
+  border: 1px solid rgba(255,204,51,0.15);
+}
+.fdex-breed-hint-icon {
+  font-size: var(--fs-lg);
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+.fdex-breed-hint-text {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.fdex-breed-hint-text strong {
+  color: var(--gold-light);
+}
