@@ -88,8 +88,8 @@ function BreedSlot({ fish, slot, isDonor, onRemove, onDrop }) {
     if (fishId) onDrop(fishId, slot);
   };
 
-  const slotLabel = isDonor ? '🧬 Genetic Donor' : `Parent ${slot}`;
-  const emptyIcon = isDonor ? '🧬' : '🎯';
+  const slotLabel = isDonor ? 'Genetic Donor' : `Parent ${slot}`;
+  const emptyIcon = isDonor ? 'D' : '+';
   const emptyHint = isDonor ? 'Optional — influences offspring traits' : 'Drag a fish here';
 
   if (!fish) {
@@ -250,7 +250,7 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
             return (
               <button key={i} className={`breed-bay-tab ${activeBay === i ? 'active' : ''} ${hasEgg ? 'has-egg' : ''} ${busy ? 'busy' : ''}`}
                 onClick={() => setActiveBay(i)}>
-                Bay {i + 1} {hasEgg ? (b?.clutchSize > 1 ? `${'🥚'.repeat(b.clutchSize)}` : '🥚') : busy ? '⏳' : ''}
+                Bay {i + 1} {hasEgg ? (b?.clutchSize > 1 ? `×${b.clutchSize}` : '×1') : busy ? '...' : ''}
               </button>
             );
           })}
@@ -260,11 +260,11 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
         {/* Parent slots */}
         <div className={`breed-parents${bay.breedingStartedAt && !bay.eggReady ? ' breed-parents--breeding' : ''} ${hasThirdSlot ? 'breed-parents--trio' : ''}`}>
           <BreedSlot fish={fishA} slot={1} onRemove={() => onSelectForBreeding(fishA?.id)} onDrop={handleSlotDrop} />
-          <div className="breed-heart">💕</div>
+          <div className="breed-heart">×</div>
           <BreedSlot fish={fishB} slot={2} onRemove={() => onSelectForBreeding(fishB?.id)} onDrop={handleSlotDrop} />
           {hasThirdSlot && (
             <>
-              <div className="breed-heart breed-heart--donor" title="Genetic Donor influence">🧬</div>
+              <div className="breed-heart breed-heart--donor" title="Genetic Donor influence">+</div>
               <BreedSlot
                 fish={fishC}
                 slot={3}
@@ -280,7 +280,7 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
         <div className="breed-status">
           {bay.eggReady ? (() => {
             const clutch = bay.clutchSize || 1;
-            const eggEmoji = '🥚'.repeat(clutch);
+            const eggEmoji = `×${clutch}`;
             const clutchLabel = clutch === 3 ? 'Collect Triplets!' : clutch === 2 ? 'Collect Twins!' : 'Collect Egg!';
             return (
               <button className={`btn btn-collect pulse ${clutch > 1 ? 'btn-collect--multi' : ''}`} onClick={onCollectEgg}>
@@ -305,10 +305,10 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
               </button>
             </div>
           ) : bothSelected ? (
-            <div className="breed-ready">✅ Ready to breed — watching…</div>
+            <div className="breed-ready">Ready to breed</div>
           ) : (
             <div className="breed-hint">
-              <span className="breed-hint-icon">🎯</span>
+              <span className="breed-hint-icon"></span>
               Drag two fish into the parent slots above — or click <strong>Select</strong>
             </div>
           )}
@@ -345,7 +345,7 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
       {/* Fish selector list */}
       <div className="breed-selector">
         <div className="breed-selector-title">
-          🐠 Available Adults ({availableFish.length})
+          Available Adults ({availableFish.length})
           <span className="breed-selector-hint"> — drag fish to a slot or click Select</span>
         </div>
         <div className="breed-fish-list">
@@ -362,7 +362,7 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
               No adult fish available. Wait for juveniles to grow!
               {onNavigate && (
                 <button className="btn btn-sm" style={{ marginTop: '8px', display: 'block' }} onClick={() => onNavigate('tank')}>
-                  🐠 View Tank
+                  View Tank
                 </button>
               )}
             </div>

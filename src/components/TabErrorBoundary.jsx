@@ -21,7 +21,7 @@ export default class TabErrorBoundary extends React.Component {
           padding: '2rem', textAlign: 'center', color: '#a0b8d8',
           fontFamily: 'Nunito, sans-serif',
         }}>
-          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚠️</div>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Error</div>
           <p style={{ fontSize: '0.85rem', marginBottom: '1rem' }}>
             This tab encountered an error. Your save is safe.
           </p>

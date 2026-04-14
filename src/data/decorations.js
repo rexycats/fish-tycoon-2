@@ -3,12 +3,12 @@
 // ============================================================
 
 export const DECOR_CATEGORIES = {
-  substrate: { label: 'Substrate',   emoji: '🪨' },
-  plant:     { label: 'Plants',      emoji: '🌿' },
-  rock:      { label: 'Rocks',       emoji: '🗿' },
-  structure: { label: 'Structures',  emoji: '🏛️' },
-  coral:     { label: 'Coral',       emoji: '🪸' },
-  special:   { label: 'Special',     emoji: '✨' },
+  substrate: { label: 'Substrate',   emoji: '' },
+  plant:     { label: 'Plants',      emoji: '' },
+  rock:      { label: 'Rocks',       emoji: '' },
+  structure: { label: 'Structures',  emoji: '' },
+  coral:     { label: 'Coral',       emoji: '' },
+  special:   { label: 'Special',     emoji: '' },
 };
 
 // Each decoration has an SVG render function that takes (x, y, scale)
@@ -437,7 +437,7 @@ export const DECOR_CATALOG = [
       <rect x="${x-20*s}" y="${y-4*s}" width="${8*s}" height="${6*s}" rx="${1*s}" fill="#162850"/>
       <rect x="${x+12*s}" y="${y-4*s}" width="${8*s}" height="${6*s}" rx="${1*s}" fill="#162850"/>
       <!-- star emblem -->
-      <text x="${x}" y="${y-22*s}" text-anchor="middle" font-size="${22*s}" style="filter:drop-shadow(0 0 5px #f0c040)">🌟</text>
+      <text x="${x}" y="${y-22*s}" text-anchor="middle" font-size="${22*s}" style="filter:drop-shadow(0 0 5px #f0c040)">★</text>
       <!-- crown finials -->
       ${[-20,0,20].map((dx,i)=>`<path d="M${x+dx*s},${y-50*s} L${x+dx*s},${y-62*s} L${x+(dx+6)*s},${y-56*s} L${x+(dx+12)*s},${y-62*s} L${x+(dx+12)*s},${y-50*s}" fill="${['#c8901c','#e0b030','#c8901c'][i]}" stroke="#a07010" stroke-width="${s}"/>`).join('')}
       <!-- gold trim -->
@@ -458,7 +458,7 @@ export const TANK_THEMES = [
   {
     id: 'tropical',
     label: 'Tropical Reef',
-    emoji: '🐠',
+    emoji: '',
     cost: 0,
     startOwned: true,
     desc: 'Warm Caribbean blue with coral silhouettes and golden sand. The classic.',
@@ -484,7 +484,7 @@ export const TANK_THEMES = [
   {
     id: 'deep_ocean',
     label: 'Deep Ocean',
-    emoji: '🌊',
+    emoji: '',
     cost: 300,
     startOwned: false,
     desc: 'Near-black abyssal waters with bioluminescent streaks. Dramatic and moody.',
@@ -512,7 +512,7 @@ export const TANK_THEMES = [
   {
     id: 'amazon',
     label: 'Amazon River',
-    emoji: '🌿',
+    emoji: '',
     cost: 250,
     startOwned: false,
     desc: 'Teal-green jungle waters thick with roots and tropical foliage.',
@@ -540,7 +540,7 @@ export const TANK_THEMES = [
   {
     id: 'arctic',
     label: 'Arctic',
-    emoji: '🧊',
+    emoji: '',
     cost: 350,
     startOwned: false,
     desc: 'Icy cyan waters with frost formations and pale volcanic floor.',
@@ -569,7 +569,7 @@ export const TANK_THEMES = [
   {
     id: 'volcanic',
     label: 'Volcanic Vent',
-    emoji: '🌋',
+    emoji: '',
     cost: 500,
     startOwned: false,
     desc: 'Scorching dark waters lit by glowing vents. Maximum drama.',
@@ -597,7 +597,7 @@ export const TANK_THEMES = [
   {
     id: 'sakura',
     label: 'Sakura Pond',
-    emoji: '🌸',
+    emoji: '',
     cost: 400,
     startOwned: false,
     desc: 'Soft jade-green waters with drifting cherry blossoms. Serene.',

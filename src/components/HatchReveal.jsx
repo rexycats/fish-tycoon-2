@@ -73,7 +73,7 @@ export default function HatchReveal({ fish, onComplete }) {
         {/* Egg phase */}
         {(phase === 'egg' || phase === 'crack') && (
           <div className={`hatch-egg ${phase === 'crack' ? 'hatch-egg--cracking' : 'hatch-egg--wobble'}`}>
-            <span className="hatch-egg-emoji">🥚</span>
+            <span className="hatch-egg-emoji">Egg</span>
             {phase === 'crack' && (
               <div className="hatch-crack-light" />
             )}

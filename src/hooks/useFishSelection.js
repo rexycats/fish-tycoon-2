@@ -69,7 +69,7 @@ export function useFishSelection() {
     useGameStore.setState(state => {
       state.player.fishdex = [...(state.player.fishdex || []), ...newEntries];
       for (const e of newEntries) {
-        addLogDraft(state, `📖 New species: ${e.name}! (${e.rarity})`);
+        addLogDraft(state, `New species: ${e.name} (${e.rarity})`);
       }
       // Queue the first discovery for the ceremony overlay
       if (newEntries.length > 0) {

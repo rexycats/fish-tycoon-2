@@ -54,7 +54,7 @@ export default function TitleScreen({ onStart }) {
       <div className="title-logo-wrap">
         <div className="title-logo-glow"/>
         <h1 className="title-logo">
-          <span className="title-logo-fish">🐠</span>
+          
           <span className="title-logo-text">
             <span className="title-word-fish">Fish</span>
             <span className="title-word-tycoon">Tycoon</span>
@@ -78,7 +78,7 @@ export default function TitleScreen({ onStart }) {
 
       <div className="title-footer">
         <span className="title-version">v0.1.0</span>
-        <span className="title-credit">Made with 🐟</span>
+        <span className="title-credit">Made with love</span>
       </div>
     </div>
   );

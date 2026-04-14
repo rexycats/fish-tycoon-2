@@ -29,8 +29,8 @@ function IncomeRate() {
   if (rate <= 0) return null;
   return (
     <span className="hud2-income-rate" title="Estimated income per minute">
-      <span className="hud2-income-icon">📈</span>
-      <span className="hud2-income-val">~{rate}/min</span>
+      
+      <span className="hud2-income-val">{rate}/min</span>
     </span>
   );
 }
@@ -63,7 +63,7 @@ function NextGoalTeaser() {
       goals.push({
         label: `${upgradeNames[id] || id} Lv${upg.level + 1}`,
         cost,
-        icon: '⬆️',
+        icon: '',
       });
     }
   }
@@ -84,7 +84,7 @@ function NextGoalTeaser() {
       <div className="hud2-goal-bar">
         <div className="hud2-goal-fill" style={{ width: `${pct}%` }} />
       </div>
-      <span className="hud2-goal-cost">🪙 {coins.toLocaleString()}/{goal.cost.toLocaleString()}</span>
+      <span className="hud2-goal-cost">{coins.toLocaleString()}/{goal.cost.toLocaleString()}</span>
     </div>
   );
 }
@@ -113,7 +113,7 @@ function CustomerCountdown() {
 
   return (
     <span className="hud2-customer-timer" title="Time until next customer arrives">
-      <span className="hud2-customer-icon">🚶</span>
+      <span className="hud2-customer-icon"></span>
       <span className="hud2-customer-val">
         {secsLeft > 0 ? `${secsLeft}s` : 'arriving...'}
       </span>
@@ -203,7 +203,7 @@ function RepBadge({ rep }) {
 function HappinessBar({ value }) {
   const v   = Math.max(0, Math.min(100, value ?? 100));
   const col = v > 70 ? '#3ddba0' : v > 40 ? '#f5c542' : '#ff5566';
-  const em  = v > 70 ? '😊' : v > 40 ? '😐' : '😟';
+  const em  = v > 70 ? 'Good' : v > 40 ? 'Fair' : 'Low';
   return (
     <div className="hud2-happy" title={`Happiness: ${v}%`}>
       <span className="hud2-happy-icon">{em}</span>
@@ -225,7 +225,7 @@ function SaveIndicator() {
     return () => clearTimeout(t);
   }, [flash]);
   if (!visible) return null;
-  return <span className="hud2-save-indicator" title="Game saved">💾</span>;
+  return <span className="hud2-save-indicator" title="Game saved">Saved</span>;
 }
 
 /* ── Urgent Offer Banner ───────────────────────────────────── */
@@ -250,7 +250,7 @@ function UrgentOfferBanner() {
     <div className="hud2-urgent">
       <span className="hud2-urgent-name">{offer.name}</span>
       <span className="hud2-urgent-desc">{offer.desc}</span>
-      <span className="hud2-urgent-timer">⏰ {timeLeft}</span>
+      <span className="hud2-urgent-timer">{timeLeft}</span>
     </div>
   );
 }
@@ -296,7 +296,7 @@ export default function HUD({
       {/* ── Row 1: brand · coins · rep · sound ───────────────── */}
       <div className="hud2-row hud2-row--top">
         <div className="hud2-brand">
-          <span className="hud2-logo">🐠</span>
+          
           <span className="hud2-title">Fish Tycoon</span>
         </div>
 
@@ -324,7 +324,7 @@ export default function HUD({
               onClick={onToggleSound}
               title={soundOn ? 'Mute' : 'Unmute'}
             >
-              {soundOn ? '🔊' : '🔇'}
+              {soundOn ? 'Sound' : 'Muted'}
             </button>
           </>
         )}
@@ -335,12 +335,12 @@ export default function HUD({
       <div className="hud2-row hud2-row--bottom">
         <div className="hud2-pills">
           {player.activeLoan?.active && (
-            <StatPill icon="🏦" value="LOAN" label="Active loan — repay before deadline!" color="#ff6060" alert={true} />
+            <StatPill icon="$" value="LOAN" label="Active loan — repay before deadline!" color="#ff6060" alert={true} />
           )}
-          <StatPill icon="💧" value={`${wq}%`}  label="Water quality" color={wqCol}  alert={wqBad} />
-          <StatPill icon="🌡" value={`${Math.round(temp)}°`} label="Temperature" color={tempCol} alert={tempBad} />
-          <StatPill icon="🐟" value={`${fishCnt}/${tank.capacity ?? 12}`} label="Fish capacity" />
-          <StatPill icon="🍤" value={food < 1 ? 'Empty' : `${food} feeds`} label={`Food supply (${food} remaining)`} alert={food < 3} />
+          <StatPill icon="WQ" value={`${wq}%`}  label="Water quality" color={wqCol}  alert={wqBad} />
+          <StatPill icon="T°" value={`${Math.round(temp)}°`} label="Temperature" color={tempCol} alert={tempBad} />
+          <StatPill icon="#" value={`${fishCnt}/${tank.capacity ?? 12}`} label="Fish capacity" />
+          <StatPill icon="F" value={food < 1 ? 'Empty' : `${food} feeds`} label={`Food supply (${food} remaining)`} alert={food < 3} />
         </div>
 
         <div className="hud2-spacer" />
@@ -351,7 +351,7 @@ export default function HUD({
             onClick={() => onToggleAutoFeed(tank.id)}
             title={tank.autoFeed ? 'Auto-feed ON' : 'Auto-feed OFF'}
           >
-            🍤 <span className="hud2-btn-label">{tank.autoFeed ? 'Auto ✓' : 'Auto'}</span>
+            <span className="hud2-btn-label">{tank.autoFeed ? 'Auto ✓' : 'Auto'}</span>
           </button>
 
           {tempBad && (
@@ -361,7 +361,7 @@ export default function HUD({
               disabled={(tank.supplies?.heater || 0) <= 0}
               title={`Adjust temperature (${tank.supplies?.heater || 0} left)`}
             >
-              🌡 <span className="hud2-btn-label">Temp</span>
+              <span className="hud2-btn-label">Temp</span>
             </button>
           )}
 
@@ -372,7 +372,7 @@ export default function HUD({
               disabled={(tank.supplies?.waterTreatment || 0) <= 0}
               title={`Treat water (${tank.supplies?.waterTreatment || 0} left)`}
             >
-              🧪 <span className="hud2-btn-label">Treat</span>
+              <span className="hud2-btn-label">Treat</span>
             </button>
           )}
 
@@ -380,7 +380,7 @@ export default function HUD({
             className="hud2-btn"
             onClick={onBuyFood}
             disabled={player.coins < 10}
-            title="Buy 10 food (10🪙)"
+            title="Buy 10 food"
           >
             + <span className="hud2-btn-label">Food</span>
           </button>
@@ -400,10 +400,10 @@ export default function HUD({
 }
 
 const BOOST_INFO = {
-  growSpeed:     { emoji: '🌱', label: 'Growth +50%' },
-  healthRegen:   { emoji: '💖', label: 'Regen ×3' },
-  salePrice:     { emoji: '📈', label: 'Prices +25%' },
-  passiveIncome: { emoji: '🌊', label: 'Income ×2' },
+  growSpeed:     { emoji: '', label: 'Growth +50%' },
+  healthRegen:   { emoji: '', label: 'Regen ×3' },
+  salePrice:     { emoji: '', label: 'Prices +25%' },
+  passiveIncome: { emoji: '', label: 'Income ×2' },
 };
 
 function ActiveBoosts() {
@@ -423,7 +423,7 @@ function ActiveBoosts() {
   return (
     <div className="hud2-boosts">
       {active.map(([key, exp]) => {
-        const info = BOOST_INFO[key] || { emoji: '⚡', label: key };
+        const info = BOOST_INFO[key] || { emoji: '', label: key };
         const mins = Math.max(0, Math.ceil((exp - Date.now()) / 60_000));
         return (
           <span key={key} className="hud2-boost-pill">
@@ -448,7 +448,7 @@ function FeedAllButton({ tankId, food }) {
       disabled={food <= 0}
       title={`Feed ${hungryCount} hungry fish (1 food each)`}
     >
-      🍤 <span className="hud2-btn-label">Feed All ({hungryCount})</span>
+      <span className="hud2-btn-label">Feed All ({hungryCount})</span>
     </button>
   );
 }

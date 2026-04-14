@@ -7,7 +7,7 @@ export default function Credits({ onClose }) {
   return (
     <div className="win-modal-overlay" onClick={onClose}>
       <div className="credits-modal" onClick={e => e.stopPropagation()}>
-        <div className="credits-title">🐠 Fish Tycoon 2</div>
+        <div className="credits-title">Fish Tycoon 2</div>
         <div className="credits-version">Version 0.1.0 — Early Access</div>
 
         <div className="credits-section">
@@ -34,7 +34,7 @@ export default function Credits({ onClose }) {
 
         <div className="credits-section">
           <div className="credits-section-title">Special Thanks</div>
-          <div className="credits-entry">To all the fish that gave their lives during playtesting 🐟💀</div>
+          <div className="credits-entry">To all the fish that gave their lives during playtesting</div>
         </div>
 
         <button className="btn btn-sm btn-primary credits-close" onClick={onClose}>Close</button>

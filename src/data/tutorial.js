@@ -24,7 +24,7 @@ export const TUTORIAL_STEPS = [
   },
   {
     id: 'breed_hint',
-    title: '🧬 Try Breeding!',
+    title: 'Try Breeding',
     text: 'You have two adult fish — go to the Breed tab to combine their traits and discover new species!',
     highlight: 'breed',
     tab: null,
@@ -33,7 +33,7 @@ export const TUTORIAL_STEPS = [
   },
   {
     id: 'complete',
-    title: 'You\'re Ready! 🎉',
+    title: 'You\'re Ready!',
     text: 'You know the basics! Keep breeding for rare fish, check Goals for direction, and explore the Fishdex to track your discoveries.',
     highlight: null,
     tab: null,

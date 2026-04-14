@@ -42,7 +42,7 @@ export default function GoalsPanel() {
           <span>{weather.label}</span>
           <span className="goals-weather-effect">
             {weather.happinessBonus > 0 ? `+${weather.happinessBonus} happiness` : weather.happinessBonus < 0 ? `${weather.happinessBonus} happiness` : ''}
-            {weather.rare ? ' ✨ Rare weather!' : ''}
+            {weather.rare ? ' Rare weather!' : ''}
           </span>
         </div>
       )}
@@ -50,12 +50,12 @@ export default function GoalsPanel() {
       {/* Sub-tabs */}
       <div className="goals-tabs">
         {[
-          ['campaign', '🏅 Campaign'],
-          ['orders', '📋 Orders'],
-          ['research', '🔬 Research'],
-          ['bank', '🏦 Bank'],
-          ['journal', '📖 Journal'],
-          ['backgrounds', '🎨 Themes'],
+          ['campaign', 'Campaign'],
+          ['orders', 'Orders'],
+          ['research', 'Research'],
+          ['bank', 'Bank'],
+          ['journal', 'Journal'],
+          ['backgrounds', 'Themes'],
         ].map(([id, label]) => (
           <button key={id} className={`goals-tab ${subTab === id ? 'active' : ''}`}
             onClick={() => setSubTab(id)}>
@@ -77,7 +77,7 @@ export default function GoalsPanel() {
       {/* ── Daily Reward ───────────────────────────────── */}
       {canClaim && (
         <div className="goals-daily">
-          <span>🎁 Daily reward ready!</span>
+          <span>Daily reward ready</span>
           <span className="goals-daily-streak">Day {streak + 1} streak</span>
           <button className="btn btn-sm btn-primary" onClick={claimDailyReward}>Claim!</button>
         </div>
@@ -92,7 +92,7 @@ export default function GoalsPanel() {
         return (
           <div className="goals-section">
             <div className="goals-section-title">
-              🏅 Campaign — {totalDone}/{totalAll} milestones
+              Campaign — {totalDone}/{totalAll} milestones
             </div>
             <div className="campaign-progress-bar">
               <div className="campaign-progress-fill" style={{ width: `${(totalDone / totalAll) * 100}%` }}/>
@@ -106,7 +106,7 @@ export default function GoalsPanel() {
                 <div className="campaign-milestones">
                   {info.milestones.map(m => (
                     <div key={m.id} className={`campaign-milestone ${m.isDone ? 'done' : ''} ${m.isReady ? 'ready' : ''}`}>
-                      <span className="campaign-milestone-icon">{m.isDone ? '✅' : m.emoji}</span>
+                      <span className="campaign-milestone-icon">{m.isDone ? '—' : ''}</span>
                       <div className="campaign-milestone-info">
                         <span className="campaign-milestone-title">{m.title}</span>
                         <span className="campaign-milestone-desc">{m.desc}</span>
@@ -147,7 +147,7 @@ export default function GoalsPanel() {
                   <div className="goals-order-reward">🪙{order.reward}</div>
                 </div>
                 {order.fulfilled ? (
-                  <div className="goals-order-done">✅ Fulfilled!</div>
+                  <div className="goals-order-done">Fulfilled</div>
                 ) : matchingFish.length > 0 ? (
                   <div className="goals-order-matches">
                     <span>{matchingFish.length} matching fish:</span>
@@ -170,7 +170,7 @@ export default function GoalsPanel() {
       {/* ── Research Tree ──────────────────────────────── */}
       {subTab === 'research' && (
         <div className="goals-section">
-          <div className="goals-section-title">🔬 Research — permanent bonuses</div>
+          <div className="goals-section-title">Research — permanent bonuses</div>
           {Object.entries(RESEARCH_BRANCHES).map(([branchId, branch]) => {
             const level = player.research?.[branchId] || 0;
             const next = level < branch.tiers.length ? branch.tiers[level] : null;
@@ -183,7 +183,7 @@ export default function GoalsPanel() {
                 <div className="goals-research-tiers">
                   {branch.tiers.map((tier, i) => (
                     <div key={i} className={`goals-research-tier ${i < level ? 'done' : i === level ? 'next' : 'locked'}`}>
-                      <span className="goals-research-name">{i < level ? '✅' : i === level ? '➡️' : '🔒'} {tier.label}</span>
+                      <span className="goals-research-name">{i < level ? '·' : i === level ? '▸' : '—'} {tier.label}</span>
                       <span className="goals-research-desc">{tier.desc}</span>
                     </div>
                   ))}
@@ -194,7 +194,7 @@ export default function GoalsPanel() {
                     Research: 🪙{next.cost}
                   </button>
                 )}
-                {!next && <div className="goals-research-maxed">🏆 Fully researched!</div>}
+                {!next && <div className="goals-research-maxed">Fully researched</div>}
               </div>
             );
           })}
@@ -204,7 +204,7 @@ export default function GoalsPanel() {
       {/* ── Bank / Loans ──────────────────────────────── */}
       {subTab === 'bank' && (
         <div className="goals-section">
-          <div className="goals-section-title">🏦 Bank of the Deep</div>
+          <div className="goals-section-title">Bank of the Deep</div>
           {loanStatus ? (
             <div className="goals-loan-active">
               <div className="goals-loan-header">Active Loan</div>
@@ -212,7 +212,7 @@ export default function GoalsPanel() {
               <div>Total owed: 🪙{loanStatus.totalOwed}</div>
               <div className={loanStatus.overdue ? 'goals-loan-overdue' : ''}>
                 {loanStatus.overdue
-                  ? '⚠️ OVERDUE — Bank will seize a fish!'
+                  ? 'OVERDUE — Bank will seize a fish!'
                   : `Time remaining: ${Math.floor(loanStatus.remaining / 60)}m ${Math.round(loanStatus.remaining % 60)}s`
                 }
               </div>
@@ -245,7 +245,7 @@ export default function GoalsPanel() {
       {/* ── Discovery Journal ─────────────────────────── */}
       {subTab === 'journal' && (
         <div className="goals-section">
-          <div className="goals-section-title">📖 Discovery Journal</div>
+          <div className="goals-section-title">Discovery Journal</div>
           <div className="goals-discovery-count">
             {discoveries.length} / {getTotalPossibleDiscoveries()} unique phenotypes discovered
           </div>
@@ -258,7 +258,7 @@ export default function GoalsPanel() {
               <div className="goals-section-title" style={{marginTop:'1rem'}}>📰 Latest Reviews</div>
               {reviews.slice(0, 5).map((r, i) => (
                 <div key={i} className="goals-review">
-                  <span className="goals-review-stars">{'⭐'.repeat(r.stars)}</span>
+                  <span className="goals-review-stars">{'★'.repeat(r.stars)}</span>
                   <span className="goals-review-headline">"{r.headline}"</span>
                   <span className="goals-review-critic">{r.critic}</span>
                 </div>
@@ -271,7 +271,7 @@ export default function GoalsPanel() {
       {/* ── Tank Backgrounds ──────────────────────────── */}
       {subTab === 'backgrounds' && (
         <div className="goals-section">
-          <div className="goals-section-title">🎨 Tank Backgrounds</div>
+          <div className="goals-section-title">Tank Backgrounds</div>
           <div className="goals-bg-grid">
             {TANK_BACKGROUNDS.map(bg => {
               const owned = bg.cost === 0 || (player.unlockedBackgrounds || []).includes(bg.id);
@@ -283,7 +283,7 @@ export default function GoalsPanel() {
                   <div className="goals-bg-name">{bg.emoji} {bg.label}</div>
                   <div className="goals-bg-desc">{bg.desc}</div>
                   {locked ? (
-                    <div className="goals-bg-locked">🔒 Prestige {bg.minPrestige}</div>
+                    <div className="goals-bg-locked">Prestige {bg.minPrestige}</div>
                   ) : owned ? (
                     <select className="goals-bg-apply" defaultValue=""
                       onChange={e => { if (e.target.value) { useGameStore.getState().setTankBackground(e.target.value, bg.id); e.target.value = ''; } }}>

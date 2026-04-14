@@ -38,11 +38,11 @@ export function checkNearMiss(fish) {
 export function checkJackpot(totalSales) {
   // Jackpot triggers on specific sale counts with increasing rarity
   // Creates unpredictable "when will the next one hit?" excitement
-  if (totalSales % 50 === 0 && totalSales > 0) return { multiplier: 10, label: '🎰 MEGA JACKPOT!', tier: 'mega' };
-  if (totalSales % 25 === 0 && totalSales > 0) return { multiplier: 5,  label: '🎰 JACKPOT!', tier: 'jackpot' };
-  if (totalSales % 10 === 0 && totalSales > 0) return { multiplier: 2,  label: '🎰 Lucky Sale!', tier: 'lucky' };
+  if (totalSales % 50 === 0 && totalSales > 0) return { multiplier: 10, label: 'MEGA JACKPOT!', tier: 'mega' };
+  if (totalSales % 25 === 0 && totalSales > 0) return { multiplier: 5,  label: 'JACKPOT!', tier: 'jackpot' };
+  if (totalSales % 10 === 0 && totalSales > 0) return { multiplier: 2,  label: 'Lucky Sale!', tier: 'lucky' };
   // Random mini-jackpot: ~3% chance per sale
-  if (Math.random() < 0.03) return { multiplier: 3, label: '🎰 Surprise Bonus!', tier: 'surprise' };
+  if (Math.random() < 0.03) return { multiplier: 3, label: 'Surprise Bonus!', tier: 'surprise' };
   return null;
 }
 
@@ -50,7 +50,7 @@ export function checkJackpot(totalSales) {
 const URGENT_OFFERS = [
   {
     id: 'vip_collector',
-    name: '💎 VIP Collector',
+    name: 'VIP Collector',
     desc: 'Will pay 5× for any Epic+ fish!',
     duration: 600_000, // 10 minutes
     multiplier: 5,
@@ -59,7 +59,7 @@ const URGENT_OFFERS = [
   },
   {
     id: 'bulk_buyer',
-    name: '📦 Bulk Buyer',
+    name: 'Bulk Buyer',
     desc: 'Buying ALL listed fish at 2× price!',
     duration: 300_000, // 5 minutes
     multiplier: 2,
@@ -77,7 +77,7 @@ const URGENT_OFFERS = [
   },
   {
     id: 'museum_curator',
-    name: '🏛️ Museum Curator',
+    name: 'Museum Curator',
     desc: 'Wants unique species for exhibit — 4× for any species fish!',
     duration: 420_000, // 7 minutes
     multiplier: 4,
@@ -114,9 +114,9 @@ export function getStreakMultiplier(streak) {
 }
 
 export function getStreakLabel(streak) {
-  if (streak >= 30) return '🔥🔥🔥 Legendary Streak';
-  if (streak >= 14) return '🔥🔥 Hot Streak';
-  if (streak >= 7)  return '🔥 On Fire';
-  if (streak >= 3)  return '✨ Building Momentum';
+  if (streak >= 30) return 'Legendary Streak';
+  if (streak >= 14) return 'Hot Streak';
+  if (streak >= 7)  return 'On Fire';
+  if (streak >= 3)  return 'Building Momentum';
   return '';
 }

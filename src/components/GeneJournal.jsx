@@ -176,8 +176,8 @@ export default function GeneJournal() {
               <div className="gj-recipe-hint">
                 {discovered ? recipe.hint : (
                   recipe.tier === 3
-                    ? '🔒 An ancient mutation spoken of in legend. Perhaps certain combinations hold the key...'
-                    : `🔒 ${recipe.hint}`
+                    ? 'An ancient mutation. Perhaps certain combinations hold the key...'
+                    : `${recipe.hint}`
                 )}
               </div>
               {discovered && (
@@ -190,7 +190,7 @@ export default function GeneJournal() {
 
       {/* Records */}
       <div className="gj-records">
-        <div className="gj-section-title">📊 Records</div>
+        <div className="gj-section-title">Records</div>
         <div className="gj-record-grid">
           <div className="gj-record">
             <span className="gj-record-label">Highest Purity</span>

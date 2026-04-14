@@ -107,20 +107,20 @@ export function HagglePopup() {
           <>
             <div className="haggle-offer">
               <span className="haggle-offer-label">Their offer:</span>
-              <span className="haggle-offer-price">🪙 {haggle.offer}</span>
+              <span className="haggle-offer-price">{haggle.offer}</span>
               <span className="haggle-offer-vs">
-                {haggle.offer >= haggle.askPrice ? '📈 Above asking!' : `📉 You asked 🪙${haggle.askPrice}`}
+                {haggle.offer >= haggle.askPrice ? 'Above asking!' : `You asked ${haggle.askPrice}`}
               </span>
             </div>
             <div className="haggle-actions">
               <button className="btn btn-sm haggle-accept" onClick={handleAccept}>
-                ✅ Accept 🪙{haggle.offer}
+                Accept {haggle.offer}
               </button>
               <button className="btn btn-sm haggle-counter" onClick={handleCounter}>
                 💬 Counter-offer
               </button>
               <button className="btn btn-sm haggle-decline" onClick={handleDecline}>
-                ❌ No deal
+                No deal
               </button>
             </div>
           </>
@@ -129,7 +129,7 @@ export function HagglePopup() {
         {phase === 'counter' && (
           <div className="haggle-counter-phase">
             <div className="haggle-counter-input">
-              <span>Your price: 🪙</span>
+              <span>Your price:</span>
               <input type="number" value={counterOffer} onChange={e => setCounterOffer(e.target.value)}
                 min="1" className="haggle-input" autoFocus />
             </div>
@@ -138,7 +138,7 @@ export function HagglePopup() {
                 📤 Send offer
               </button>
               <button className="btn btn-sm haggle-decline" onClick={handleDecline}>
-                ❌ Walk away
+                Walk away
               </button>
             </div>
           </div>
@@ -148,13 +148,13 @@ export function HagglePopup() {
           <div className={`haggle-result ${result.accepted ? 'success' : 'failed'}`}>
             {result.accepted ? (
               <>
-                <div className="haggle-result-icon">🤝</div>
-                <div>SOLD for 🪙{result.price}!</div>
+                <div className="haggle-result-icon">Deal</div>
+                <div>SOLD for {result.price}!</div>
                 {result.countered && <div className="haggle-result-sub">They accepted your counter-offer.</div>}
               </>
             ) : (
               <>
-                <div className="haggle-result-icon">🚶</div>
+                <div className="haggle-result-icon">Left</div>
                 <div>{result.tooHigh ? 'Too expensive! Customer walked away.' : 'Customer left without buying.'}</div>
               </>
             )}

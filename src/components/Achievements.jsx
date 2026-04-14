@@ -45,11 +45,11 @@ function AchievementCard({ def, unlock, onNavigate }) {
                   title={`${decor.desc} — click to open Decor tab`}
                   onClick={() => onNavigate('decor')}
                 >
-                  🎨 {decor.label} →
+                  {decor.label} →
                 </button>
               ) : (
                 <span className="ach-decor-badge" title={decor.desc}>
-                  🎨 {decor.label}
+                  {decor.label}
                 </span>
               )
             )}
@@ -89,12 +89,12 @@ function Achievements({ achievements, player, onNavigate }) {
 
   const stats = [
     { label: 'Total Coins Earned',      value: `🪙 ${(player.totalCoinsEarned || 0).toLocaleString()}` },
-    { label: 'Achievement Bonuses',     value: `🏆 🪙${achievementCoins.toLocaleString()}` },
-    { label: 'Species Discovered',      value: `📖 ${(player.fishdex || []).length}` },
-    { label: 'Eggs Collected',          value: `🥚 ${player.stats?.eggsCollected || 0}` },
-    { label: 'Fish Treated',            value: `💊 ${player.stats?.medicineUsed || 0}` },
+    { label: 'Achievement Bonuses',     value: `${achievementCoins.toLocaleString()}` },
+    { label: 'Species Discovered',      value: `${(player.fishdex || []).length}` },
+    { label: 'Eggs Collected',          value: `${player.stats?.eggsCollected || 0}` },
+    { label: 'Fish Treated',            value: `${player.stats?.medicineUsed || 0}` },
     { label: 'Water Treatments',        value: `🧪 ${player.stats?.waterTreated || 0}` },
-    ...(unlockedDecorCount > 0 ? [{ label: 'Decorations Unlocked', value: `🎨 ${unlockedDecorCount}` }] : []),
+    ...(unlockedDecorCount > 0 ? [{ label: 'Decorations Unlocked', value: `${unlockedDecorCount}` }] : []),
   ];
 
   return (

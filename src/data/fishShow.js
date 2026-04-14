@@ -4,7 +4,7 @@
 
 const JUDGE_NAMES = [
   '👨‍⚖️ Judge Coral', '👩‍⚖️ Madame Reef', '🧑‍⚖️ Professor Tide',
-  '👴 Old Salt', '👩‍🔬 Dr. Scales', '🎩 Sir Bubbles',
+  'Old Salt', 'Dr. Scales', 'Sir Bubbles',
 ];
 
 const SHOW_CATEGORIES = ['beauty', 'tricks', 'size'];
@@ -68,9 +68,9 @@ export function generateCompetitors(playerLevel) {
 
 // Rewards by placement
 export function getShowReward(placement, entryCount) {
-  if (placement === 1) return { coins: 500, xp: 50, label: '🥇 1st Place!', trophy: 'gold' };
-  if (placement === 2) return { coins: 250, xp: 30, label: '🥈 2nd Place!', trophy: 'silver' };
-  if (placement === 3) return { coins: 100, xp: 20, label: '🥉 3rd Place!', trophy: 'bronze' };
+  if (placement === 1) return { coins: 500, xp: 50, label: '1st Place!', trophy: 'gold' };
+  if (placement === 2) return { coins: 250, xp: 30, label: '2nd Place!', trophy: 'silver' };
+  if (placement === 3) return { coins: 100, xp: 20, label: '3rd Place!', trophy: 'bronze' };
   return { coins: 25, xp: 5, label: `Placed #${placement} of ${entryCount + 1}`, trophy: null };
 }
 

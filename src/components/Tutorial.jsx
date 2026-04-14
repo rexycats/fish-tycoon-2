@@ -67,7 +67,7 @@ export default function Tutorial() {
             </button>
           )}
           <button className="btn btn-sm btn-primary" onClick={advance}>
-            {isLast ? '🎉 Start Playing!' : hasCondition ? 'Skip →' : 'Next →'}
+            {isLast ? 'Start Playing' : hasCondition ? 'Skip →' : 'Next →'}
           </button>
           {!isLast && (
             <button className="btn btn-sm tutorial-skip" onClick={skip}>

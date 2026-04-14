@@ -12,18 +12,18 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 // ── Traveling Merchants ────────────────────────────────────
 const MERCHANTS = [
-  { id: 'pearl',  name: 'Pearl the Diver',        emoji: '🤿', greeting: '"Fresh from the deep! You won\'t find these at any pet store."', specialty: 'fish' },
-  { id: 'bones',  name: 'Old Bones McGill',       emoji: '🏴‍☠️', greeting: '"Arr... I\'ve got somethin\' special today, if ye\'ve got the coin."', specialty: 'eggs' },
-  { id: 'flora',  name: 'Dr. Flora Chen',          emoji: '🧬', greeting: '"I\'ve been running some fascinating experiments. Care to see the results?"', specialty: 'booster' },
-  { id: 'kai',    name: 'Kai the Reef Runner',     emoji: '🏄', greeting: '"Bro! Check out what washed up on the reef this morning!"', specialty: 'supplies' },
-  { id: 'madame', name: 'Madame Coraline',         emoji: '🔮', greeting: '"The tides whisper of rare creatures today... shall we see?"', specialty: 'eggs' },
-  { id: 'jin',    name: 'Captain Jin',             emoji: '⚓', greeting: '"Direct from the eastern trade routes. Premium stock only."', specialty: 'fish' },
+  { id: 'pearl',  name: 'Pearl the Diver',        emoji: '', greeting: '"Fresh from the deep! You won\'t find these at any pet store."', specialty: 'fish' },
+  { id: 'bones',  name: 'Old Bones McGill',       emoji: '', greeting: '"Arr... I\'ve got somethin\' special today, if ye\'ve got the coin."', specialty: 'eggs' },
+  { id: 'flora',  name: 'Dr. Flora Chen',          emoji: '', greeting: '"I\'ve been running some fascinating experiments. Care to see the results?"', specialty: 'booster' },
+  { id: 'kai',    name: 'Kai the Reef Runner',     emoji: '', greeting: '"Bro! Check out what washed up on the reef this morning!"', specialty: 'supplies' },
+  { id: 'madame', name: 'Madame Coraline',         emoji: '', greeting: '"The tides whisper of rare creatures today... shall we see?"', specialty: 'eggs' },
+  { id: 'jin',    name: 'Captain Jin',             emoji: '', greeting: '"Direct from the eastern trade routes. Premium stock only."', specialty: 'fish' },
 ];
 
 // ── Mystery Eggs ───────────────────────────────────────────
 const MYSTERY_EGGS = [
   {
-    id: 'egg_common', emoji: '🥚', label: 'Common Clutch',
+    id: 'egg_common', emoji: '', label: 'Common Clutch',
     type: 'egg', tag: 'Mystery Egg',
     tagColor: 'rgba(126,200,160,0.15)', tagBorder: 'rgba(126,200,160,0.4)', tagText: '#7ec8a0',
     desc: 'A clutch of 2 eggs. Mostly common species, but you might get lucky.',
@@ -31,7 +31,7 @@ const MYSTERY_EGGS = [
     eggCount: 2, rarityWeights: { common: 70, uncommon: 25, rare: 5 },
   },
   {
-    id: 'egg_exotic', emoji: '🪺', label: 'Exotic Egg',
+    id: 'egg_exotic', emoji: '', label: 'Exotic Egg',
     type: 'egg', tag: 'Mystery Egg',
     tagColor: 'rgba(106,176,222,0.15)', tagBorder: 'rgba(106,176,222,0.4)', tagText: '#6ab0de',
     desc: 'A single egg from an exotic source. High chance of uncommon or rare.',
@@ -39,7 +39,7 @@ const MYSTERY_EGGS = [
     eggCount: 1, rarityWeights: { common: 15, uncommon: 50, rare: 30, epic: 5 },
   },
   {
-    id: 'egg_legendary', emoji: '✨', label: 'Primordial Egg',
+    id: 'egg_legendary', emoji: '', label: 'Primordial Egg',
     type: 'egg', tag: 'Legendary Gamble',
     tagColor: 'rgba(255,126,179,0.15)', tagBorder: 'rgba(255,126,179,0.4)', tagText: '#ff7eb3',
     desc: 'Recovered from the abyss. Could be anything — including something extraordinary.',
@@ -52,7 +52,7 @@ const MYSTERY_EGGS = [
 const EXOTIC_FISH = [
   {
     id: 'fish_uncommon_1',
-    emoji: '🐠',
+    emoji: '',
     label: 'Uncommon Specimen',
     type: 'fish',
     tag: 'Exotic Fish',
@@ -66,7 +66,7 @@ const EXOTIC_FISH = [
   },
   {
     id: 'fish_uncommon_2',
-    emoji: '🐡',
+    emoji: '',
     label: 'Unusual Catch',
     type: 'fish',
     tag: 'Exotic Fish',
@@ -80,7 +80,7 @@ const EXOTIC_FISH = [
   },
   {
     id: 'fish_rare_1',
-    emoji: '💎',
+    emoji: '',
     label: 'Rare Import',
     type: 'fish',
     tag: 'Rare Fish',
@@ -94,7 +94,7 @@ const EXOTIC_FISH = [
   },
   {
     id: 'fish_rare_2',
-    emoji: '🌊',
+    emoji: '',
     label: 'Deep-Sea Rarity',
     type: 'fish',
     tag: 'Rare Fish',
@@ -108,7 +108,7 @@ const EXOTIC_FISH = [
   },
   {
     id: 'fish_epic',
-    emoji: '🐉',
+    emoji: '',
     label: 'Legendary Specimen',
     type: 'fish',
     tag: 'Epic Fish',
@@ -127,7 +127,7 @@ const EXOTIC_FISH = [
 const SUPPLY_ITEMS = [
   {
     id: 'bundle_medicine',
-    emoji: '💊',
+    emoji: '',
     label: 'Medicine Bundle',
     type: 'supplies',
     tag: 'Supplies',
@@ -141,7 +141,7 @@ const SUPPLY_ITEMS = [
   },
   {
     id: 'bundle_food',
-    emoji: '🍤',
+    emoji: '',
     label: 'Premium Fish Food',
     type: 'supplies',
     tag: 'Supplies',
@@ -155,7 +155,7 @@ const SUPPLY_ITEMS = [
   },
   {
     id: 'bundle_water',
-    emoji: '🧪',
+    emoji: '',
     label: 'Water Treatment Pack',
     type: 'supplies',
     tag: 'Supplies',
@@ -169,7 +169,7 @@ const SUPPLY_ITEMS = [
   },
   {
     id: 'full_restore',
-    emoji: '🌈',
+    emoji: '',
     label: 'Full Restoration',
     type: 'supplies',
     tag: 'Premium',
@@ -184,7 +184,7 @@ const SUPPLY_ITEMS = [
   },
   {
     id: 'heater_pack',
-    emoji: '🌡️',
+    emoji: '',
     label: 'Heater Pack',
     type: 'supplies',
     tag: 'Supplies',
@@ -198,7 +198,7 @@ const SUPPLY_ITEMS = [
   },
   {
     id: 'breed_sprint',
-    emoji: '⚡',
+    emoji: '',
     label: 'Breeding Sprint',
     type: 'supplies',
     tag: 'Breeding',
@@ -212,7 +212,7 @@ const SUPPLY_ITEMS = [
   },
   {
     id: 'bundle_antiparasitic',
-    emoji: '🔬',
+    emoji: '',
     label: 'Antiparasitic Bundle',
     type: 'supplies',
     tag: 'Supplies',
@@ -230,7 +230,7 @@ const SUPPLY_ITEMS = [
 const BOOSTER_ITEMS = [
   {
     id: 'boost_grow',
-    emoji: '🌱',
+    emoji: '',
     label: 'Growth Formula',
     type: 'booster',
     tag: 'Boost',
@@ -245,7 +245,7 @@ const BOOSTER_ITEMS = [
   },
   {
     id: 'boost_health',
-    emoji: '💖',
+    emoji: '',
     label: 'Vitality Tonic',
     type: 'booster',
     tag: 'Boost',
@@ -260,7 +260,7 @@ const BOOSTER_ITEMS = [
   },
   {
     id: 'boost_price',
-    emoji: '📈',
+    emoji: '',
     label: 'Market Frenzy',
     type: 'booster',
     tag: 'Boost',
@@ -275,7 +275,7 @@ const BOOSTER_ITEMS = [
   },
   {
     id: 'boost_income',
-    emoji: '🌊',
+    emoji: '',
     label: 'High Tide',
     type: 'booster',
     tag: 'Boost',
@@ -352,10 +352,10 @@ function formatCountdown(ms) {
 }
 
 const BOOST_LABELS = {
-  growSpeed:     '🌱 Growth +50%',
-  healthRegen:   '💖 Regen ×3',
-  salePrice:     '📈 Prices +25%',
-  passiveIncome: '🌊 Income ×2',
+  growSpeed:     'Growth +50%',
+  healthRegen:   'Regen ×3',
+  salePrice:     'Prices +25%',
+  passiveIncome: 'Income ×2',
 };
 
 const RARITY_COLORS = {
@@ -416,7 +416,7 @@ export default function RareMarket({ game, activeTank, onBuyRareItem }) {
           </div>
         </div>
         <div className="rm-header-right">
-          <div className="rare-market-coins">🪙 {coins.toLocaleString()}</div>
+          <div className="rare-market-coins">{coins.toLocaleString()}</div>
           <div className="rare-market-subtitle">
             Refreshes in <span className="rare-market-countdown">{formatCountdown(countdown)}</span>
           </div>
@@ -475,8 +475,8 @@ export default function RareMarket({ game, activeTank, onBuyRareItem }) {
               <div className="rmc-footer">
                 <div>
                   <div className="rmc-cost">
-                    {isDeal && <span className="rmc-cost-original">🪙{item.cost}</span>}
-                    🪙 {effectiveCost.toLocaleString()}
+                    {isDeal && <span className="rmc-cost-original">{item.cost}</span>}
+                    {effectiveCost.toLocaleString()}
                   </div>
                   {soldOut
                     ? <div className="rmc-maxed">✓ Purchased</div>
@@ -487,7 +487,7 @@ export default function RareMarket({ game, activeTank, onBuyRareItem }) {
                   className={`market-buy-btn${!canAfford ? ' market-buy-btn--disabled' : ''}`}
                   disabled={!canAfford}
                   title={!soldOut && !canAfford
-                    ? `Need 🪙${(effectiveCost - coins).toLocaleString()} more`
+                    ? `Need ${(effectiveCost - coins).toLocaleString()} more`
                     : undefined}
                   onClick={() => onBuyRareItem(
                     { ...item, cost: effectiveCost },
@@ -505,7 +505,7 @@ export default function RareMarket({ game, activeTank, onBuyRareItem }) {
       {/* Reputation unlock hint */}
       {lockedCount > 0 && (
         <div className="rm-locked-hint">
-          🔒 {lockedCount} premium item{lockedCount > 1 ? 's' : ''} locked — reach higher reputation to unlock
+          {lockedCount} premium item{lockedCount > 1 ? 's' : ''} locked — reach higher reputation to unlock
         </div>
       )}
 

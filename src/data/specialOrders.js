@@ -3,12 +3,12 @@
 // ============================================================
 
 const ORDER_TEMPLATES = [
-  { trait: 'rarity',   values: ['rare','epic'],        emoji: '🌟', prefix: 'Collector wants a' },
-  { trait: 'pattern',  values: ['Spotted','Tiger','Marble','Lined'], emoji: '🎨', prefix: 'Designer seeks a' },
-  { trait: 'bodyShape',values: ['Orb','Delta','Slender','Eel'],     emoji: '📐', prefix: 'Breeder needs a' },
-  { trait: 'finType',  values: ['Veil','Flowing'],     emoji: '🦚', prefix: 'Enthusiast desires a' },
-  { trait: 'glow',     values: ['Luminous'],           emoji: '✨', prefix: 'Night aquarium wants a' },
-  { trait: 'size',     values: ['Giant','Leviathan'],  emoji: '🐋', prefix: 'Aquarium park needs a' },
+  { trait: 'rarity',   values: ['rare','epic'],        emoji: '', prefix: 'Collector wants a' },
+  { trait: 'pattern',  values: ['Spotted','Tiger','Marble','Lined'], emoji: '', prefix: 'Designer seeks a' },
+  { trait: 'bodyShape',values: ['Orb','Delta','Slender','Eel'],     emoji: '', prefix: 'Breeder needs a' },
+  { trait: 'finType',  values: ['Veil','Flowing'],     emoji: '', prefix: 'Enthusiast desires a' },
+  { trait: 'glow',     values: ['Luminous'],           emoji: '', prefix: 'Night aquarium wants a' },
+  { trait: 'size',     values: ['Giant','Leviathan'],  emoji: '', prefix: 'Aquarium park needs a' },
 ];
 
 const CUSTOMER_NAMES = [

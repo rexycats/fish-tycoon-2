@@ -20,8 +20,8 @@ const CAUSE_COLORS = {
 
 const CAUSE_ICONS = {
   'Starvation':        '🍽️',
-  'Water Toxicity':    '☠️',
-  'Temperature Shock': '🌡️',
+  'Water Toxicity':    '',
+  'Temperature Shock': '',
   'Ich':               '🔴',
   'Fin Rot':           '🟤',
   'Bloat':             '🟡',
@@ -141,7 +141,7 @@ function FishAutopsyPanel({ autopsies = [] }) {
           <p className="autopsy-subtitle">Understand why your fish died. Improve. Prevent.</p>
         </div>
         <div className="autopsy-empty">
-          <div className="autopsy-empty-icon">🐟</div>
+          <div className="autopsy-empty-icon">No records</div>
           <p>No deaths recorded yet. Long may your fish live!</p>
         </div>
       </div>

@@ -15,7 +15,7 @@ export const PERSONALITY_EMOJI = {
   curious:    '🔍',
   lazy:       '😴',
   aggressive: '😤',
-  social:     '🤝',
+  social:     '',
   gluttonous: '🍽️',
   hardy:      '💪',
 };

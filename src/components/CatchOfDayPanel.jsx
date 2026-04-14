@@ -152,13 +152,13 @@ export default function CatchOfDayPanel() {
         <div className="catch-intro">
           <p>A wild pond has been spotted nearby! Click the swimming shadows to catch fish.</p>
           <p className="catch-rules">
-            ⏱ {GAME_DURATION} seconds · 🐟 Keep up to 3 best catches · ⚡ Chain catches for combo multiplier
+            {GAME_DURATION} seconds · Keep up to 3 best catches · Chain for combo
           </p>
           {!eligible ? (
             <div className="catch-cooldown">You've already fished today. Come back tomorrow!</div>
           ) : (
             <button className="btn btn-primary catch-start" onClick={startGame}>
-              🎣 Cast your net!
+              Cast your net
             </button>
           )}
         </div>
@@ -216,9 +216,9 @@ export default function CatchOfDayPanel() {
             {caught.filter(c => c.rarity === 'legendary').length > 0 && ` · ${caught.filter(c => c.rarity === 'legendary').length} LEGENDARY!!`}
           </div>
           <div className="catch-results-rewards">
-            <div>🐟 Keep up to 3 best fish</div>
+            <div>Keep up to 3 best fish</div>
             <div>🪙 +{Math.round(score * 0.1)} bonus coins</div>
-            <div>⭐ +{Math.min(50, Math.round(score * 0.2))} XP</div>
+            <div>+{Math.min(50, Math.round(score * 0.2))} XP</div>
           </div>
           <button className="btn btn-primary" onClick={handleClaimCatch}>
             Claim your catch!
@@ -228,7 +228,7 @@ export default function CatchOfDayPanel() {
 
       {phase === 'claimed' && (
         <div className="catch-claimed">
-          <div className="catch-claimed-icon">🎣</div>
+          <div className="catch-claimed-icon">Done</div>
           <div>Great fishing! Your catches are in the tank.</div>
         </div>
       )}

@@ -3,16 +3,16 @@
 // ============================================================
 
 const DAILY_REWARDS = [
-  { day: 1,  reward: 'coins',  amount: 50,   label: '50 Coins',        emoji: '🪙' },
-  { day: 2,  reward: 'coins',  amount: 75,   label: '75 Coins',        emoji: '🪙' },
-  { day: 3,  reward: 'food',   amount: 20,   label: '20 Fish Food',    emoji: '🍤' },
-  { day: 4,  reward: 'coins',  amount: 100,  label: '100 Coins',       emoji: '🪙' },
-  { day: 5,  reward: 'coins',  amount: 150,  label: '150 Coins',       emoji: '💰' },
-  { day: 6,  reward: 'supply', amount: 3,    label: 'Medical Kit',     emoji: '💊', supplyKey: 'antibiotic' },
-  { day: 7,  reward: 'egg',    amount: 1,    label: 'Mystery Egg!',    emoji: '🥚', rarity: 'uncommon' },
-  { day: 14, reward: 'coins',  amount: 500,  label: '500 Coins!',      emoji: '💎' },
-  { day: 21, reward: 'egg',    amount: 1,    label: 'Rare Egg!',       emoji: '🌟', rarity: 'rare' },
-  { day: 30, reward: 'egg',    amount: 1,    label: 'Epic Egg!!',      emoji: '🏆', rarity: 'epic' },
+  { day: 1,  reward: 'coins',  amount: 50,   label: '50 Coins',        emoji: '' },
+  { day: 2,  reward: 'coins',  amount: 75,   label: '75 Coins',        emoji: '' },
+  { day: 3,  reward: 'food',   amount: 20,   label: '20 Fish Food',    emoji: '' },
+  { day: 4,  reward: 'coins',  amount: 100,  label: '100 Coins',       emoji: '' },
+  { day: 5,  reward: 'coins',  amount: 150,  label: '150 Coins',       emoji: '' },
+  { day: 6,  reward: 'supply', amount: 3,    label: 'Medical Kit',     emoji: '', supplyKey: 'antibiotic' },
+  { day: 7,  reward: 'egg',    amount: 1,    label: 'Mystery Egg!',    emoji: '', rarity: 'uncommon' },
+  { day: 14, reward: 'coins',  amount: 500,  label: '500 Coins!',      emoji: '' },
+  { day: 21, reward: 'egg',    amount: 1,    label: 'Rare Egg!',       emoji: '', rarity: 'rare' },
+  { day: 30, reward: 'egg',    amount: 1,    label: 'Epic Egg!!',      emoji: '', rarity: 'epic' },
 ];
 
 

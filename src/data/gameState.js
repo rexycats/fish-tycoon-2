@@ -10,9 +10,9 @@ const SAVE_VERSION = 8;
 
 // ── Tank types / purposes ──────────────────────────────────
 export const TANK_TYPES = {
-  display:  { label: 'Display Tank',  emoji: '🐠', desc: 'Show off your best fish. Happy fish sell for more.' },
-  breeding: { label: 'Breeding Tank', emoji: '🧬', desc: 'Dedicated breeding environment. +20% egg success.' },
-  grow:     { label: 'Grow-out Tank', emoji: '🐣', desc: 'Juveniles grow up 25% faster here.' },
+  display:  { label: 'Display Tank',  emoji: '', desc: 'Show off your best fish. Happy fish sell for more.' },
+  breeding: { label: 'Breeding Tank', emoji: '', desc: 'Dedicated breeding environment. +20% egg success.' },
+  grow:     { label: 'Grow-out Tank', emoji: '', desc: 'Juveniles grow up 25% faster here.' },
 };
 
 // ── Tank unlock costs ──────────────────────────────────────
@@ -27,29 +27,29 @@ export const TANK_UNLOCK = [
 
 // ── Achievement definitions ────────────────────────────────
 export const ACHIEVEMENT_DEFS = [
-  { id: 'first_fish',      label: 'Aquarist',         desc: 'Discover your first species',         emoji: '🐟', secret: false, tier: 'common' },
-  { id: 'species_5',       label: 'Explorer',          desc: 'Discover 5 different species',        emoji: '🔍', secret: false, tier: 'common' },
-  { id: 'species_10',      label: 'Geneticist',        desc: 'Discover 10 different species',       emoji: '🧬', secret: false, tier: 'rare'   },
-  { id: 'species_25',      label: 'Taxonomist',        desc: 'Discover 25 different species',       emoji: '📖', secret: false, tier: 'rare'   },
-  { id: 'first_sale',      label: 'Merchant',          desc: 'Make your first sale',                emoji: '🏪', secret: false, tier: 'common' },
-  { id: 'coins_500',       label: 'Entrepreneur',      desc: 'Earn 500 total coins from sales',     emoji: '🪙', secret: false, tier: 'common' },
-  { id: 'coins_5000',      label: 'Tycoon',            desc: 'Earn 5,000 total coins from sales',   emoji: '💰', secret: false, tier: 'rare'   },
-  { id: 'coins_50000',     label: 'Mogul',             desc: 'Earn 50,000 total coins from sales',  emoji: '🤑', secret: true,  tier: 'secret' },
-  { id: 'rare_discovery',  label: 'Rare Find',         desc: 'Discover a rare species',             emoji: '💎', secret: false, tier: 'common' },
-  { id: 'epic_discovery',  label: 'Legendary Catch',   desc: 'Discover an epic species',            emoji: '✨', secret: true,  tier: 'secret' },
-  { id: 'full_tank',       label: 'Full House',        desc: 'Fill any tank to capacity',           emoji: '🐠', secret: false, tier: 'common' },
-  { id: 'bred_5',          label: 'Matchmaker',        desc: 'Breed 5 batches of eggs',             emoji: '💕', secret: false, tier: 'common' },
-  { id: 'bred_20',         label: 'Speed Breeder',     desc: 'Breed 20 batches of eggs',            emoji: '⚡', secret: false, tier: 'rare'   },
-  { id: 'tank_happy',      label: 'Happy Habitat',     desc: 'Reach 100% tank happiness',           emoji: '😊', secret: false, tier: 'common' },
-  { id: 'upgrade_max',     label: 'Maximalist',        desc: 'Max out any shop upgrade',            emoji: '⬆️', secret: false, tier: 'rare'   },
-  { id: 'fish_rescued',    label: 'Healer',            desc: 'Use medicine on a sick fish',         emoji: '💊', secret: false, tier: 'common' },
-  { id: 'water_pristine',  label: 'Pure Waters',       desc: 'Treat water back to 100% quality',   emoji: '🧪', secret: false, tier: 'common' },
-  { id: 'survived_night',  label: 'Night Watch',       desc: 'Keep all fish alive overnight',       emoji: '🌙', secret: true,  tier: 'secret' },
-  { id: 'two_tanks',       label: 'Expanding Empire',  desc: 'Unlock a second tank',               emoji: '🏗️', secret: false, tier: 'common' },
-  { id: 'three_tanks',     label: 'Aquarium Baron',    desc: 'Unlock all three tanks',             emoji: '👑', secret: true,  tier: 'secret' },
-  { id: 'magic_1',         label: 'First Wonder',      desc: 'Discover the first Magic Fish',      emoji: '🔮', secret: false, tier: 'rare'   },
-  { id: 'magic_3',         label: 'Halfway There',     desc: 'Discover 3 of the 7 Magic Fish',     emoji: '✨', secret: false, tier: 'rare'   },
-  { id: 'magic_7',         label: 'Legend of the Deep',desc: 'Discover all 7 Magic Fish',          emoji: '🌟', secret: true,  tier: 'secret' },
+  { id: 'first_fish',      label: 'Aquarist',         desc: 'Discover your first species',         emoji: '', secret: false, tier: 'common' },
+  { id: 'species_5',       label: 'Explorer',          desc: 'Discover 5 different species',        emoji: '', secret: false, tier: 'common' },
+  { id: 'species_10',      label: 'Geneticist',        desc: 'Discover 10 different species',       emoji: '', secret: false, tier: 'rare'   },
+  { id: 'species_25',      label: 'Taxonomist',        desc: 'Discover 25 different species',       emoji: '', secret: false, tier: 'rare'   },
+  { id: 'first_sale',      label: 'Merchant',          desc: 'Make your first sale',                emoji: '', secret: false, tier: 'common' },
+  { id: 'coins_500',       label: 'Entrepreneur',      desc: 'Earn 500 total coins from sales',     emoji: '', secret: false, tier: 'common' },
+  { id: 'coins_5000',      label: 'Tycoon',            desc: 'Earn 5,000 total coins from sales',   emoji: '', secret: false, tier: 'rare'   },
+  { id: 'coins_50000',     label: 'Mogul',             desc: 'Earn 50,000 total coins from sales',  emoji: '', secret: true,  tier: 'secret' },
+  { id: 'rare_discovery',  label: 'Rare Find',         desc: 'Discover a rare species',             emoji: '', secret: false, tier: 'common' },
+  { id: 'epic_discovery',  label: 'Legendary Catch',   desc: 'Discover an epic species',            emoji: '', secret: true,  tier: 'secret' },
+  { id: 'full_tank',       label: 'Full House',        desc: 'Fill any tank to capacity',           emoji: '', secret: false, tier: 'common' },
+  { id: 'bred_5',          label: 'Matchmaker',        desc: 'Breed 5 batches of eggs',             emoji: '', secret: false, tier: 'common' },
+  { id: 'bred_20',         label: 'Speed Breeder',     desc: 'Breed 20 batches of eggs',            emoji: '', secret: false, tier: 'rare'   },
+  { id: 'tank_happy',      label: 'Happy Habitat',     desc: 'Reach 100% tank happiness',           emoji: '', secret: false, tier: 'common' },
+  { id: 'upgrade_max',     label: 'Maximalist',        desc: 'Max out any shop upgrade',            emoji: '', secret: false, tier: 'rare'   },
+  { id: 'fish_rescued',    label: 'Healer',            desc: 'Use medicine on a sick fish',         emoji: '', secret: false, tier: 'common' },
+  { id: 'water_pristine',  label: 'Pure Waters',       desc: 'Treat water back to 100% quality',   emoji: '', secret: false, tier: 'common' },
+  { id: 'survived_night',  label: 'Night Watch',       desc: 'Keep all fish alive overnight',       emoji: '', secret: true,  tier: 'secret' },
+  { id: 'two_tanks',       label: 'Expanding Empire',  desc: 'Unlock a second tank',               emoji: '', secret: false, tier: 'common' },
+  { id: 'three_tanks',     label: 'Aquarium Baron',    desc: 'Unlock all three tanks',             emoji: '', secret: true,  tier: 'secret' },
+  { id: 'magic_1',         label: 'First Wonder',      desc: 'Discover the first Magic Fish',      emoji: '', secret: false, tier: 'rare'   },
+  { id: 'magic_3',         label: 'Halfway There',     desc: 'Discover 3 of the 7 Magic Fish',     emoji: '', secret: false, tier: 'rare'   },
+  { id: 'magic_7',         label: 'Legend of the Deep',desc: 'Discover all 7 Magic Fish',          emoji: '', secret: true,  tier: 'secret' },
 ];
 
 // ── Default tank factory ───────────────────────────────────
@@ -216,8 +216,8 @@ export function createDefaultState() {
     urgentOffer: null,        // limited-time loss aversion offer
 
     log: [
-      { time: Date.now(), message: '🐠 Welcome to Fish Tycoon 2! Your aquarium awaits.' },
-      { time: Date.now() - 1, message: '🎁 Starter bundle: 325 coins, food, water treatment, antibiotic, antiparasitic & digestive remedy included.' },
+      { time: Date.now(), message: 'Welcome to Fish Tycoon 2! Your aquarium awaits.' },
+      { time: Date.now() - 1, message: 'Starter bundle: 325 coins, food, water treatment, antibiotic, antiparasitic & digestive remedy included.' },
     ],
   };
 }
@@ -643,7 +643,7 @@ export function checkAchievements(state, messages) {
     const decorId = ACHIEVEMENT_DECOR_REWARDS[id];
     if (decorId && !(state.player.unlockedDecorations || []).includes(decorId) && !newUnlockedDecorations.includes(decorId)) {
       newUnlockedDecorations.push(decorId);
-      messages.push(`🎨 Decoration unlocked: ${decorId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}!`);
+      messages.push(`Decoration unlocked: ${decorId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}!`);
     }
 
     // Legend Fish unlock

@@ -3,13 +3,13 @@
 // ============================================================
 
 const WEATHER_TYPES = [
-  { id: 'sunny',      label: '☀️ Sunny',       weight: 30, happinessBonus: 5,  waterDecayMult: 1.0, customerSpeedMult: 0.9, visualOverlay: 'rgba(255,220,140,0.06)' },
-  { id: 'cloudy',     label: '☁️ Cloudy',      weight: 25, happinessBonus: 0,  waterDecayMult: 1.0, customerSpeedMult: 1.0, visualOverlay: 'rgba(150,160,180,0.08)' },
-  { id: 'rainy',      label: '🌧️ Rainy',      weight: 20, happinessBonus: -3, waterDecayMult: 0.8, customerSpeedMult: 1.2, visualOverlay: 'rgba(100,120,160,0.12)' },
-  { id: 'stormy',     label: '⛈️ Stormy',     weight: 8,  happinessBonus: -8, waterDecayMult: 1.3, customerSpeedMult: 1.5, visualOverlay: 'rgba(40,50,80,0.18)', fishScare: true },
-  { id: 'foggy',      label: '🌫️ Foggy',      weight: 10, happinessBonus: -2, waterDecayMult: 1.0, customerSpeedMult: 1.3, visualOverlay: 'rgba(180,190,200,0.15)' },
-  { id: 'heatwave',   label: '🔥 Heat Wave',   weight: 5,  happinessBonus: -5, waterDecayMult: 1.5, customerSpeedMult: 0.8, visualOverlay: 'rgba(255,100,40,0.08)', tempDrift: 0.01 },
-  { id: 'aurora',     label: '🌌 Aurora',       weight: 2,  happinessBonus: 10, waterDecayMult: 0.7, customerSpeedMult: 0.7, visualOverlay: 'rgba(100,200,160,0.08)', rare: true },
+  { id: 'sunny',      label: 'Sunny',       weight: 30, happinessBonus: 5,  waterDecayMult: 1.0, customerSpeedMult: 0.9, visualOverlay: 'rgba(255,220,140,0.06)' },
+  { id: 'cloudy',     label: 'Cloudy',      weight: 25, happinessBonus: 0,  waterDecayMult: 1.0, customerSpeedMult: 1.0, visualOverlay: 'rgba(150,160,180,0.08)' },
+  { id: 'rainy',      label: 'Rainy',      weight: 20, happinessBonus: -3, waterDecayMult: 0.8, customerSpeedMult: 1.2, visualOverlay: 'rgba(100,120,160,0.12)' },
+  { id: 'stormy',     label: 'Stormy',     weight: 8,  happinessBonus: -8, waterDecayMult: 1.3, customerSpeedMult: 1.5, visualOverlay: 'rgba(40,50,80,0.18)', fishScare: true },
+  { id: 'foggy',      label: 'Foggy',      weight: 10, happinessBonus: -2, waterDecayMult: 1.0, customerSpeedMult: 1.3, visualOverlay: 'rgba(180,190,200,0.15)' },
+  { id: 'heatwave',   label: 'Heat Wave',   weight: 5,  happinessBonus: -5, waterDecayMult: 1.5, customerSpeedMult: 0.8, visualOverlay: 'rgba(255,100,40,0.08)', tempDrift: 0.01 },
+  { id: 'aurora',     label: 'Aurora',       weight: 2,  happinessBonus: 10, waterDecayMult: 0.7, customerSpeedMult: 0.7, visualOverlay: 'rgba(100,200,160,0.08)', rare: true },
 ];
 
 export function getCurrentWeather(seed) {

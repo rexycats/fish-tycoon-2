@@ -265,16 +265,16 @@ function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveD
       {/* Sub-tabs */}
       <div className="decor-subtabs">
         <button className={`decor-subtab ${subTab==='themes'?'active':''}`} onClick={() => setSubTab('themes')}>
-          🎨 Themes
+          Themes
         </button>
         <button className={`decor-subtab ${subTab==='shop'?'active':''}`} onClick={() => setSubTab('shop')}>
-          🛒 Decorations
+          Decorations
         </button>
         <button className={`decor-subtab ${subTab==='placed'?'active':''}`} onClick={() => setSubTab('placed')}>
-          📋 Placed ({placed.length})
+          Placed ({placed.length})
         </button>
         <button className={`decor-subtab ${subTab==='awards'?'active':''}`} onClick={() => setSubTab('awards')}>
-          🏆 Awards {unlockedDecorations.length > 0 ? `(${unlockedDecorations.length})` : ''}
+          Awards {unlockedDecorations.length > 0 ? `(${unlockedDecorations.length})` : ''}
         </button>
       </div>
 
@@ -304,7 +304,7 @@ function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveD
                           className="btn btn-sm btn-place"
                           onClick={() => activeTank && onApplyTheme && onApplyTheme(activeTank.id, theme.id)}
                         >
-                          🎨 Apply
+                          Apply
                         </button>
                       )
                     ) : (
@@ -385,14 +385,14 @@ function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveD
                 <div key={decor.id} className={`decor-award-card ${isUnlocked ? 'unlocked' : 'locked'}`}>
                   <div className="decor-preview-wrap">
                     <DecorPreview decor={decor} size={72} />
-                    {!isUnlocked && <div className="decor-locked-overlay">🔒</div>}
+                    {!isUnlocked && <div className="decor-locked-overlay">Locked</div>}
                     {isClaimed && <div className="decor-stock-badge">In Tank</div>}
                   </div>
                   <div className="decor-card-info">
                     <div className="decor-card-name">{decor.label}</div>
                     <div className="decor-card-desc">{decor.desc}</div>
                     <div className="decor-achievement-badge">
-                      🏆 {decor.achievementLabel}
+                      {decor.achievementLabel}
                     </div>
                     <div className="decor-card-actions" style={{ marginTop: 6 }}>
                       {isUnlocked ? (
@@ -408,7 +408,7 @@ function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveD
                             className="decor-claim-btn"
                             onClick={() => { onClaimUnlockedDecor(decor.id); }}
                           >
-                            ✨ Add to Inventory
+                            Add to Inventory
                           </button>
                         )
                       ) : (

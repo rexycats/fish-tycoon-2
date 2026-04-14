@@ -21,9 +21,9 @@ export const TICK_INTERVAL_MS = 1000;
 // ============================================================
 const MARKET_HEADLINES = [
   { mod: { common: 0.7, uncommon: 1.0, rare: 1.3, epic: 1.5 },  text: '📈 Rare fish market booming! Collectors paying top coin.' },
-  { mod: { common: 1.4, uncommon: 1.1, rare: 0.9, epic: 0.8 },  text: '🐟 Common fish craze! Everyone wants an easy starter pet.' },
-  { mod: { common: 0.9, uncommon: 1.3, rare: 1.1, epic: 1.0 },  text: '🌊 Mid-tier demand is high. Hobbyists are browsing.' },
-  { mod: { common: 1.0, uncommon: 0.8, rare: 1.0, epic: 1.8 },  text: '💎 High-end buyers in town. Epic fish fetch premium prices.' },
+  { mod: { common: 1.4, uncommon: 1.1, rare: 0.9, epic: 0.8 },  text: 'Common fish craze! Everyone wants an easy starter pet.' },
+  { mod: { common: 0.9, uncommon: 1.3, rare: 1.1, epic: 1.0 },  text: 'Mid-tier demand is high. Hobbyists are browsing.' },
+  { mod: { common: 1.0, uncommon: 0.8, rare: 1.0, epic: 1.8 },  text: 'High-end buyers in town. Epic fish fetch premium prices.' },
   { mod: { common: 1.1, uncommon: 1.1, rare: 1.1, epic: 1.1 },  text: '☀️ Good weather brings steady foot traffic. Prices are fair.' },
   { mod: { common: 0.8, uncommon: 0.9, rare: 0.8, epic: 0.9 },  text: '📉 Slow day at the market. Buyers are cautious with coin.' },
   { mod: { common: 1.2, uncommon: 1.2, rare: 0.7, epic: 0.7 },  text: '🎪 Fish fair in town! Budget shoppers flooding in.' },
@@ -36,10 +36,10 @@ const HOT_TRAITS = [
   { gene: 'primaryColor', value: 'Azure',   label: '🔵 Azure fish',   bonus: 1.4 },
   { gene: 'primaryColor', value: 'Violet',  label: '🟣 Violet fish',  bonus: 1.5 },
   { gene: 'primaryColor', value: 'Emerald', label: '🟢 Emerald fish', bonus: 1.5 },
-  { gene: 'glow',         value: 'Luminous', label: '✨ Glowing fish', bonus: 1.6 },
-  { gene: 'glow',         value: 'Radiant',  label: '🌟 Radiant fish', bonus: 1.3 },
+  { gene: 'glow',         value: 'Luminous', label: 'Glowing fish', bonus: 1.6 },
+  { gene: 'glow',         value: 'Radiant',  label: 'Radiant fish', bonus: 1.3 },
   { gene: 'mutation',     value: 'Albino',    label: '🤍 Albino fish',  bonus: 1.5 },
-  { gene: 'mutation',     value: 'Twin-tail', label: '🐟 Twin-tail fish', bonus: 1.4 },
+  { gene: 'mutation',     value: 'Twin-tail', label: 'Twin-tail fish', bonus: 1.4 },
   { gene: 'bodyShape',    value: 'Eel',      label: '🐍 Eel-shaped fish', bonus: 1.3 },
   { gene: 'size',         value: 'Leviathan', label: '🐋 Leviathan fish',  bonus: 1.5 },
   { gene: 'pattern',      value: 'Tiger',    label: '🐯 Tiger-pattern fish', bonus: 1.3 },
@@ -70,7 +70,7 @@ export function refreshMarket(state) {
   };
 
   let next = { ...state, market };
-  next = { ...next, log: [{ time: Date.now(), message: `📊 ${market.headline}`, severity: 'info' }, ...next.log].slice(0, 60) };
+  next = { ...next, log: [{ time: Date.now(), message: `${market.headline}`, severity: 'info' }, ...next.log].slice(0, 60) };
   return next;
 }
 
@@ -101,7 +101,7 @@ const EARLY_EVENTS = [
       // Auto-list the first adult fish and trigger an immediate customer
       const adult = state.fish.find(f => f.stage === 'adult' && !state.shop.listedFish.includes(f.id));
       if (!adult) return state;
-      messages.push({ message: `🔔 A customer is looking through the window! Try listing a fish for sale in the Shop tab.`, severity: 'warn' });
+      messages.push({ message: `A customer is looking through the window! Try listing a fish for sale in the Shop tab.`, severity: 'warn' });
       // Force the next customer to arrive in 5 seconds
       return { ...state, shop: { ...state.shop, lastCustomerAt: Date.now() - 13_000 } };
     },
@@ -116,8 +116,8 @@ const EARLY_EVENTS = [
       const count = state.fish.filter(f => f.tankId === tank.id).length;
       if (count >= (tank.capacity || 12)) return state;
       const egg = createFish({ stage: 'egg', tankId: tank.id, targetRarity: 'uncommon' });
-      messages.push({ message: `🎁 A mysterious egg appeared in your tank! It looks unusual...`, severity: 'warn' });
-      messages.push({ message: `💡 Tip: Eggs hatch into juveniles, then grow into adults you can sell or breed.`, severity: 'info' });
+      messages.push({ message: `A mysterious egg appeared in your tank! It looks unusual...`, severity: 'warn' });
+      messages.push({ message: `Tip: Eggs hatch into juveniles, then grow into adults you can sell or breed.`, severity: 'info' });
       return { ...state, fish: [...state.fish, egg] };
     },
   },
@@ -126,7 +126,7 @@ const EARLY_EVENTS = [
     afterSecs: 300,          // 5 minutes in
     condition: (state) => state.fish.filter(f => f.stage === 'adult').length >= 2,
     fire: (state, messages) => {
-      messages.push({ message: `🧬 You have two adult fish! Try the Breed tab to combine their traits and discover new species.`, severity: 'warn' });
+      messages.push({ message: `You have two adult fish! Try the Breed tab to combine their traits and discover new species.`, severity: 'warn' });
       return state;
     },
   },
@@ -134,7 +134,7 @@ const EARLY_EVENTS = [
     id: 'marketIntro',
     afterSecs: 180,          // 3 minutes in
     fire: (state, messages) => {
-      messages.push({ message: `📊 The fish market shifts daily — check the Shop for today's hot traits and price trends!`, severity: 'info' });
+      messages.push({ message: `The fish market shifts daily — check the Shop for today's hot traits and price trends!`, severity: 'info' });
       return state;
     },
   },
@@ -143,7 +143,7 @@ const EARLY_EVENTS = [
     afterSecs: 600,          // 10 minutes in
     condition: (state) => state.fish.some(f => f.genome),
     fire: (state, messages) => {
-      messages.push({ message: `🧬 Tip: Open a fish's Genetics panel to see its Chromacode — the colored DNA bar reveals hidden recessive traits!`, severity: 'info' });
+      messages.push({ message: `Tip: Open a fish's Genetics panel to see its Chromacode — the colored DNA bar reveals hidden recessive traits!`, severity: 'info' });
       return state;
     },
   },
@@ -152,7 +152,7 @@ const EARLY_EVENTS = [
     afterSecs: 1200,         // 20 minutes in
     condition: (state) => state.fish.filter(f => f.stage === 'adult').length >= 3,
     fire: (state, messages) => {
-      messages.push({ message: `✨ Tip: Fish with matching alleles (pure genes) are worth more. Breed carriers of the same trait to purify a lineage!`, severity: 'info' });
+      messages.push({ message: `Tip: Fish with matching alleles (pure genes) are worth more. Breed carriers of the same trait to purify a lineage!`, severity: 'info' });
       return state;
     },
   },
@@ -160,7 +160,7 @@ const EARLY_EVENTS = [
     id: 'mutationHint',
     afterSecs: 2400,         // 40 minutes in
     fire: (state, messages) => {
-      messages.push({ message: `🔮 A strange shimmer passes through the tank. Some say rare mutations can be bred with the right combination of parents...`, severity: 'info' });
+      messages.push({ message: `A strange shimmer passes through the tank. Some say rare mutations can be bred with the right combination of parents...`, severity: 'info' });
       return state;
     },
   },
@@ -209,7 +209,7 @@ const CURE_SUCCESS_RATE = { incubating: 0.95, mild: 0.85, severe: 0.55, critical
 
 export const DISEASES = {
   ich: {
-    id: 'ich', name: 'Ich', emoji: '🔴',
+    id: 'ich', name: 'Ich', emoji: '',
     desc: 'White-spot disease. Spreads quickly between fish.',
     healthDmgPerSec: { incubating: 0, mild: 0.012, severe: 0.025, critical: 0.05 },
     spreadChancePerSec: 0.0008, color: '#ff4444',
@@ -217,7 +217,7 @@ export const DISEASES = {
     symptoms: { mild: 'white spots', severe: 'heavy spots, scratching', critical: 'gasping, lethargic' },
   },
   fin_rot: {
-    id: 'fin_rot', name: 'Fin Rot', emoji: '🟤',
+    id: 'fin_rot', name: 'Fin Rot', emoji: '',
     desc: 'Bacterial infection. Caused by poor water quality.',
     healthDmgPerSec: { incubating: 0, mild: 0.008, severe: 0.018, critical: 0.04 },
     spreadChancePerSec: 0.0003, color: '#a06020',
@@ -225,7 +225,7 @@ export const DISEASES = {
     symptoms: { mild: 'ragged fins', severe: 'fins deteriorating', critical: 'fin loss, redness' },
   },
   bloat: {
-    id: 'bloat', name: 'Bloat', emoji: '🟡',
+    id: 'bloat', name: 'Bloat', emoji: '',
     desc: 'Digestive illness. Linked to overfeeding.',
     healthDmgPerSec: { incubating: 0, mild: 0.010, severe: 0.022, critical: 0.045 },
     spreadChancePerSec: 0, color: '#d4c020',
@@ -233,7 +233,7 @@ export const DISEASES = {
     symptoms: { mild: 'swollen belly', severe: 'not eating', critical: 'floating sideways' },
   },
   velvet: {
-    id: 'velvet', name: 'Velvet', emoji: '🟠',
+    id: 'velvet', name: 'Velvet', emoji: '',
     desc: 'Parasitic infection. Hard to spot until advanced.',
     healthDmgPerSec: { incubating: 0, mild: 0.015, severe: 0.030, critical: 0.06 },
     spreadChancePerSec: 0.001, color: '#e06820',
@@ -241,7 +241,7 @@ export const DISEASES = {
     symptoms: { mild: 'gold dust coating', severe: 'clamped fins', critical: 'rapid breathing' },
   },
   swim_bladder: {
-    id: 'swim_bladder', name: 'Swim Bladder', emoji: '🔵',
+    id: 'swim_bladder', name: 'Swim Bladder', emoji: '',
     desc: 'Buoyancy problems. Fish swims erratically or upside down.',
     healthDmgPerSec: { incubating: 0, mild: 0.005, severe: 0.015, critical: 0.035 },
     spreadChancePerSec: 0, color: '#4488cc',
@@ -249,7 +249,7 @@ export const DISEASES = {
     symptoms: { mild: 'wobbly swimming', severe: 'floating upside down', critical: 'unable to move' },
   },
   gill_flukes: {
-    id: 'gill_flukes', name: 'Gill Flukes', emoji: '🟣',
+    id: 'gill_flukes', name: 'Gill Flukes', emoji: '',
     desc: 'Parasitic worms in the gills. Reduces oxygen intake.',
     healthDmgPerSec: { incubating: 0, mild: 0.012, severe: 0.028, critical: 0.055 },
     spreadChancePerSec: 0.0006, color: '#9944cc',
@@ -257,7 +257,7 @@ export const DISEASES = {
     symptoms: { mild: 'flashing gills', severe: 'labored breathing', critical: 'gasping at surface' },
   },
   dropsy: {
-    id: 'dropsy', name: 'Dropsy', emoji: '🫧',
+    id: 'dropsy', name: 'Dropsy', emoji: '',
     desc: 'Internal organ failure. Extremely dangerous. Often fatal.',
     healthDmgPerSec: { incubating: 0, mild: 0.018, severe: 0.04, critical: 0.08 },
     spreadChancePerSec: 0.0002, color: '#cc2060',
@@ -295,23 +295,23 @@ const BASE_OFFLINE_SECONDS       = 60 * 60 * 48;   // 48h base cap
 const TANK_SITTER_BONUS_SECONDS  = 60 * 60 * 24;   // +24h per Tank Sitter level
 
 const CUSTOMER_TYPES = [
-  { id: 'tourist',   name: 'Tourist',        budgetMult: 0.85, haggle: 0.0,  rarityBias: 'common',   emoji: '👒',
+  { id: 'tourist',   name: 'Tourist',        budgetMult: 0.85, haggle: 0.0,  rarityBias: 'common',   emoji: '',
     greetings: ["Wow, what a cute shop!", "Do you ship internationally?", "I saw this place on TripAdvisor!"] },
-  { id: 'hobbyist',  name: 'Fish Hobbyist',  budgetMult: 1.0,  haggle: 0.2,  rarityBias: 'uncommon', emoji: '🎣',
+  { id: 'hobbyist',  name: 'Fish Hobbyist',  budgetMult: 1.0,  haggle: 0.2,  rarityBias: 'uncommon', emoji: '',
     greetings: ["Nice setup! What's your filtration?", "I've been keeping fish for years.", "Any new stock today?"] },
-  { id: 'collector', name: 'Collector',      budgetMult: 1.3,  haggle: 0.05, rarityBias: 'rare',     emoji: '🧐',
+  { id: 'collector', name: 'Collector',      budgetMult: 1.3,  haggle: 0.05, rarityBias: 'rare',     emoji: '',
     greetings: ["I'm looking for something... special.", "My collection needs a centerpiece.", "Money is no object for the right specimen."] },
-  { id: 'breeder',   name: 'Pro Breeder',    budgetMult: 1.1,  haggle: 0.35, rarityBias: 'uncommon', emoji: '🔬',
+  { id: 'breeder',   name: 'Pro Breeder',    budgetMult: 1.1,  haggle: 0.35, rarityBias: 'uncommon', emoji: '',
     greetings: ["What's the genetic line on this one?", "I need good breeding stock.", "Let's talk price — I'm buying in bulk."] },
-  { id: 'rich',      name: 'Wealthy Patron', budgetMult: 1.8,  haggle: 0.0,  rarityBias: 'epic',     emoji: '💎',
+  { id: 'rich',      name: 'Wealthy Patron', budgetMult: 1.8,  haggle: 0.0,  rarityBias: 'epic',     emoji: '',
     greetings: ["I'll take your finest specimen.", "Price is irrelevant. Show me the best.", "My yacht needs a new aquarium piece."] },
-  { id: 'kid',       name: 'Excited Kid',    budgetMult: 0.7,  haggle: 0.0,  rarityBias: 'common',   emoji: '👦',
+  { id: 'kid',       name: 'Excited Kid',    budgetMult: 0.7,  haggle: 0.0,  rarityBias: 'common',   emoji: '',
     greetings: ["FISHIES! Mom, look!!", "Can I name it?? Please?!", "This one is SO COOL!"] },
-  { id: 'influencer', name: 'Influencer',    budgetMult: 1.2,  haggle: 0.15, rarityBias: 'rare',     emoji: '📱',
+  { id: 'influencer', name: 'Influencer',    budgetMult: 1.2,  haggle: 0.15, rarityBias: 'rare',     emoji: '',
     greetings: ["This would get SO many likes.", "Hold on, I need to film this.", "My followers will love this!"] },
-  { id: 'scientist', name: 'Marine Biologist', budgetMult: 0.95, haggle: 0.25, rarityBias: 'rare',   emoji: '🥼',
+  { id: 'scientist', name: 'Marine Biologist', budgetMult: 0.95, haggle: 0.25, rarityBias: 'rare',   emoji: '',
     greetings: ["Fascinating morphology!", "I'm studying color mutations.", "This specimen shows interesting traits."] },
-  { id: 'grandma',   name: 'Kind Grandma',   budgetMult: 1.4,  haggle: 0.0,  rarityBias: 'common',   emoji: '👵',
+  { id: 'grandma',   name: 'Kind Grandma',   budgetMult: 1.4,  haggle: 0.0,  rarityBias: 'common',   emoji: '',
     greetings: ["My grandchild would love this!", "What a beautiful fish, dear.", "I'll take it — wrap it up nicely!"] },
 ];
 
@@ -409,7 +409,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
       // Check immunity
       if ((fish.immunities || []).includes(diseaseId)) return fish;
       // During incubation, player doesn't know the disease yet
-      messages.push({ message: `🚨 ${fish.species?.name || 'A fish'} in ${tank.name} looks unwell! Keep an eye on symptoms.`, severity: 'critical' });
+      messages.push({ message: `${fish.species?.name || 'A fish'} in ${tank.name} looks unwell! Keep an eye on symptoms.`, severity: 'critical' });
       return { ...fish, disease: diseaseId, diseaseSince: Date.now(), diagnosed: false };
     }
     return fish;
@@ -451,7 +451,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
         dmg += ELDER_HEALTH_DECAY * Math.min(3, 1 + elderAge / maxAge); // accelerates over time
         if (!f._elderLogged) {
           f._elderLogged = true;
-          messages.push(`🕰️ ${f.species?.name || 'A fish'} in ${tank.name} is reaching old age.`);
+          messages.push(`${f.species?.name || 'A fish'} in ${tank.name} is reaching old age.`);
         }
       }
 
@@ -470,7 +470,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
 
     if (f.stage === 'egg' && timeInStage >= stageDuration * growMult) {
       f.stage = 'juvenile'; f.stageStartedAt = now;
-      messages.push(`🐣 An egg in ${tank.name} hatched into a ${f.species?.name || 'fish'}!`);
+      messages.push(`An egg in ${tank.name} hatched into a ${f.species?.name || 'fish'}!`);
     } else if (f.stage === 'juvenile' && timeInStage >= stageDuration * growMult) {
       f.stage = 'adult'; f.stageStartedAt = now;
       // Assign personality on reaching adulthood (if not already set at creation)
@@ -478,7 +478,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
         const pList = ['playful','shy','curious','lazy','aggressive','social','gluttonous','hardy'];
         f.personality = pList[Math.floor(Math.random() * pList.length)];
       }
-      messages.push(`🐟 A ${f.species?.name || 'fish'} in ${tank.name} grew into an adult!`);
+      messages.push(`A ${f.species?.name || 'fish'} in ${tank.name} grew into an adult!`);
     }
 
     return f;
@@ -521,16 +521,16 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
 // DAILY CHALLENGES
 // ============================================================
 const CHALLENGE_TEMPLATES = [
-  { id: 'sell_common',    emoji: '🐟', desc: 'Sell 3 common fish today',          type: 'sell_rarity',   rarity: 'common',   goal: 3,  reward: 40  },
-  { id: 'sell_uncommon',  emoji: '✨', desc: 'Sell 2 uncommon fish today',         type: 'sell_rarity',   rarity: 'uncommon', goal: 2,  reward: 80  },
-  { id: 'sell_rare',      emoji: '💎', desc: 'Sell 1 rare fish today',             type: 'sell_rarity',   rarity: 'rare',     goal: 1,  reward: 150 },
-  { id: 'earn_coins',     emoji: '🪙', desc: 'Earn 200 coins today',               type: 'earn_coins',    goal: 200,          reward: 60  },
-  { id: 'breed_eggs',     emoji: '🥚', desc: 'Collect 2 eggs from breeding today', type: 'breed_eggs',    goal: 2,            reward: 70  },
-  { id: 'treat_water',    emoji: '🧪', desc: 'Treat water quality once today',      type: 'treat_water',   goal: 1,            reward: 50  },
-  { id: 'cure_fish',      emoji: '💊', desc: 'Cure a sick fish today',             type: 'cure_fish',     goal: 1,            reward: 50  },
-  { id: 'happiness_high', emoji: '😊', desc: 'Keep tank happiness above 90% for 10 minutes', type: 'happiness_timer', goal: 600, reward: 55 },
-  { id: 'sell_5_fish',    emoji: '🛒', desc: 'Sell 5 fish in total today',         type: 'sell_any',      goal: 5,            reward: 90  },
-  { id: 'discover',       emoji: '🔍', desc: 'Discover 1 new species today',       type: 'discover',      goal: 1,            reward: 100 },
+  { id: 'sell_common',    emoji: '', desc: 'Sell 3 common fish today',          type: 'sell_rarity',   rarity: 'common',   goal: 3,  reward: 40  },
+  { id: 'sell_uncommon',  emoji: '', desc: 'Sell 2 uncommon fish today',         type: 'sell_rarity',   rarity: 'uncommon', goal: 2,  reward: 80  },
+  { id: 'sell_rare',      emoji: '', desc: 'Sell 1 rare fish today',             type: 'sell_rarity',   rarity: 'rare',     goal: 1,  reward: 150 },
+  { id: 'earn_coins',     emoji: '', desc: 'Earn 200 coins today',               type: 'earn_coins',    goal: 200,          reward: 60  },
+  { id: 'breed_eggs',     emoji: '', desc: 'Collect 2 eggs from breeding today', type: 'breed_eggs',    goal: 2,            reward: 70  },
+  { id: 'treat_water',    emoji: '', desc: 'Treat water quality once today',      type: 'treat_water',   goal: 1,            reward: 50  },
+  { id: 'cure_fish',      emoji: '', desc: 'Cure a sick fish today',             type: 'cure_fish',     goal: 1,            reward: 50  },
+  { id: 'happiness_high', emoji: '', desc: 'Keep tank happiness above 90% for 10 minutes', type: 'happiness_timer', goal: 600, reward: 55 },
+  { id: 'sell_5_fish',    emoji: '', desc: 'Sell 5 fish in total today',         type: 'sell_any',      goal: 5,            reward: 90  },
+  { id: 'discover',       emoji: '', desc: 'Discover 1 new species today',       type: 'discover',      goal: 1,            reward: 100 },
 ];
 
 function todayUTCDay() {
@@ -588,7 +588,7 @@ export function refreshDailyChallenges(state) {
       next = { ...next, player: { ...next.player, challengeStreak: newStreak } };
       if (newStreak > 1) {
         const mult = Math.min(2, 1 + newStreak * 0.1).toFixed(1);
-        const msg = `🔥 Challenge streak: ${newStreak} days in a row! Today's rewards ×${mult}`;
+        const msg = `Challenge streak: ${newStreak} days in a row! Today's rewards ×${mult}`;
         next = { ...next, log: [{ time: Date.now(), message: msg, severity: 'warn' }, ...next.log].slice(0, 60) };
       }
     }
@@ -641,7 +641,7 @@ export function updateChallengeProgress(state, eventType, payload = {}) {
       const reward = Math.round(c.reward * mult);
       coinsAwarded += reward;
       const multLabel = mult > 1 ? ` (×${mult.toFixed(1)} streak bonus)` : '';
-      messages.push(`🎯 Daily challenge complete: ${c.emoji} ${c.desc}! +🪙${reward}${multLabel}`);
+      messages.push(`Daily challenge complete: ${c.emoji} ${c.desc}! +${reward}${multLabel}`);
     }
     return { ...c, progress: Math.min(progress, c.goal), completed };
   });
@@ -809,11 +809,11 @@ export function processTick(state) {
       }
       if (totalRefund > 0) {
         next = { ...next, player: { ...next.player, coins: next.player.coins + totalRefund } };
-        messages.push(`🛡️ Insurance payout: +🪙${totalRefund} for ${deadFish.length} lost fish.`);
+        messages.push(`Insurance payout: +${totalRefund} for ${deadFish.length} lost fish.`);
       }
     }
     // Index-based lookup avoids O(n²) .find() per death message
-    deadFish.forEach((f, i) => messages.push(`💀 ${f.species?.name || 'A fish'} has died. (Cause: ${newAutopsies[i]?.cause || 'Unknown'})`));
+    deadFish.forEach((f, i) => messages.push(`${f.species?.name || 'A fish'} has died. (Cause: ${newAutopsies[i]?.cause || 'Unknown'})`));
   }
 
   // Breeding tank timer — process all bays
@@ -829,7 +829,7 @@ export function processTick(state) {
       return { ...updated, breedingStartedAt: null, slots: [null, null], storedGenomeA: null, storedGenomeB: null };
     }
     if (now - updated.breedingStartedAt >= updated.breedingDurationMs) {
-      messages.push('🥚 A breeding egg is ready to collect!');
+      messages.push('A breeding egg is ready to collect!');
       return { ...updated, eggReady: true };
     }
     return updated;
@@ -871,7 +871,7 @@ export function processTick(state) {
       const serviceMult = 1 + (upgradeLevels.service || 0) * 0.15;
       const boostedTip  = Math.round(tip * incomeBoost * serviceMult);
       next = { ...next, player: { ...next.player, coins: next.player.coins + boostedTip, totalCoinsEarned: (next.player.totalCoinsEarned || 0) + boostedTip } };
-      messages.push(`💰 Visitors left a ${boostedTip}-coin tip!${incomeBoost > 1 ? ' (High Tide ×2!)' : ''}`);
+      messages.push(`Visitors left a ${boostedTip}-coin tip!${incomeBoost > 1 ? ' (High Tide ×2!)' : ''}`);
       next = updateChallengeProgress(next, 'earn_coins', { amount: boostedTip });
     }
     next = { ...next, passiveTick: 0 };
@@ -893,7 +893,7 @@ export function processTick(state) {
         }),
       };
       if (cured.length > 0) {
-        messages.push(`🩺 Auto-Medic cured ${cured.length} fish: ${cured.join(', ')}`);
+        messages.push(`Auto-Medic cured ${cured.length} fish: ${cured.join(', ')}`);
         for (let i = 0; i < cured.length; i++) {
           next = updateChallengeProgress(next, 'cure_fish');
         }
@@ -960,7 +960,7 @@ export function processTick(state) {
             ],
           },
         };
-        messages.push('🌙 Achievement unlocked: Night Watch! All fish survived the night. +🪙500');
+        messages.push('🌙 Achievement unlocked: Night Watch! All fish survived the night. +500');
       }
     }
   }
@@ -992,8 +992,8 @@ export function processTick(state) {
     const review = generateReview(next);
     const reviews = [review, ...(next.reviews || [])].slice(0, 10);
     next = { ...next, reviews, lastReviewAt: now };
-    if (review.stars >= 4) messages.push(`⭐ New review: "${review.headline}" — ${review.stars}/5 stars!`);
-    if (review.stars <= 2) messages.push(`📰 Bad review: "${review.headline}" — only ${review.stars}/5 stars.`);
+    if (review.stars >= 4) messages.push(`New review: "${review.headline}" — ${review.stars}/5 stars!`);
+    if (review.stars <= 2) messages.push(`Bad review: "${review.headline}" — only ${review.stars}/5 stars.`);
   }
 
   // ── Loan enforcement: penalty for overdue loans ───────────
@@ -1026,10 +1026,10 @@ export function processTick(state) {
           })),
           player: { ...next.player, activeLoan: { active: false } },
         };
-        messages.push(`🏦 Loan overdue! The bank seized your ${seized.species?.name || 'fish'} as collateral!`);
+        messages.push(`Loan overdue! The bank seized your ${seized.species?.name || 'fish'} as collateral!`);
       } else {
         next = { ...next, player: { ...next.player, activeLoan: { active: false } } };
-        messages.push('🏦 Loan overdue! Debt forgiven — no fish to seize.');
+        messages.push('Loan overdue! Debt forgiven — no fish to seize.');
       }
     }
   }
@@ -1037,7 +1037,7 @@ export function processTick(state) {
   // ── Urgent offers: limited-time loss aversion ──────────────
   if (next.urgentOffer && !isOfferActive(next.urgentOffer)) {
     // Expired — notify and clear
-    messages.push(`⏰ The ${next.urgentOffer.name} offer expired! You missed out.`);
+    messages.push(`The ${next.urgentOffer.name} offer expired! You missed out.`);
     next = { ...next, urgentOffer: null };
   }
   if (!next.urgentOffer) {
@@ -1045,7 +1045,7 @@ export function processTick(state) {
     if (newOffer) {
       next = { ...next, urgentOffer: newOffer };
       const mins = Math.round(newOffer.duration / 60000);
-      messages.push(`🚨 ${newOffer.name}: ${newOffer.desc} Expires in ${mins} minutes!`);
+      messages.push(`${newOffer.name}: ${newOffer.desc} Expires in ${mins} minutes!`);
     }
   }
 
@@ -1055,7 +1055,7 @@ export function processTick(state) {
     const disc = checkNewDiscovery(f, next.discoveries || []);
     if (disc) {
       next = { ...next, discoveries: [...(next.discoveries || []), disc.key] };
-      messages.push(`🔍 NEW DISCOVERY: ${disc.fishName} — a unique phenotype combination!`);
+      messages.push(`NEW DISCOVERY: ${disc.fishName} — a unique phenotype combination!`);
     }
     f._discoveryChecked = true;
   }
@@ -1181,11 +1181,11 @@ function processCustomerVisit(state, messages) {
     // Haggler makes a counteroffer
     const offer = Math.round(maxBudget * (0.85 + Math.random() * 0.15));
     finalPrice   = offer;
-    priceNote    = ` (haggled down from 🪙${askPrice})`;
+    priceNote    = ` (haggled down from ${askPrice})`;
   } else if (overBudget) {
     // Not a haggler but can barely afford — they pay their max
     finalPrice = maxBudget;
-    priceNote  = ` (paid max budget, asked 🪙${askPrice})`;
+    priceNote  = ` (paid max budget, asked ${askPrice})`;
   } else if (askPrice < autoPrice * 0.7) {
     // Bargain! Customer is very happy — small rep bonus
     priceNote = ` (bargain price!)`;
@@ -1248,11 +1248,11 @@ function processCustomerVisit(state, messages) {
   const jackpotMult = jackpot ? jackpot.multiplier : 1;
 
   const earnedCoins = Math.max(1, Math.round(finalPrice * salePriceBoost * streakMult * urgentMult * jackpotMult));
-  if (jackpot) messages.push(`${jackpot.label} ${jackpotMult}× payout on this sale! 🪙${earnedCoins}`);
-  if (urgentMult > 1) messages.push(`💎 Urgent buyer paid ${urgentMult}× premium!`);
+  if (jackpot) messages.push(`${jackpot.label} ${jackpotMult}× payout on this sale! ${earnedCoins}`);
+  if (urgentMult > 1) messages.push(`Urgent buyer paid ${urgentMult}× premium!`);
   const repGain     = Math.ceil((fish.species?.rarityScore ?? 5) / 10) + (askPrice > autoPrice ? 1 : 0);
 
-  messages.push(`${customer.emoji} ${customer.name}: "${greeting}" — bought your ${fish.species?.name || 'fish'} for 🪙${earnedCoins}${priceNote}!`);
+  messages.push(`${customer.emoji} ${customer.name}: "${greeting}" — bought your ${fish.species?.name || 'fish'} for ${earnedCoins}${priceNote}!`);
 
   // Clean up ask price after sale
   const fishPrices = { ...(state.shop.fishPrices || {}) };
@@ -1295,21 +1295,21 @@ function processCustomerVisit(state, messages) {
 // OFFLINE PROGRESS & DISCOVERY EVENTS
 // ============================================================
 const OFFLINE_FOUND_ITEMS = [
-  { id: 'pearl_snail',   label: 'Pearl Snail Shell',  emoji: '🐚', desc: 'A lustrous spiral shell left behind by a passing snail.' },
-  { id: 'driftwood',     label: 'Smooth Driftwood',   emoji: '🪵', desc: 'Worn smooth by current. Would look great in any tank.' },
-  { id: 'mystery_stone', label: 'Glowing Pebble',     emoji: '🪨', desc: 'Faintly luminescent. No one knows why.' },
-  { id: 'ancient_coin',  label: 'Ancient Coin',       emoji: '🪙', desc: 'A corroded coin of unknown origin. Worth keeping.' },
-  { id: 'kelp_fragment', label: 'Rare Kelp Sprig',    emoji: '🌿', desc: 'A cutting from a deep-water kelp variety.' },
-  { id: 'glass_float',   label: 'Glass Float',        emoji: '🔵', desc: 'An old fisherman\'s float, perfectly preserved.' },
+  { id: 'pearl_snail',   label: 'Pearl Snail Shell',  emoji: '', desc: 'A lustrous spiral shell left behind by a passing snail.' },
+  { id: 'driftwood',     label: 'Smooth Driftwood',   emoji: '', desc: 'Worn smooth by current. Would look great in any tank.' },
+  { id: 'mystery_stone', label: 'Glowing Pebble',     emoji: '', desc: 'Faintly luminescent. No one knows why.' },
+  { id: 'ancient_coin',  label: 'Ancient Coin',       emoji: '', desc: 'A corroded coin of unknown origin. Worth keeping.' },
+  { id: 'kelp_fragment', label: 'Rare Kelp Sprig',    emoji: '', desc: 'A cutting from a deep-water kelp variety.' },
+  { id: 'glass_float',   label: 'Glass Float',        emoji: '', desc: 'An old fisherman\'s float, perfectly preserved.' },
 ];
 
 const OFFLINE_MESSAGES = [
-  { type: 'calm',      text: 'The tanks were peaceful.',                          emoji: '😌' },
-  { type: 'calm',      text: 'Everything stayed in order.',                       emoji: '🌊' },
-  { type: 'calm',      text: 'Your fish hardly noticed you were gone.',           emoji: '🐟' },
-  { type: 'curious',   text: 'The fish seemed restless near the glass.',          emoji: '👀' },
-  { type: 'curious',   text: 'An unusual current stirred the water briefly.',     emoji: '🌀' },
-  { type: 'curious',   text: 'The lights flickered for a moment, then steadied.', emoji: '💡' },
+  { type: 'calm',      text: 'The tanks were peaceful.',                          emoji: '' },
+  { type: 'calm',      text: 'Everything stayed in order.',                       emoji: '' },
+  { type: 'calm',      text: 'Your fish hardly noticed you were gone.',           emoji: '' },
+  { type: 'curious',   text: 'The fish seemed restless near the glass.',          emoji: '' },
+  { type: 'curious',   text: 'An unusual current stirred the water briefly.',     emoji: '' },
+  { type: 'curious',   text: 'The lights flickered for a moment, then steadied.', emoji: '' },
 ];
 
 function generateOfflineEvent(state, secondsAway) {
@@ -1338,7 +1338,7 @@ function generateOfflineEvent(state, secondsAway) {
     const visitor = createFish({ stage: 'adult', tankId, targetRarity });
     return {
       type: 'visitor',
-      emoji: '🐠',
+      emoji: '',
       headline: 'A visitor arrived!',
       detail: `A wild **${visitor.species?.name || 'fish'}** (${visitor.species?.rarity || 'common'}) swam in through a gap in the lid and decided to stay.`,
       fish: visitor,
@@ -1365,7 +1365,7 @@ function generateOfflineEvent(state, secondsAway) {
     const subject = juveniles[Math.floor(Math.random() * juveniles.length)];
     return {
       type: 'mutation',
-      emoji: '✨',
+      emoji: '',
       headline: 'Spontaneous mutation!',
       detail: `**${subject.species?.name || 'A fish'}** developed an unusual shimmer during the night. Its value may be higher than expected.`,
       fishId: subject.id,
@@ -1586,10 +1586,10 @@ export function applyOfflineProgress(state) {
     const parts = [];
     if (eggsHatched) parts.push(`${eggsHatched} egg${eggsHatched > 1 ? 's' : ''} hatched`);
     if (fishGrown) parts.push(`${fishGrown} fish grew up`);
-    if (fishSold)    parts.push(`sold ${fishSold} fish for 🪙${coinsEarned}`);
-    next = addLog(next, `⏰ Back after ${timeLabel}! ${parts.join(', ')}.`);
+    if (fishSold)    parts.push(`sold ${fishSold} fish for ${coinsEarned}`);
+    next = addLog(next, `Back after ${timeLabel}! ${parts.join(', ')}.`);
   } else {
-    next = addLog(next, `⏰ Back after ${timeLabel}. Your tanks are peaceful.`);
+    next = addLog(next, `Back after ${timeLabel}. Your tanks are peaceful.`);
   }
 
   return next;

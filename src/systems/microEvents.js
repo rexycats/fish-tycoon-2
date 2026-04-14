@@ -3,13 +3,13 @@
 // ============================================================
 
 const MICRO_EVENT_TYPES = [
-  { id: 'pearl',     emoji: '🫧', label: 'Pearl found!',      coins: 8,  xp: 2, weight: 4, duration: 4000 },
-  { id: 'shell',     emoji: '🐚', label: 'Shell discovered!', coins: 5,  xp: 1, weight: 5, duration: 3500 },
-  { id: 'treasure',  emoji: '💎', label: 'Treasure!',         coins: 25, xp: 5, weight: 1, duration: 3000 },
-  { id: 'nuzzle',    emoji: '💕', label: 'Fish nuzzle!',      coins: 0,  xp: 3, weight: 3, duration: 5000, needsTwoFish: true },
-  { id: 'trick',     emoji: '🎭', label: 'Fish trick!',       coins: 3,  xp: 2, weight: 2, duration: 4000, personality: 'playful' },
-  { id: 'crab',      emoji: '🦀', label: 'Hermit crab!',      coins: 2,  xp: 1, weight: 3, duration: 5000 },
-  { id: 'starfish',  emoji: '⭐', label: 'Starfish visit!',   coins: 4,  xp: 1, weight: 2, duration: 4500 },
+  { id: 'pearl',     emoji: '', label: 'Pearl found!',      coins: 8,  xp: 2, weight: 4, duration: 4000 },
+  { id: 'shell',     emoji: '', label: 'Shell discovered!', coins: 5,  xp: 1, weight: 5, duration: 3500 },
+  { id: 'treasure',  emoji: '', label: 'Treasure!',         coins: 25, xp: 5, weight: 1, duration: 3000 },
+  { id: 'nuzzle',    emoji: '', label: 'Fish nuzzle!',      coins: 0,  xp: 3, weight: 3, duration: 5000, needsTwoFish: true },
+  { id: 'trick',     emoji: '', label: 'Fish trick!',       coins: 3,  xp: 2, weight: 2, duration: 4000, personality: 'playful' },
+  { id: 'crab',      emoji: '', label: 'Hermit crab!',      coins: 2,  xp: 1, weight: 3, duration: 5000 },
+  { id: 'starfish',  emoji: '', label: 'Starfish visit!',   coins: 4,  xp: 1, weight: 2, duration: 4500 },
 ];
 
 /**

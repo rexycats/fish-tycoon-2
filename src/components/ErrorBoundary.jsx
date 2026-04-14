@@ -26,7 +26,7 @@ export default class ErrorBoundary extends React.Component {
           minHeight: '100vh', background: '#0a1828', color: '#d8e0f0', fontFamily: 'Nunito, sans-serif',
           textAlign: 'center', padding: '2rem',
         }}>
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🐠💥</div>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>Error</div>
           <h1 style={{ fontFamily: 'Fredoka, sans-serif', fontSize: '1.5rem', marginBottom: '0.5rem' }}>
             Something went wrong!
           </h1>

@@ -157,7 +157,7 @@ export default function MagicFishPanel({ magicFishFound = [] }) {
             ))}
           </div>
           {allFound && (
-            <div className="magic-complete-badge">🌟 COMPLETE!</div>
+            <div className="magic-complete-badge">COMPLETE</div>
           )}
         </div>
       </div>
@@ -165,7 +165,7 @@ export default function MagicFishPanel({ magicFishFound = [] }) {
       {/* Win banner */}
       {allFound && (
         <div className="magic-win-banner">
-          <div className="magic-win-title">✨ You've discovered all 7 Magic Fish! ✨</div>
+          <div className="magic-win-title">You've discovered all 7 Magic Fish!</div>
           <div className="magic-win-sub">Your aquarium has become a legend. The mysteries of the deep are yours.</div>
         </div>
       )}

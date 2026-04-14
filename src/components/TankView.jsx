@@ -441,9 +441,9 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
         const hungryFish = fish.filter(f => f.hunger > 80);
         const foodLow    = (tank?.supplies?.food ?? 10) < 3;
         const wqLow      = (waterQuality ?? 100) < 40;
-        if (sickFish.length > 0)   alerts.push({ key: 'sick',   icon: '🦠', label: `${sickFish.length} sick`, cls: 'alert-pulse--red'   });
+        if (sickFish.length > 0)   alerts.push({ key: 'sick',   icon: '', label: `${sickFish.length} sick`, cls: 'alert-pulse--red'   });
         if (hungryFish.length > 0) alerts.push({ key: 'hungry', icon: '🍽️', label: `${hungryFish.length} hungry`, cls: 'alert-pulse--orange' });
-        if (foodLow)               alerts.push({ key: 'food',   icon: '🍤', label: 'Low food',  cls: 'alert-pulse--orange' });
+        if (foodLow)               alerts.push({ key: 'food',   icon: '', label: 'Low food',  cls: 'alert-pulse--orange' });
         if (wqLow)                 alerts.push({ key: 'wq',     icon: '💧', label: 'Bad water', cls: 'alert-pulse--red'   });
         if (alerts.length === 0) return null;
         return (
@@ -904,16 +904,16 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
               {/* Floating status icons */}
               <div className="fish-status-icons">
                 {f.disease && (
-                  <span className="fish-status-icon fish-status-icon--sick" title="Sick">🦠</span>
+                  <span className="fish-status-icon fish-status-icon--sick" title="Sick">!</span>
                 )}
                 {!f.disease && f.hunger > 60 && (
-                  <span className="fish-status-icon fish-status-icon--hungry" title="Hungry">🍤</span>
+                  <span className="fish-status-icon fish-status-icon--hungry" title="Hungry">H</span>
                 )}
                 {listedFishIds.includes(f.id) && (
-                  <span className="fish-status-icon fish-status-icon--listed" title="Listed for sale">💰</span>
+                  <span className="fish-status-icon fish-status-icon--listed" title="Listed for sale">$</span>
                 )}
                 {f.bondedWith && fish.some(o => o.id === f.bondedWith) && (
-                  <span className="fish-status-icon fish-status-icon--bonded" title="Bonded pair 💕">💕</span>
+                  <span className="fish-status-icon fish-status-icon--bonded" title="Bonded pair">♥</span>
                 )}
               </div>
 
@@ -935,7 +935,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
                     <span className="fish-tooltip-val">{healthPct}%</span>
                   </div>
                   <div className="fish-tooltip-row">
-                    <span>🍤</span>
+                    <span>Feed</span>
                     <div className="fish-tooltip-bar">
                       <div className="fish-tooltip-fill" style={{
                         width: `${satiety}%`,
@@ -947,7 +947,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
                     </div>
                     <span className="fish-tooltip-val">{satiety}%</span>
                   </div>
-                  {f.disease && <div className="fish-tooltip-disease">🦠 {f.disease}</div>}
+                  {f.disease && <div className="fish-tooltip-disease">{f.disease}</div>}
                   {f.personality && <div className="fish-tooltip-personality" style={{fontSize:'0.65rem',opacity:0.6,marginTop:2}}>
                     {PERSONALITY_EMOJI[f.personality] || ''}
                     {' '}{f.personality}

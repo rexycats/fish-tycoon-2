@@ -75,7 +75,7 @@ export function createRevealSequence(fish) {
     rarity: TRAIT_RARITY[ph.glow] || 'uncommon',
   });
   if (ph.mutation && ph.mutation !== 'None') traits.push({
-    label: 'Mutation', value: '✨ ' + ph.mutation,
+    label: 'Mutation', value: ph.mutation,
     rarity: TRAIT_RARITY[ph.mutation] || 'rare',
   });
 

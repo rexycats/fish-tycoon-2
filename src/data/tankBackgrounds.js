@@ -6,7 +6,7 @@ export const TANK_BACKGROUNDS = [
   {
     id: 'tropical',
     label: 'Tropical Reef',
-    emoji: '🪸',
+    emoji: '',
     desc: 'Warm coral waters with swaying anemones',
     cost: 0, // default
     gradient: 'linear-gradient(180deg, #1a6ab0 0%, #155090 40%, #104078 70%, #0c3060 100%)',
@@ -16,7 +16,7 @@ export const TANK_BACKGROUNDS = [
   {
     id: 'deep_ocean',
     label: 'Deep Ocean',
-    emoji: '🌊',
+    emoji: '',
     desc: 'Dark abyssal depths with bioluminescence',
     cost: 500,
     gradient: 'linear-gradient(180deg, #0c1838 0%, #0a1430 40%, #081028 70%, #060c20 100%)',
@@ -26,7 +26,7 @@ export const TANK_BACKGROUNDS = [
   {
     id: 'river',
     label: 'Freshwater River',
-    emoji: '🏞️',
+    emoji: '',
     desc: 'Clear flowing stream with pebbles and plants',
     cost: 800,
     gradient: 'linear-gradient(180deg, #2a6848 0%, #205838 40%, #184830 70%, #103828 100%)',
@@ -36,7 +36,7 @@ export const TANK_BACKGROUNDS = [
   {
     id: 'arctic',
     label: 'Arctic Waters',
-    emoji: '🧊',
+    emoji: '',
     desc: 'Freezing polar waters with ice crystals',
     cost: 1200,
     minPrestige: 1,
@@ -47,7 +47,7 @@ export const TANK_BACKGROUNDS = [
   {
     id: 'volcanic',
     label: 'Volcanic Vent',
-    emoji: '🌋',
+    emoji: '',
     desc: 'Hydrothermal vents with glowing minerals',
     cost: 2000,
     minPrestige: 2,

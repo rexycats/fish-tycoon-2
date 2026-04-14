@@ -71,7 +71,7 @@ function addXp(state, amount, source) {
   if (after.level > before.level) {
     // Level up!
     state.player._levelUpPending = after.level;
-    addLogDraft(state, `🎉 LEVEL UP! You are now Level ${after.level} — ${getLevelTitle(after.level)}!`);
+    addLogDraft(state, `LEVEL UP! You are now Level ${after.level} — ${getLevelTitle(after.level)}!`);
   }
 }
 
@@ -202,7 +202,7 @@ export const useGameStore = create(
           const tank = fishTank(state, fish);
           if (!tank || tank.supplies.food <= 0) {
             playWarning();
-            addLogDraft(state, '⚠️ No food in that tank!');
+            addLogDraft(state, 'No food in that tank!');
             return;
           }
           playFeed();
@@ -220,7 +220,7 @@ export const useGameStore = create(
           const feedCount = Math.min(hungry.length, tank.supplies.food);
           if (feedCount === 0) {
             playWarning();
-            addLogDraft(state, '⚠️ No food in that tank!');
+            addLogDraft(state, 'No food in that tank!');
             return;
           }
           tank.supplies.food -= feedCount;
@@ -231,7 +231,7 @@ export const useGameStore = create(
             hungry[i].health = Math.min(100, hungry[i].health + 5);
           }
           playFeed();
-          addLogDraft(state, `🍤 Fed ${feedCount} fish in ${tank.name}.`);
+          addLogDraft(state, `Fed ${feedCount} fish in ${tank.name}.`);
         }),
 
         useMedicine: (fishId, medicineType) => set(state => {
@@ -247,7 +247,7 @@ export const useGameStore = create(
 
           if ((tank.supplies[medKey] || 0) <= 0) {
             playWarning();
-            addLogDraft(state, `⚠️ No ${medKey} in ${tank.name}!`);
+            addLogDraft(state, `No ${medKey} in ${tank.name}!`);
             return;
           }
           tank.supplies[medKey] -= 1;
@@ -258,7 +258,7 @@ export const useGameStore = create(
             playWarning();
             // Advance disease by 60 seconds (makes it worse)
             fish.diseaseSince = (fish.diseaseSince || Date.now()) - 60_000;
-            addLogDraft(state, `❌ Wrong treatment! ${medKey} doesn't treat ${fish.disease}. The disease worsened!`);
+            addLogDraft(state, `Wrong treatment! ${medKey} doesn't treat ${fish.disease}. The disease worsened!`);
             if (!fish.treatmentLog) fish.treatmentLog = [];
             fish.treatmentLog.push({ med: medKey, at: Date.now(), result: 'wrong' });
             return;
@@ -283,13 +283,13 @@ export const useGameStore = create(
             fish.diagnosed = false;
             fish.health = Math.min(100, fish.health + 15);
             playCoin();
-            addLogDraft(state, `💊 Cured ${fish.nickname || fish.species?.name || 'fish'} of ${diseaseName}! (${stage} stage, ${Math.round(successRate * 100)}% chance)`);
+            addLogDraft(state, `Cured ${fish.nickname || fish.species?.name || 'fish'} of ${diseaseName}! (${stage} stage, ${Math.round(successRate * 100)}% chance)`);
             addXp(state, XP_REWARDS.cureFish, 'cure');
             const updated = updateChallengeProgress(state, 'cure_fish');
             Object.assign(state, updated);
           } else {
             playWarning();
-            addLogDraft(state, `💊 Treatment failed on ${fish.nickname || fish.species?.name || 'fish'}! (${stage} stage, ${Math.round(successRate * 100)}% chance — try again)`);
+            addLogDraft(state, `Treatment failed on ${fish.nickname || fish.species?.name || 'fish'}! (${stage} stage, ${Math.round(successRate * 100)}% chance — try again)`);
           }
         }),
 
@@ -300,14 +300,14 @@ export const useGameStore = create(
           const tank = fishTank(state, fish);
           if (!tank || (tank.supplies.diagnosticKit || 0) <= 0) {
             playWarning();
-            addLogDraft(state, '⚠️ No diagnostic kits available!');
+            addLogDraft(state, 'No diagnostic kits available!');
             return;
           }
           tank.supplies.diagnosticKit -= 1;
           fish.diagnosed = true;
           const d = DISEASES[fish.disease];
           playCoin();
-          addLogDraft(state, `🔬 Diagnosis: ${d?.name || fish.disease} detected! Treat with ${d?.treatmentName || 'medicine'}.`);
+          addLogDraft(state, `Diagnosis: ${d?.name || fish.disease} detected! Treat with ${d?.treatmentName || 'medicine'}.`);
         }),
 
         // ── Give vitamins to a fish ──────────────────────────
@@ -317,14 +317,14 @@ export const useGameStore = create(
           const tank = fishTank(state, fish);
           if (!tank || (tank.supplies.vitamins || 0) <= 0) {
             playWarning();
-            addLogDraft(state, '⚠️ No vitamins available!');
+            addLogDraft(state, 'No vitamins available!');
             return;
           }
           tank.supplies.vitamins -= 1;
           fish.vitaminUntil = Date.now() + 600_000; // 10 min immunity
           fish.health = Math.min(100, fish.health + 5);
           playCoin();
-          addLogDraft(state, `💊 ${fish.nickname || fish.species?.name || 'fish'} received vitamins! 10 min disease immunity.`);
+          addLogDraft(state, `${fish.nickname || fish.species?.name || 'fish'} received vitamins! 10 min disease immunity.`);
         }),
         moveFishToTank: (fishId, targetTankId) => set(state => {
           if (!fishId || !targetTankId) return;
@@ -335,7 +335,7 @@ export const useGameStore = create(
           const count = state.fish.filter(f => f.tankId === targetTankId).length;
           if (count >= (target.capacity || 12)) {
             playWarning();
-            addLogDraft(state, `⚠️ ${target.name} is full!`);
+            addLogDraft(state, `${target.name} is full!`);
             return;
           }
           fish.tankId = targetTankId;
@@ -347,7 +347,7 @@ export const useGameStore = create(
           if (!tank) return;
           if ((tank.supplies.waterTreatment || 0) <= 0) {
             playWarning();
-            addLogDraft(state, '⚠️ No water treatment supplies!');
+            addLogDraft(state, 'No water treatment supplies!');
             return;
           }
           playBubble();
@@ -379,25 +379,25 @@ export const useGameStore = create(
           const unlock = TANK_UNLOCK[state.tanks.length];
           if (!unlock) {
             playWarning();
-            addLogDraft(state, '⚠️ Maximum tanks reached!');
+            addLogDraft(state, 'Maximum tanks reached!');
             return;
           }
           if (state.player.coins < unlock.cost) {
             playWarning();
-            addLogDraft(state, '⚠️ Not enough coins!');
+            addLogDraft(state, 'Not enough coins!');
             return;
           }
           // Prestige gate for tanks 4+
           if (unlock.minPrestige && (state.player.prestigeLevel || 0) < unlock.minPrestige) {
             playWarning();
-            addLogDraft(state, `⚠️ Requires Prestige Level ${unlock.minPrestige} to unlock!`);
+            addLogDraft(state, `Requires Prestige Level ${unlock.minPrestige} to unlock!`);
             return;
           }
           state.player.coins -= unlock.cost;
           const newTank = createDefaultTank(`tank_${state.tanks.length}`, type);
           state.tanks.push(newTank);
           playCoin();
-          addLogDraft(state, `🏗️ Unlocked a new ${type} tank!`);
+          addLogDraft(state, `Unlocked a new ${type} tank!`);
         }),
 
         renameTank: (tankId, name) => set(state => {
@@ -410,7 +410,7 @@ export const useGameStore = create(
           const isListed = state.shop.listedFish.includes(fishId);
           if (!isListed && state.shop.listedFish.length >= state.shop.slots) {
             playWarning();
-            addLogDraft(state, '⚠️ Shop full! Buy an upgrade to add more slots.');
+            addLogDraft(state, 'Shop full! Buy an upgrade to add more slots.');
             return;
           }
           if (isListed) {
@@ -423,8 +423,8 @@ export const useGameStore = create(
           const fish = findFish(state, fishId);
           addLogDraft(state,
             isListed
-              ? `🏪 Removed ${fish?.species?.name || 'fish'}.`
-              : `🏪 Listed ${fish?.species?.name || 'fish'} for sale!`
+              ? `Removed ${fish?.species?.name || 'fish'}.`
+              : `Listed ${fish?.species?.name || 'fish'} for sale!`
           );
         }),
 
@@ -439,7 +439,7 @@ export const useGameStore = create(
           const actualCost = Math.max(1, Math.round(cost * (1 - bulkLevel * 0.10)));
           if (state.player.coins < actualCost) {
             playWarning();
-            addLogDraft(state, '⚠️ Not enough coins!');
+            addLogDraft(state, 'Not enough coins!');
             return;
           }
           const tank = findTank(state, tankId);
@@ -452,7 +452,7 @@ export const useGameStore = create(
         buyFish: (cost, targetRarity, speciesKey) => set(state => {
           if (state.player.coins < cost) {
             playWarning();
-            addLogDraft(state, '⚠️ Not enough coins!');
+            addLogDraft(state, 'Not enough coins!');
             return;
           }
           // Find a tank with room
@@ -461,7 +461,7 @@ export const useGameStore = create(
           const tank = state.tanks.find(t => (fishCountByTank.get(t.id) || 0) < (t.capacity || 12));
           if (!tank) {
             playWarning();
-            addLogDraft(state, '⚠️ All tanks are full!');
+            addLogDraft(state, 'All tanks are full!');
             return;
           }
           state.player.coins -= cost;
@@ -488,7 +488,7 @@ export const useGameStore = create(
 
           state.fish.push(newFish);
           playCoin();
-          addLogDraft(state, `🐟 Bought a ${newFish.species?.name || 'fish'}!`);
+          addLogDraft(state, `Bought a ${newFish.species?.name || 'fish'}!`);
         }),
 
         buyUpgrade: (upgradeKey) => set(state => {
@@ -497,7 +497,7 @@ export const useGameStore = create(
           const cost = upgradeCost(upg.cost, upg.level);
           if (state.player.coins < cost) {
             playWarning();
-            addLogDraft(state, '⚠️ Not enough coins!');
+            addLogDraft(state, 'Not enough coins!');
             return;
           }
           state.player.coins -= cost;
@@ -522,10 +522,10 @@ export const useGameStore = create(
             };
             if (!state.extraBays) state.extraBays = [];
             state.extraBays.push(newBay);
-            addLogDraft(state, `🧬 Breeding Bay ${state.maxBays} unlocked!`);
+            addLogDraft(state, `Breeding Bay ${state.maxBays} unlocked!`);
           }
           playCoin();
-          addLogDraft(state, `⬆️ Upgraded ${upg.label} to level ${upg.level}!`);
+          addLogDraft(state, `Upgraded ${upg.label} to level ${upg.level}!`);
           addXp(state, XP_REWARDS.buyUpgrade, 'upgrade');
         }),
 
@@ -549,7 +549,7 @@ export const useGameStore = create(
             const needed = item.eggCount || 1;
             if (count + needed > (tank.capacity || 12)) {
               playWarning();
-              addLogDraft(state, `⚠️ Not enough room in ${tank.name}!`);
+              addLogDraft(state, `Not enough room in ${tank.name}!`);
               return;
             }
           }
@@ -576,7 +576,7 @@ export const useGameStore = create(
               hatched.push(rarity);
             }
             const summary = hatched.join(', ');
-            addLogDraft(state, `🥚 Mystery egg${eggCount > 1 ? 's' : ''} placed in ${tank.name}! (${summary})`);
+            addLogDraft(state, `Mystery egg${eggCount > 1 ? 's' : ''} placed in ${tank.name}! (${summary})`);
             playCoin();
             return;
           }
@@ -585,7 +585,7 @@ export const useGameStore = create(
           if (item.type === 'fish' && item.targetRarity && tank) {
             const newFish = createFish({ stage: 'adult', tankId: tank.id, targetRarity: item.targetRarity });
             state.fish.push(newFish);
-            addLogDraft(state, `🐠 ${newFish.species?.name || 'Exotic fish'} (${newFish.species?.rarity}) added to ${tank.name}!`);
+            addLogDraft(state, `${newFish.species?.name || 'Exotic fish'} (${newFish.species?.rarity}) added to ${tank.name}!`);
             playCoin();
             return;
           }
@@ -609,7 +609,7 @@ export const useGameStore = create(
           }
 
           playCoin();
-          addLogDraft(state, `🌟 Purchased ${item.label} from the Rare Market!`);
+          addLogDraft(state, `Purchased ${item.label} from the Rare Market!`);
         }),
 
         buyDecoration: (decorId, tankId) => set(state => {
@@ -694,7 +694,7 @@ export const useGameStore = create(
             if (i === bayIndex) continue;
             if (allBays[i]?.slots?.includes(fishId)) {
               playWarning();
-              addLogDraft(state, '⚠️ That fish is already in another breeding bay!');
+              addLogDraft(state, 'That fish is already in another breeding bay!');
               return;
             }
           }
@@ -728,8 +728,8 @@ export const useGameStore = create(
             bt.clutchSize = clutchSize;
 
             playBreed();
-            const clutchMsg = clutchSize > 1 ? ` (${clutchSize === 3 ? 'Triplets' : 'Twins'}! 🎉)` : '';
-            addLogDraft(state, `🧬 Breeding started: ${fishA?.species?.name || '?'} × ${fishB?.species?.name || '?'}${clutchMsg}`);
+            const clutchMsg = clutchSize > 1 ? ` (${clutchSize === 3 ? 'Triplets' : 'Twins'}! )` : '';
+            addLogDraft(state, `Breeding started: ${fishA?.species?.name || '?'} × ${fishB?.species?.name || '?'}${clutchMsg}`);
           }
         }),
 
@@ -757,7 +757,7 @@ export const useGameStore = create(
 
           if (roomAvailable <= 0) {
             playWarning();
-            addLogDraft(state, '⚠️ Target tank is full!');
+            addLogDraft(state, 'Target tank is full!');
             return;
           }
 
@@ -792,14 +792,14 @@ export const useGameStore = create(
           playCoin();
           if (eggsToCreate === 3) {
             playDiscoverScaled("rare");
-            addLogDraft(state, `🥚🥚🥚 Triplets! Collected 3 eggs!`);
+            addLogDraft(state, `Triplets! Collected 3 eggs!`);
           } else if (eggsToCreate === 2) {
-            addLogDraft(state, `🥚🥚 Twins! Collected 2 eggs!`);
+            addLogDraft(state, `Twins! Collected 2 eggs!`);
           } else {
-            addLogDraft(state, '🥚 Collected a new egg!');
+            addLogDraft(state, 'Collected a new egg!');
           }
           if (clutchSize > roomAvailable) {
-            addLogDraft(state, `⚠️ Only ${roomAvailable} of ${clutchSize} eggs fit — tank is almost full!`);
+            addLogDraft(state, `Only ${roomAvailable} of ${clutchSize} eggs fit — tank is almost full!`);
           }
 
           addXp(state, XP_REWARDS.breedEgg * eggsToCreate, 'breed');
@@ -816,7 +816,7 @@ export const useGameStore = create(
               const sp = getSpeciesFromPhenotype(ph);
               const nearMiss = checkNearMiss({ species: sp });
               if (nearMiss) {
-                addLogDraft(state, `😱 ${nearMiss.message} Breed similar parents to push past the threshold!`);
+                addLogDraft(state, `${nearMiss.message} Breed similar parents to push past the threshold!`);
               }
             }
           }
@@ -841,7 +841,7 @@ export const useGameStore = create(
           state.pendingHaggle = null;
 
           if (action === 'decline') {
-            addLogDraft(state, `🚶 ${h.customerName} left without buying.`);
+            addLogDraft(state, `${h.customerName} left without buying.`);
             return;
           }
 
@@ -851,7 +851,7 @@ export const useGameStore = create(
             const requested = Math.round(Number(counterPrice) || 0);
             if (requested <= 0) return;
             if (requested > (h.maxBudget || h.offer * 2)) {
-              addLogDraft(state, `🙅 ${h.customerName} refused your counteroffer.`);
+              addLogDraft(state, `${h.customerName} refused your counteroffer.`);
               return;
             }
             price = requested;
@@ -862,7 +862,7 @@ export const useGameStore = create(
           // Bug 2 fix: capture fish BEFORE deletion
           const fish = findFish(state, h.fishId);
           if (!fish) {
-            addLogDraft(state, `⚠️ Fish no longer available.`);
+            addLogDraft(state, `Fish no longer available.`);
             return;
           }
           const soldRarity = fish.species?.rarity;
@@ -880,7 +880,7 @@ export const useGameStore = create(
           if (!state.shop.salesHistory) state.shop.salesHistory = [];
           state.shop.salesHistory.unshift({ fishName, coins: price, customer: h.customerName, at: Date.now(), rarity: soldRarity });
           playCoinScaled(price);
-          addLogDraft(state, `🤝 ${h.customerName}: Sold ${fishName} for 🪙${price}!`);
+          addLogDraft(state, `${h.customerName}: Sold ${fishName} for ${price}!`);
           addXp(state, soldRarity === 'epic' ? XP_REWARDS.sellEpicFish : soldRarity === 'rare' ? XP_REWARDS.sellRareFish : XP_REWARDS.sellFish, 'sell');
         }),
 
@@ -890,7 +890,7 @@ export const useGameStore = create(
           if (!_canPrestige(state)) return;
           const next = _performPrestige(state);
           Object.assign(state, next);
-          addLogDraft(state, `🌟 PRESTIGE! You are now Prestige Level ${state.player.prestigeLevel}. All permanent bonuses increased.`);
+          addLogDraft(state, `PRESTIGE! You are now Prestige Level ${state.player.prestigeLevel}. All permanent bonuses increased.`);
         }),
 
         // ── Pause toggle ────────────────────────────────────
@@ -906,7 +906,7 @@ export const useGameStore = create(
           if (!fish) return;
           if (!checkOrderFulfillment(fish, order)) {
             playWarning();
-            addLogDraft(state, '⚠️ That fish does not satisfy the special order.');
+            addLogDraft(state, 'That fish does not satisfy the special order.');
             return;
           }
           order.fulfilled = true;
@@ -918,7 +918,7 @@ export const useGameStore = create(
           removeFishFromBreedSlots(state, fishId);
           addXp(state, order.xpReward || 25, 'order');
           playCoinScaled(order.reward);
-          addLogDraft(state, `📋 Order fulfilled for ${order.customer}! +🪙${order.reward}`);
+          addLogDraft(state, `Order fulfilled for ${order.customer}! +${order.reward}`);
         }),
 
         // ── Research ────────────────────────────────────────
@@ -933,7 +933,7 @@ export const useGameStore = create(
           state.player.research[branchId] = level + 1;
           addXp(state, 20, 'research');
           playCoin();
-          addLogDraft(state, `🔬 Researched: ${next.label}! ${next.desc}`);
+          addLogDraft(state, `Researched: ${next.label}! ${next.desc}`);
         }),
 
         // ── Loans ───────────────────────────────────────────
@@ -944,7 +944,7 @@ export const useGameStore = create(
           state.player.coins += tier.amount;
           state.player.activeLoan = { active: true, tierId: tier.id, amount: tier.amount, interest: tier.interest, repayBy: tier.repayBy, takenAt: Date.now() };
           playCoin();
-          addLogDraft(state, `🏦 Loan: +🪙${tier.amount} at ${tier.interest*100}% interest.`);
+          addLogDraft(state, `Loan: +${tier.amount} at ${tier.interest*100}% interest.`);
         }),
 
         repayLoan: () => set(state => {
@@ -955,7 +955,7 @@ export const useGameStore = create(
           state.player.coins -= owed;
           state.player.activeLoan = { active: false };
           playCoin();
-          addLogDraft(state, `🏦 Loan repaid! 🪙${owed}`);
+          addLogDraft(state, `Loan repaid! ${owed}`);
         }),
 
         // ── Daily Rewards ───────────────────────────────────
@@ -970,7 +970,7 @@ export const useGameStore = create(
           // Streak broken penalty
           if (!wasYesterday && oldStreak >= 3) {
             const lostMult = getStreakMultiplier(oldStreak);
-            addLogDraft(state, `💔 ${oldStreak}-day streak broken! Lost ${getStreakLabel(oldStreak)} (${Math.round((lostMult-1)*100)}% bonus). Starting over...`);
+            addLogDraft(state, `${oldStreak}-day streak broken! Lost ${getStreakLabel(oldStreak)} (${Math.round((lostMult-1)*100)}% bonus). Starting over...`);
           }
 
           state.player.dailyStreak = streak;
@@ -983,7 +983,7 @@ export const useGameStore = create(
           const mult = getStreakMultiplier(streak);
           const label = getStreakLabel(streak);
           const multMsg = mult > 1 ? ` ${label} — ${Math.round((mult-1)*100)}% coin bonus active!` : '';
-          addLogDraft(state, `🎁 Day ${streak} reward: +🪙${reward}!${multMsg}`);
+          addLogDraft(state, `Day ${streak} reward: +${reward}!${multMsg}`);
         }),
 
         // ── Tank backgrounds ────────────────────────────────
@@ -995,7 +995,7 @@ export const useGameStore = create(
           if (!state.player.unlockedBackgrounds) state.player.unlockedBackgrounds = [];
           state.player.unlockedBackgrounds.push(bgId);
           playCoin();
-          addLogDraft(state, `🎨 Unlocked: ${bg.label}!`);
+          addLogDraft(state, `Unlocked: ${bg.label}!`);
         }),
 
         setTankBackground: (tankId, bgId) => set(state => {
@@ -1016,13 +1016,13 @@ export const useGameStore = create(
           }
           addXp(state, 30, 'milestone');
           playCoinScaled(m.reward?.coins || 50);
-          addLogDraft(state, `🏆 Milestone: ${m.title}! ${m.reward?.coins ? '+🪙' + m.reward.coins : ''}`);
+          addLogDraft(state, `Milestone: ${m.title}! ${m.reward?.coins ? '+' + m.reward.coins : ''}`);
           // Trigger full-screen celebration
           state._pendingCelebration = {
             title: m.title,
             desc: m.desc || '',
-            emoji: m.emoji || '🏆',
-            reward: m.reward?.coins ? `🪙 ${m.reward.coins}` : null,
+            emoji: m.emoji || '',
+            reward: m.reward?.coins ? `${m.reward.coins} coins` : null,
           };
         }),
 
@@ -1041,7 +1041,7 @@ export const useGameStore = create(
           playCoinScaled(poster.reward);
           playDiscoverScaled("uncommon");
           addXp(state, 30, 'wanted');
-          addLogDraft(state, `📋 Bounty fulfilled! Delivered ${fish.species?.name || 'fish'} to ${poster.buyer} for 🪙${poster.reward}!`);
+          addLogDraft(state, `Bounty fulfilled! Delivered ${fish.species?.name || 'fish'} to ${poster.buyer} for ${poster.reward}!`);
         }),
 
         refreshWantedBoard: () => set(state => {
@@ -1103,9 +1103,9 @@ export const useGameStore = create(
           try {
             const imported = await importSave(file);
             set(imported);
-            fireToast('📂 Save imported!', 'info', '✅');
+            fireToast('Save imported', 'info', '');
           } catch (e) {
-            fireToast(e.message, 'alert', '❌');
+            fireToast(e.message, 'alert', '');
           }
         },
       };
@@ -1131,7 +1131,7 @@ function startAutoSave() {
       // Flash save indicator
       useGameStore.setState({ _saveFlash: Date.now() });
     } else {
-      fireToast('⚠️ Save failed — storage full?', 'alert', '💾');
+      fireToast('Save failed — storage full?', 'alert', '');
     }
   }, 30_000);
 }
@@ -1207,7 +1207,7 @@ function startSalesWatcher() {
       if (len > prevLen) {
         const sale = useGameStore.getState().shop.salesHistory[0];
         playSaleScaled(sale?.coins || 0);
-        if (sale) fireToast(`Sold ${sale.fishName} for 🪙${sale.coins}!`, 'sale', '💰');
+        if (sale) fireToast(`Sold ${sale.fishName} for ${sale.coins}!`, 'info', '');
       }
       prevLen = len;
     }
@@ -1227,7 +1227,7 @@ function startAchSoundWatcher() {
         const achs = useGameStore.getState().player.achievements || [];
         for (let i = prevLen; i < len; i++) {
           const ach = achs[i];
-          fireToast(ach ? `Achievement: ${ach.id}` : 'Achievement unlocked!', 'achieve', '🏆');
+          fireToast(ach ? `Achievement: ${ach.id}` : 'Achievement unlocked!', 'achieve', '');
           if (ach) syncSteamAchievement(ach.id);
         }
       }
@@ -1249,7 +1249,7 @@ function startLevelUpWatcher() {
       const { level } = getLevelFromXp(xp);
       if (level > prevLevel) {
         playLevelUp();
-        fireToast(`Level Up! You are now Level ${level} — ${getLevelTitle(level)}`, 'achieve', '🎉');
+        fireToast(`Level Up! You are now Level ${level} — ${getLevelTitle(level)}`, 'achieve', '');
       }
       prevLevel = level;
     }
@@ -1266,7 +1266,7 @@ function startDiseaseWatcher() {
         if (f.disease && !seen.has(f.id)) {
           seen.add(f.id);
           playSick();
-          fireToast(`${f.species?.name || 'Fish'} is sick! 🦠`, 'alert', '🚨');
+          fireToast(`${f.species?.name || 'Fish'} is sick!`, 'alert', '');
         } else if (!f.disease) {
           seen.delete(f.id);
         }
@@ -1291,7 +1291,7 @@ function startBreedingWatcher() {
       const anyNew = readyStates.some((r, i) => r && !(wasReady.split(',').map(s => s === 'true')[i]));
       if (anyNew) {
         playDiscover();
-        fireToast('An egg is ready to collect! 🥚', 'sale', '🧬');
+        fireToast('An egg is ready to collect!', 'info', '');
       }
       wasReady = readyStr;
     }
@@ -1314,7 +1314,7 @@ function startDeathWatcher() {
           const autopsy = autopsies.find(a => a._fishId === id);
           if (autopsy) {
             playDeath();
-            fireToast(`${autopsy.fishName} has died 💀`, 'alert', '☠️');
+            fireToast(`${autopsy.fishName} has died`, 'alert', '');
           }
         }
       }

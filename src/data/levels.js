@@ -37,27 +37,27 @@ export const XP_REWARDS = {
 
 // Level milestone unlocks
 const LEVEL_UNLOCKS = [
-  { level: 2,  unlock: 'shop_uncommon',   label: 'Uncommon fish in shop',     icon: '🐠' },
-  { level: 3,  unlock: 'breeding_lab',    label: 'Breeding Lab access',       icon: '🧬' },
-  { level: 5,  unlock: 'shop_rare',       label: 'Rare fish in shop',         icon: '🌟' },
-  { level: 7,  unlock: 'decorations',     label: 'Decorations unlocked',      icon: '🪸' },
-  { level: 10, unlock: 'rare_market',     label: 'Rare Market access',        icon: '🏪' },
-  { level: 12, unlock: 'advanced_upgrades', label: 'Advanced upgrades',       icon: '⚡' },
-  { level: 15, unlock: 'shop_epic',       label: 'Epic fish in shop',         icon: '💎' },
-  { level: 18, unlock: 'expert_upgrades', label: 'Expert upgrades',           icon: '🔬' },
-  { level: 20, unlock: 'prestige',        label: 'Prestige available',        icon: '🌟' },
-  { level: 25, unlock: 'master_title',    label: 'Master Aquarist title',     icon: '👑' },
-  { level: 30, unlock: 'legend_title',    label: 'Legendary Aquarist title',  icon: '🏆' },
+  { level: 2,  unlock: 'shop_uncommon',   label: 'Uncommon fish in shop',     icon: '' },
+  { level: 3,  unlock: 'breeding_lab',    label: 'Breeding Lab access',       icon: '' },
+  { level: 5,  unlock: 'shop_rare',       label: 'Rare fish in shop',         icon: '' },
+  { level: 7,  unlock: 'decorations',     label: 'Decorations unlocked',      icon: '' },
+  { level: 10, unlock: 'rare_market',     label: 'Rare Market access',        icon: '' },
+  { level: 12, unlock: 'advanced_upgrades', label: 'Advanced upgrades',       icon: '' },
+  { level: 15, unlock: 'shop_epic',       label: 'Epic fish in shop',         icon: '' },
+  { level: 18, unlock: 'expert_upgrades', label: 'Expert upgrades',           icon: '' },
+  { level: 20, unlock: 'prestige',        label: 'Prestige available',        icon: '' },
+  { level: 25, unlock: 'master_title',    label: 'Master Aquarist title',     icon: '' },
+  { level: 30, unlock: 'legend_title',    label: 'Legendary Aquarist title',  icon: '' },
 ];
 
 // Level titles
 export function getLevelTitle(level) {
-  if (level >= 30) return '🏆 Legendary Aquarist';
-  if (level >= 25) return '👑 Master Aquarist';
-  if (level >= 20) return '⭐ Expert Aquarist';
-  if (level >= 15) return '🐠 Senior Aquarist';
-  if (level >= 10) return '🐟 Aquarist';
-  if (level >= 5)  return '🌊 Junior Aquarist';
+  if (level >= 30) return 'Legendary Aquarist';
+  if (level >= 25) return 'Master Aquarist';
+  if (level >= 20) return 'Expert Aquarist';
+  if (level >= 15) return 'Senior Aquarist';
+  if (level >= 10) return 'Aquarist';
+  if (level >= 5)  return 'Junior Aquarist';
   return '🐚 Novice';
 }
 

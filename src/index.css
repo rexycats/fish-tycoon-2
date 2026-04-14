@@ -13855,3 +13855,124 @@ select { border-radius: var(--radius-sm); }
   height: 20px;
   display: block;
 }
+
+/* ── Self-contained sections ───────────────────────────── */
+.sim-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  overflow: hidden;
+  min-height: 0;
+}
+.sim-section-content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+}
+
+/* ── Aquarium dominant layout ──────────────────────────── */
+.sim-aquarium {
+  flex: 1 1 auto;
+}
+.sim-aquarium .tank-col {
+  min-height: 300px;
+}
+.sim-inspector {
+  flex: 0 0 280px;
+  width: 280px;
+}
+
+/* ── Pause overlay — sim style ─────────────────────────── */
+.pause-overlay .pause-text {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  font-size: 1.4rem;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE 4 — Aquarium dominance + calmer chrome
+   ═══════════════════════════════════════════════════════════ */
+
+/* Tank fills available space aggressively */
+.sim-aquarium {
+  flex: 1 1 0;
+  min-height: 400px;
+}
+.sim-aquarium .tank-col {
+  min-height: 380px;
+}
+
+/* Inspector: narrower, calmer background */
+.sim-inspector {
+  flex: 0 0 270px;
+  width: 270px;
+  background: rgba(6, 12, 28, 0.96);
+  border-left-color: rgba(255,255,255,0.04);
+}
+
+/* HUD: reduce visual weight */
+.hud2 {
+  padding: 4px 10px;
+}
+.hud2-row--top {
+  gap: 8px;
+  padding: 2px 0;
+}
+.hud2-row--bottom {
+  padding: 2px 0;
+}
+.hud2-title {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.hud2-pill {
+  padding: 2px 6px;
+  font-size: var(--fs-2xs);
+  border-radius: var(--radius-xs);
+  background: rgba(255,255,255,0.04);
+}
+.hud2-pill--alert {
+  background: rgba(255,80,80,0.08);
+}
+.hud2-btn {
+  padding: 3px 8px;
+  font-size: var(--fs-2xs);
+}
+
+/* Sub-tabs: less chrome */
+.sim-sub-tabs {
+  padding: 0 16px;
+  gap: 0;
+  background: transparent;
+  border-bottom-color: rgba(255,255,255,0.05);
+}
+.sim-sub-tab {
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* Log: more minimal */
+.sim-log {
+  max-height: 100px;
+  background: rgba(3, 8, 20, 0.95);
+}
+.sim-log .log-panel {
+  font-size: var(--fs-2xs);
+  line-height: 1.5;
+}
+
+/* Sections: remove card chrome */
+.sim-section-content {
+  padding: 12px 16px;
+}
+
+/* NavRail: slightly wider for readability */
+.nav-rail {
+  width: 68px;
+}

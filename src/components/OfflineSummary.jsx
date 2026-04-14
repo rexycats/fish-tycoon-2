@@ -14,7 +14,7 @@ function EventCard({ event }) {
           )}
         </div>
         {event.type === 'found_item' && event.coinBonus && (
-          <div className="offline-discovery-reward">+🪙{event.coinBonus} added to your wallet</div>
+          <div className="offline-discovery-reward">+{event.coinBonus} coins added to your wallet</div>
         )}
         {event.type === 'visitor' && event.fish && event.fish.species && (
           <div className="offline-discovery-reward">
@@ -52,7 +52,7 @@ export default function OfflineSummary({ summary, onDismiss }) {
       <div className="offline-modal offline-modal-v2" onClick={e => e.stopPropagation()}>
 
         <div className="offline-header">
-          <div className="offline-away-badge">⏰ {timeAway}</div>
+          <div className="offline-away-badge">{timeAway}</div>
           <div className="offline-title-v2">While you were away…</div>
           {ambientMessage && (
             <div className="offline-ambient">
@@ -66,7 +66,7 @@ export default function OfflineSummary({ summary, onDismiss }) {
           <div className="offline-activity">
             {eggsHatched > 0 && (
               <div className="offline-row">
-                <span className="offline-row-icon">🐣</span>
+                <span className="offline-row-icon"></span>
                 <span className="offline-row-text">
                   {eggsHatched === 1 ? 'An egg hatched' : `${eggsHatched} eggs hatched`}
                 </span>
@@ -74,7 +74,7 @@ export default function OfflineSummary({ summary, onDismiss }) {
             )}
             {fishGrown > 0 && (
               <div className="offline-row">
-                <span className="offline-row-icon">🐟</span>
+                <span className="offline-row-icon"></span>
                 <span className="offline-row-text">
                   {fishGrown === 1 ? '1 juvenile grew into an adult' : `${fishGrown} juveniles grew into adults`}
                 </span>
@@ -82,15 +82,15 @@ export default function OfflineSummary({ summary, onDismiss }) {
             )}
             {fishSold > 0 && (
               <div className="offline-row">
-                <span className="offline-row-icon">💰</span>
+                <span className="offline-row-icon"></span>
                 <span className="offline-row-text">
-                  Sold {fishSold} fish — earned <strong>🪙{coinsEarned}</strong>
+                  Sold {fishSold} fish — earned <strong>{coinsEarned}</strong>
                 </span>
               </div>
             )}
             {fishDied > 0 && (
               <div className="offline-row offline-row-warn">
-                <span className="offline-row-icon">💀</span>
+                <span className="offline-row-icon"></span>
                 <span className="offline-row-text">
                   {fishDied === 1 ? "1 fish didn't make it" : `${fishDied} fish didn't make it`}
                 </span>
@@ -98,7 +98,7 @@ export default function OfflineSummary({ summary, onDismiss }) {
             )}
             {waterQualityLost > 15 && (
               <div className="offline-row offline-row-warn">
-                <span className="offline-row-icon">💧</span>
+                <span className="offline-row-icon"></span>
                 <span className="offline-row-text">
                   Water quality dropped {waterQualityLost}% — check your filters
                 </span>

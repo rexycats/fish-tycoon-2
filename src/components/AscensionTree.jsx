@@ -28,18 +28,18 @@ export default function AscensionTree() {
       {/* Header */}
       <div className="asc-header">
         <div className="asc-level">
-          <span className="asc-level-icon">⭐</span>
+          <span className="asc-level-icon"></span>
           <span className="asc-level-num">Ascension {level}</span>
         </div>
         <div className="asc-currencies">
-          <span className="asc-ap" title="Ascension Points">🔮 {ap} AP</span>
-          <span className="asc-coral" title="Coral Fragments">🪸 {coral}</span>
+          <span className="asc-ap" title="Ascension Points">{ap} AP</span>
+          <span className="asc-coral" title="Coral Fragments">{coral}</span>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="asc-tabs">
-        {[['tree', '🌳 Skill Tree'], ['shop', '🪸 Coral Shop'], ['info', '📊 Legacy']].map(([id, label]) => (
+        {[['tree', 'Skill Tree'], ['shop', 'Coral Shop'], ['info', 'Legacy']].map(([id, label]) => (
           <button key={id} className={`asc-tab ${tab === id ? 'active' : ''}`} onClick={() => setTab(id)}>
             {label}
           </button>
@@ -73,7 +73,7 @@ export default function AscensionTree() {
                     >
                       <span className="asc-node-icon">{tier.icon}</span>
                       <span className="asc-node-name">{tier.name}</span>
-                      {owned && <span className="asc-node-check">✓</span>}
+                      {owned && <span className="asc-node-check"></span>}
                       {!owned && <span className="asc-node-cost">{tier.cost} AP</span>}
                       {i < branch.tiers.length - 1 && (
                         <div className={`asc-connector ${prevOwned && owned ? 'asc-connector--lit' : ''}`} />
@@ -90,7 +90,7 @@ export default function AscensionTree() {
       {/* Coral Shop */}
       {tab === 'shop' && (
         <div className="asc-shop">
-          <div className="asc-shop-balance">🪸 {coral} Coral Fragments</div>
+          <div className="asc-shop-balance">{coral} Coral Fragments</div>
           <div className="asc-shop-grid">
             {CORAL_SHOP.map(item => {
               const canAfford = coral >= item.cost;
@@ -103,7 +103,7 @@ export default function AscensionTree() {
                   </div>
                   <button className="btn btn-sm" disabled={!canAfford}
                     onClick={() => buyCoral?.(item.id)}>
-                    🪸 {item.cost}
+                    {item.cost}
                   </button>
                 </div>
               );
@@ -115,7 +115,7 @@ export default function AscensionTree() {
       {/* Legacy / Info */}
       {tab === 'info' && (
         <div className="asc-legacy">
-          <div className="asc-section-title">📊 Dynasty Records</div>
+          <div className="asc-section-title">Dynasty Records</div>
           <div className="asc-records">
             <div className="asc-record">
               <span className="asc-record-label">Longest Dynasty</span>
@@ -135,22 +135,22 @@ export default function AscensionTree() {
             </div>
             <div className="asc-record">
               <span className="asc-record-label">Total AP Earned</span>
-              <span className="asc-record-val">🔮 {apTotal}</span>
+              <span className="asc-record-val">{apTotal}</span>
             </div>
             <div className="asc-record">
               <span className="asc-record-label">Species Known</span>
-              <span className="asc-record-val">📖 {(player?.fishdex || []).length}</span>
+              <span className="asc-record-val">{(player?.fishdex || []).length}</span>
             </div>
           </div>
 
           {/* Ascension Requirements */}
-          <div className="asc-section-title">⭐ Next Ascension</div>
+          <div className="asc-section-title">Next Ascension</div>
           <div className="asc-reqs">
             {Object.entries(reqs).map(([path, req]) => {
               const met = req.check(state);
               return (
                 <div key={path} className={`asc-req ${met ? 'asc-req--met' : ''}`}>
-                  <span className="asc-req-check">{met ? '✅' : '⬜'}</span>
+                  <span className="asc-req-check">{met ? '' : ''}</span>
                   <span className="asc-req-label">{req.label}</span>
                   <span className="asc-req-path">{path}</span>
                 </div>
@@ -161,7 +161,7 @@ export default function AscensionTree() {
 
           {canDo && (
             <button className="btn btn-primary asc-ascend-btn" onClick={() => performAscensionAction?.()}>
-              ⭐ Ascend to Level {level + 1} — Earn {level + 1} AP
+              Ascend to Level {level + 1} — Earn {level + 1} AP
             </button>
           )}
         </div>

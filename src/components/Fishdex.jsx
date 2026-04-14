@@ -59,7 +59,7 @@ function FishdexCard({ entry, onClick, isSelected }) {
         <div className="fdex-card-name" style={{ color: rarityColor, opacity: 0.5 }}>???</div>
         <div className="fdex-card-rarity" style={{ color: rarityColor, opacity: 0.4 }}>legendary</div>
         <div style={{ fontSize: '10px', color: 'rgba(160,200,255,0.4)', textAlign: 'center', marginTop: 2, lineHeight: 1.4 }}>
-          🔮 Discover all 7 Magic Fish to unlock
+          Discover all 7 Magic Fish to unlock
         </div>
       </div>
     );
@@ -91,10 +91,8 @@ function FishdexCard({ entry, onClick, isSelected }) {
             size={56}
           />
         ) : (
-          <span style={{ fontSize: '2rem', opacity: 0.4 }}>🐟</span>
+          <span style={{ fontSize: '1.2rem', opacity: 0.4 }}>?</span>
         )}
-        {entry.aiName && <div className="fdex-ai-badge" title="AI-named">✨</div>}
-        {isRealSpecies && <div className="fdex-real-badge" title="Real species">🐠</div>}
       </div>
 
       <div className="fdex-card-info">
@@ -195,13 +193,13 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
         <div className="fdex-real-info">
           {entry.habitat && (
             <div className="fdex-real-row">
-              <span className="fdex-real-label">🌊 Habitat</span>
+              <span className="fdex-real-label">Habitat</span>
               <span className="fdex-real-value">{entry.habitat}</span>
             </div>
           )}
           {entry.conservationStatus && (
             <div className="fdex-real-row">
-              <span className="fdex-real-label">🛡️ Status</span>
+              <span className="fdex-real-label">Status</span>
               <span className="fdex-real-value">{entry.conservationStatus}</span>
             </div>
           )}
@@ -214,7 +212,7 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
           {entry.lore && !entry.aiLore && (
             <div className="fdex-lore-section">
               <div className="fdex-lore">
-                <div className="fdex-lore-label">📖 About</div>
+                <div className="fdex-lore-label">About</div>
                 <p className="fdex-lore-text">{entry.lore}</p>
               </div>
             </div>
@@ -226,7 +224,7 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
       <div className="fdex-lore-section">
         {entry.aiLore ? (
           <div className="fdex-lore">
-            <div className="fdex-lore-label">✨ Species Lore</div>
+            <div className="fdex-lore-label">Species Lore</div>
             <p className="fdex-lore-text">{entry.aiLore}</p>
           </div>
         ) : (
@@ -240,7 +238,7 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
               {isGenerating ? (
                 <><span className="ai-spinner">◌</span> Consulting the Oracle…</>
               ) : (
-                <>✨ Generate Species Lore</>
+                <>Generate Species Lore</>
               )}
             </button>
             {aiError && (
@@ -273,7 +271,7 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
       {/* Breeding hint — how to recreate this species */}
       {hasProceduralPhenotype && traitRows.length >= 2 && (
         <div className="fdex-breed-hint">
-          <span className="fdex-breed-hint-icon">🧬</span>
+          <span className="fdex-breed-hint-icon">DNA</span>
           <span className="fdex-breed-hint-text">
             Breed fish with <strong>{traitRows[0][1]}</strong> + <strong>{traitRows[1][1]}</strong> traits to recreate this species.
             {ph.mutation && ph.mutation !== 'None' && (

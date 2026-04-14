@@ -4,7 +4,7 @@
 
 export const RESEARCH_BRANCHES = {
   marine_biology: {
-    id: 'marine_biology', label: 'Marine Biology', emoji: '🔬', color: '#40c8f0',
+    id: 'marine_biology', label: 'Marine Biology', emoji: '', color: '#40c8f0',
     tiers: [
       { cost: 200,  label: 'Basic Anatomy',        effect: { healthRegen: 1.1 },      desc: '+10% health regen' },
       { cost: 500,  label: 'Disease Resistance',    effect: { diseaseResist: 0.8 },    desc: '-20% disease chance' },
@@ -13,7 +13,7 @@ export const RESEARCH_BRANCHES = {
     ],
   },
   genetics: {
-    id: 'genetics', label: 'Genetics', emoji: '🧬', color: '#c878ff',
+    id: 'genetics', label: 'Genetics', emoji: '', color: '#c878ff',
     tiers: [
       { cost: 300,  label: 'Gene Mapping',          effect: { breedSpeed: 0.9 },       desc: '-10% breeding time' },
       { cost: 800,  label: 'Selective Breeding',     effect: { rarityBoost: 1.1 },      desc: '+10% rare offspring chance' },
@@ -22,7 +22,7 @@ export const RESEARCH_BRANCHES = {
     ],
   },
   business: {
-    id: 'business', label: 'Business', emoji: '💼', color: '#f0c040',
+    id: 'business', label: 'Business', emoji: '', color: '#f0c040',
     tiers: [
       { cost: 250,  label: 'Marketing 101',         effect: { customerSpeed: 0.9 },    desc: '-10% time between customers' },
       { cost: 600,  label: 'Premium Pricing',        effect: { saleBonus: 1.1 },        desc: '+10% sale prices' },

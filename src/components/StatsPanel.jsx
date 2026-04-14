@@ -81,25 +81,25 @@ export default function StatsPanel() {
 
       <div className="stats-grid">
         <StatCard icon="⏱" label="Time Played" value={timePlayed} />
-        <StatCard icon="🪙" label="Total Earned" value={player.totalCoinsEarned || 0} />
-        <StatCard icon="🪙" label="Current Coins" value={player.coins} />
-        <StatCard icon="💰" label="Tank Value" value={tankValue} sub="base price of all fish" />
-        <StatCard icon="🐟" label="Fish Alive" value={fish.length} />
-        <StatCard icon="📖" label="Species Found" value={fishdex.length} />
-        <StatCard icon="🥚" label="Eggs Collected" value={stats.eggsCollected || 0} />
-        <StatCard icon="💊" label="Medicine Used" value={stats.medicineUsed || 0} />
+        <StatCard icon="" label="Total Earned" value={player.totalCoinsEarned || 0} />
+        <StatCard icon="" label="Current Coins" value={player.coins} />
+        <StatCard icon="" label="Tank Value" value={tankValue} sub="base price of all fish" />
+        <StatCard icon="" label="Fish Alive" value={fish.length} />
+        <StatCard icon="" label="Species Found" value={fishdex.length} />
+        <StatCard icon="" label="Eggs Collected" value={stats.eggsCollected || 0} />
+        <StatCard icon="" label="Medicine Used" value={stats.medicineUsed || 0} />
         <StatCard icon="🧪" label="Water Treated" value={stats.waterTreated || 0} />
-        <StatCard icon="💀" label="Fish Lost" value={autopsies.length} />
-        <StatCard icon="🏆" label="Achievements" value={`${achievements.length}/23`} />
-        <StatCard icon="🔮" label="Magic Fish" value={`${(player.magicFishFound || []).length}/7`} />
-        <StatCard icon="📈" label="Shop Rep" value={shop.reputation || 0} />
-        <StatCard icon="🏪" label="Total Sales" value={salesHistory.length} />
-        <StatCard icon="🔥" label="Challenge Streak" value={player.challengeStreak || 0} sub="consecutive days" />
-        <StatCard icon="🏗️" label="Tanks" value={tanks.length} />
+        <StatCard icon="" label="Fish Lost" value={autopsies.length} />
+        <StatCard icon="" label="Achievements" value={`${achievements.length}/23`} />
+        <StatCard icon="" label="Magic Fish" value={`${(player.magicFishFound || []).length}/7`} />
+        <StatCard icon="" label="Shop Rep" value={shop.reputation || 0} />
+        <StatCard icon="" label="Total Sales" value={salesHistory.length} />
+        <StatCard icon="" label="Challenge Streak" value={player.challengeStreak || 0} sub="consecutive days" />
+        <StatCard icon="" label="Tanks" value={tanks.length} />
       </div>
 
       <div className="stats-section">
-        <div className="stats-section-title">🔬 Species by Rarity</div>
+        <div className="stats-section-title">Species by Rarity</div>
         {Object.entries(speciesByRarity).map(([rarity, count]) => (
           <MiniBar key={rarity} label={rarity} value={count} max={maxSpecies} color={RC[rarity] || '#888'} />
         ))}
@@ -107,7 +107,7 @@ export default function StatsPanel() {
 
       {deathsByCause.length > 0 && (
         <div className="stats-section">
-          <div className="stats-section-title">💀 Causes of Death</div>
+          <div className="stats-section-title">Causes of Death</div>
           {deathsByCause.map(([cause, count]) => (
             <MiniBar key={cause} label={cause} value={count} max={deathsByCause[0][1]} color="#ff6055" />
           ))}

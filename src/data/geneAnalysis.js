@@ -42,8 +42,8 @@ const GENE_SHORT = {
   secondaryColor: '2nd', glow: 'Glow', size: 'Size', mutation: 'Mut',
 };
 const GENE_EMOJI = {
-  bodyShape: '🐟', finType: '🦈', pattern: '🎨', primaryColor: '🎨',
-  secondaryColor: '🌈', glow: '✨', size: '📏', mutation: '🧬',
+  bodyShape: '', finType: '', pattern: '', primaryColor: '',
+  secondaryColor: '', glow: '', size: '', mutation: '',
 };
 
 // ── Purity analysis ──────────────────────────────────────────
@@ -174,7 +174,7 @@ export function perGeneBreedingForecast(genomeA, genomeB) {
       gene,
       geneName: GENES[gene]?.name || gene,
       shortName: GENE_SHORT[gene] || gene,
-      emoji: GENE_EMOJI[gene] || '🧬',
+      emoji: GENE_EMOJI[gene] || '',
       outcomes,
     });
   }

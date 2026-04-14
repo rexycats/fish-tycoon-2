@@ -11,9 +11,9 @@ const EVENT_INTERVAL_MAX = 420; // maximum seconds between events
 const RANDOM_EVENTS = [
   {
     id: 'celebrity_visit',
-    name: '⭐ Celebrity Visit!',
+    name: 'Celebrity Visit!',
     desc: 'A famous aquarium influencer is touring your shop! Tips doubled for 2 minutes.',
-    emoji: '⭐',
+    emoji: '',
     weight: 10,
     minRep: 5,
     effect: (state) => ({
@@ -23,13 +23,13 @@ const RANDOM_EVENTS = [
         boosts: { ...state.player.boosts, passiveIncome: Date.now() + 120_000 },
       },
     }),
-    message: '⭐ Celebrity visit! Passive income doubled for 2 minutes!',
+    message: 'Celebrity visit! Passive income doubled for 2 minutes!',
   },
   {
     id: 'storm_egg',
-    name: '🌊 Storm Surge!',
+    name: 'Storm Surge!',
     desc: 'A storm churns the ocean! Water quality drops, but something washed into your tank...',
-    emoji: '🌊',
+    emoji: '',
     weight: 8,
     minRep: 0,
     effect: (state) => {
@@ -42,13 +42,13 @@ const RANDOM_EVENTS = [
       const egg = createFish({ stage: 'egg', tankId, genome: randomGenome(), targetRarity: 'rare' });
       return { ...state, tanks, fish: [...state.fish, egg] };
     },
-    message: '🌊 Storm! Water quality dropped, but a mystery egg washed in! 🥚',
+    message: 'Storm! Water quality dropped, but a mystery egg washed in!',
   },
   {
     id: 'gold_rush',
-    name: '💰 Gold Rush!',
+    name: 'Gold Rush!',
     desc: 'A collector is desperate for fish! Sale prices boosted 50% for 2 minutes.',
-    emoji: '💰',
+    emoji: '',
     weight: 8,
     minRep: 10,
     effect: (state) => ({
@@ -58,13 +58,13 @@ const RANDOM_EVENTS = [
         boosts: { ...state.player.boosts, salePrice: Date.now() + 120_000 },
       },
     }),
-    message: '💰 Gold Rush! A collector is buying — sale prices +50% for 2 minutes!',
+    message: 'Gold Rush! A collector is buying — sale prices +50% for 2 minutes!',
   },
   {
     id: 'disease_outbreak',
-    name: '🦠 Disease Outbreak!',
+    name: 'Disease Outbreak!',
     desc: 'A mysterious illness is spreading through your tanks! Quick, use medicine!',
-    emoji: '🦠',
+    emoji: '',
     weight: 6,
     minRep: 0,
     effect: (state) => {
@@ -83,13 +83,13 @@ const RANDOM_EVENTS = [
         ),
       };
     },
-    message: '🦠 Disease outbreak! Check your fish and use medicine quickly!',
+    message: 'Disease outbreak! Check your fish and use medicine quickly!',
   },
   {
     id: 'lucky_current',
-    name: '🍀 Lucky Current!',
+    name: 'Lucky Current!',
     desc: 'A warm current brings exotic plankton. Next breeding has 3× mutation chance!',
-    emoji: '🍀',
+    emoji: '',
     weight: 7,
     minRep: 0,
     effect: (state) => ({
@@ -99,13 +99,13 @@ const RANDOM_EVENTS = [
         boosts: { ...state.player.boosts, mutationBoost: Date.now() + 300_000 },
       },
     }),
-    message: '🍀 Lucky Current! Mutation chance tripled for the next 5 minutes!',
+    message: 'Lucky Current! Mutation chance tripled for the next 5 minutes!',
   },
   {
     id: 'fish_competition',
-    name: '🏆 Fish Competition!',
+    name: 'Fish Competition!',
     desc: 'The Regional Aquarium Awards are judging your tanks! High happiness = big prize!',
-    emoji: '🏆',
+    emoji: '',
     weight: 6,
     minRep: 15,
     effect: (state) => {
@@ -128,9 +128,9 @@ const RANDOM_EVENTS = [
   },
   {
     id: 'power_surge',
-    name: '⚡ Power Surge!',
+    name: 'Power Surge!',
     desc: 'An electrical surge hit your building! Temperature fluctuating wildly!',
-    emoji: '⚡',
+    emoji: '',
     weight: 5,
     minRep: 0,
     effect: (state) => ({
@@ -140,13 +140,13 @@ const RANDOM_EVENTS = [
         temperature: (t.temperature || 74) + (Math.random() > 0.5 ? 8 : -8),
       })),
     }),
-    message: '⚡ Power surge! Tank temperatures swinging — use heaters to stabilize!',
+    message: 'Power surge! Tank temperatures swinging — use heaters to stabilize!',
   },
   {
     id: 'speed_grow',
-    name: '🌱 Growth Spurt!',
+    name: 'Growth Spurt!',
     desc: 'Something in the water is making your fish grow faster! Eggs and juveniles develop 2× speed for 3 minutes.',
-    emoji: '🌱',
+    emoji: '',
     weight: 7,
     minRep: 0,
     effect: (state) => ({
@@ -156,13 +156,13 @@ const RANDOM_EVENTS = [
         boosts: { ...state.player.boosts, growSpeed: Date.now() + 180_000 },
       },
     }),
-    message: '🌱 Growth Spurt! Eggs and juveniles grow 2× faster for 3 minutes!',
+    message: 'Growth Spurt! Eggs and juveniles grow 2× faster for 3 minutes!',
   },
   {
     id: 'generous_donor',
-    name: '🎁 Generous Donor!',
+    name: 'Generous Donor!',
     desc: 'An anonymous benefactor donated supplies to your aquarium!',
-    emoji: '🎁',
+    emoji: '',
     weight: 6,
     minRep: 0,
     effect: (state) => ({
@@ -177,13 +177,13 @@ const RANDOM_EVENTS = [
         },
       })),
     }),
-    message: '🎁 Generous Donor! Free supplies delivered to all tanks!',
+    message: 'Generous Donor! Free supplies delivered to all tanks!',
   },
   {
     id: 'rare_sighting',
-    name: '✨ Rare Sighting!',
+    name: 'Rare Sighting!',
     desc: 'Word has spread about your rare fish! Reputation boost!',
-    emoji: '✨',
+    emoji: '',
     weight: 5,
     minRep: 20,
     effect: (state) => ({
@@ -193,7 +193,7 @@ const RANDOM_EVENTS = [
         reputation: Math.min(999, (state.shop.reputation || 0) + 15),
       },
     }),
-    message: '✨ Rare Sighting! Your aquarium is trending — +15 reputation!',
+    message: 'Rare Sighting! Your aquarium is trending — +15 reputation!',
   },
 ];
 

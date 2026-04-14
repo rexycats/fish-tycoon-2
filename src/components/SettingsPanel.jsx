@@ -27,14 +27,14 @@ export default function SettingsPanel({ onClose }) {
         <div className="settings-title">⚙️ Settings</div>
 
         <div className="settings-section">
-          <div className="settings-section-title">🔊 Audio</div>
+          <div className="settings-section-title">Audio</div>
           <SettingsSlider label="Master Volume" value={master} onChange={v => { setMaster(v); setMasterVolume(v); }} />
           <SettingsSlider label="Music" value={music} onChange={v => { setMusic(v); setMusicVolume(v); }} />
           <SettingsSlider label="Sound Effects" value={sfx} onChange={v => { setSfx(v); setSFXVolume(v); }} />
         </div>
 
         <div className="settings-section">
-          <div className="settings-section-title">🎨 Graphics</div>
+          <div className="settings-section-title">Graphics</div>
           <SettingsToggle label="Water Distortion" value={distortion} onChange={v => updateSetting('distortion', v)} hint="SVG ripple effect (disable for performance)" />
           <SettingsToggle label="Particles & Plankton" value={particles} onChange={v => updateSetting('particles', v)} hint="Floating particles and plankton dots" />
           <SettingsToggle label="Reduced Motion" value={reducedMotion} onChange={v => updateSetting('reducedMotion', v)} hint="Disable most animations" />

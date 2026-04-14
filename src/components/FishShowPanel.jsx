@@ -116,7 +116,7 @@ export default function FishShowPanel() {
         <div className="fish-show-judging">
           <div className="fish-show-judge">{judge}</div>
           <div className="fish-show-rounds">
-            {['🎨 Beauty', '🎭 Tricks', '📏 Size'].map((label, i) => (
+            {['Beauty', 'Tricks', 'Size'].map((label, i) => (
               <div key={i} className={`fish-show-round ${judgingStep > i ? 'revealed' : judgingStep === i ? 'judging' : ''}`}>
                 <div className="fish-show-round-label">{label}</div>
                 {judgingStep > i && scores && (
@@ -166,7 +166,7 @@ export default function FishShowPanel() {
 
       {phase === 'done' && (
         <div className="fish-show-done">
-          <div className="fish-show-done-icon">🏆</div>
+          <div className="fish-show-done-icon">Done</div>
           <div>Reward claimed! See you at the next show.</div>
         </div>
       )}

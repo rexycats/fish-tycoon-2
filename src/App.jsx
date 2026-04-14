@@ -33,6 +33,8 @@ import GeneJournal    from './components/GeneJournal.jsx';
 import TabErrorBoundary from './components/TabErrorBoundary.jsx';
 import DiscoveryCeremony from './components/DiscoveryCeremony.jsx';
 import NavRail, { NAV_TO_TABS } from './components/NavRail.jsx';
+import RecordsSection from './components/RecordsSection.jsx';
+import OfficeSection from './components/OfficeSection.jsx';
 import { TUTORIAL_STEPS } from './data/tutorial.js';
 
 import { useGameStore } from './store/gameStore.js';
@@ -448,73 +450,14 @@ export default function App() {
           </div></TabErrorBoundary>
         )}
 
-        {/* ── Records section (sub-tabs) ──────────────── */}
+        {/* ── Records section ───────────────────────── */}
         {activeSection === 'records' && (
-          <div className="sim-section-with-tabs">
-            <div className="sim-sub-tabs">
-              <button className={`sim-sub-tab${activeTab === 'fishdex' ? ' active' : ''}`} onClick={() => handleTabChange('fishdex')}>Fishdex</button>
-              <button className={`sim-sub-tab${activeTab === 'achieve' ? ' active' : ''}`} onClick={() => handleTabChange('achieve')}>Achievements</button>
-              <button className={`sim-sub-tab${activeTab === 'magic' ? ' active' : ''}`} onClick={() => handleTabChange('magic')}>Magic Fish</button>
-              <button className={`sim-sub-tab${activeTab === 'stats' ? ' active' : ''}`} onClick={() => handleTabChange('stats')}>Statistics</button>
-            </div>
-            <div className="tab-content-scroll">
-              {activeTab === 'fishdex' && (
-                <TabErrorBoundary name="fishdex">
-                  <MemoFishdex
-                    fishdex={player.fishdex || []}
-                    onGenerateLore={handleGenerateLore}
-                    generatingLoreFor={generatingLoreFor}
-                    aiError={aiError}
-                    legendFishUnlocked={!!player.legendFishUnlocked}
-                  />
-                  <GeneJournal />
-                </TabErrorBoundary>
-              )}
-              {activeTab === 'achieve' && (
-                <MemoAchievements achievements={player.achievements || []} player={player} onNavigate={handleTabChange} />
-              )}
-              {activeTab === 'magic' && (
-                <MemoMagicFishPanel magicFishFound={player.magicFishFound || []} />
-              )}
-              {activeTab === 'stats' && <StatsPanel />}
-            </div>
-          </div>
+          <RecordsSection onNavigate={handleTabChange} />
         )}
 
-        {/* ── Office section (sub-tabs) ───────────────── */}
+        {/* ── Office section ────────────────────────── */}
         {activeSection === 'office' && (
-          <div className="sim-section-with-tabs">
-            <div className="sim-sub-tabs">
-              <button className={`sim-sub-tab${activeTab === 'challenges' ? ' active' : ''}`} onClick={() => handleTabChange('challenges')}>Contracts</button>
-              <button className={`sim-sub-tab${activeTab === 'decor' ? ' active' : ''}`} onClick={() => handleTabChange('decor')}>Decor</button>
-              <button className={`sim-sub-tab${activeTab === 'autopsy' ? ' active' : ''}`} onClick={() => handleTabChange('autopsy')}>Autopsy</button>
-            </div>
-            <div className="tab-content-scroll">
-              {activeTab === 'challenges' && (
-                <TabErrorBoundary name="challenges">
-                  <GoalsPanel />
-                  <FishShowPanel />
-                  <DailyChallengesPanel dailyChallenges={dailyChallenges} streak={player.challengeStreak || 0} />
-                </TabErrorBoundary>
-              )}
-              {activeTab === 'decor' && (
-                <MemoDecorationPanel
-                  game={game}
-                  activeTank={activeTank}
-                  onBuyDecor={buyDecoration}
-                  onPlaceDecor={placeDecoration}
-                  onRemoveDecor={removeDecoration}
-                  unlockedDecorations={player.unlockedDecorations || []}
-                  onClaimUnlockedDecor={claimUnlockedDecoration}
-                  onBuyTheme={buyTheme}
-                  onApplyTheme={applyTheme}
-                />
-              )}
-              {activeTab === 'autopsy' && (
-                <MemoFishAutopsy autopsies={player.autopsies || []} />
-              )}
-            </div>
-          </div>
+          <OfficeSection />
         )}
       </main>
 
@@ -587,7 +530,7 @@ export default function App() {
       {/* Pause overlay */}
       {paused && (
         <div className="pause-overlay" onClick={togglePause}>
-          <div className="pause-text">⏸ PAUSED</div>
+          <div className="pause-text">PAUSED</div>
           <div className="pause-hint">Press Space or click to resume</div>
         </div>
       )}
@@ -642,22 +585,22 @@ function AquariumOverview({ tanks, fish, activeTankId, onSelectTank }) {
               onClick={() => onSelectTank(tank.id)}
             >
               <div className="overview-card-name">
-                {tank.name}{sick > 0 && <span className="overview-alert"> 🚨{sick}</span>}
+                {tank.name}{sick > 0 && <span className="overview-alert"> {sick} sick</span>}
               </div>
               <div className="overview-card-counts">
-                <span title="Adults">🐟{adults}</span>
-                {juveniles > 0 && <span title="Juveniles">🐠{juveniles}</span>}
-                {eggs > 0 && <span title="Eggs">🥚{eggs}</span>}
+                <span title="Adults">{adults} fish</span>
+                {juveniles > 0 && <span title="Juveniles">{juveniles} juv</span>}
+                {eggs > 0 && <span title="Eggs">{eggs} eggs</span>}
                 <span className="overview-capacity">/{tank.capacity}</span>
               </div>
               <div className="overview-bars">
                 <div className="overview-bar-row">
-                  <span className="overview-bar-label">💧</span>
+                  <span className="overview-bar-label">WQ</span>
                   <div className="overview-bar-track"><div className="overview-bar-fill" style={{ width: `${wq}%`, background: wqColor }} /></div>
                   <span className="overview-bar-val">{wq}%</span>
                 </div>
                 <div className="overview-bar-row">
-                  <span className="overview-bar-label">😊</span>
+                  <span className="overview-bar-label">HP</span>
                   <div className="overview-bar-track"><div className="overview-bar-fill" style={{ width: `${hap}%`, background: hapColor }} /></div>
                   <span className="overview-bar-val">{hap}%</span>
                 </div>
@@ -666,69 +609,6 @@ function AquariumOverview({ tanks, fish, activeTankId, onSelectTank }) {
           );
         })}
       </div>
-    </div>
-  );
-}
-
-// ── Daily Challenges Panel ────────────────────────────────────
-function DailyChallengesPanel({ dailyChallenges, streak = 0 }) {
-  const challenges = dailyChallenges?.challenges || [];
-  const msUntilReset = (() => {
-    const now = Date.now();
-    const ms  = (Math.floor(now / 86_400_000) + 1) * 86_400_000 - now;
-    return `${Math.floor(ms / 3_600_000)}h ${Math.floor((ms % 3_600_000) / 60_000)}m`;
-  })();
-  return (
-    <div className="challenges-panel">
-      <div className="challenges-header">
-        <div>
-          <h2 className="challenges-title">🎯 Daily Challenges</h2>
-          <p className="challenges-subtitle">
-            Complete all 3 for bonus coins. Resets in {msUntilReset}.
-            {streak > 0 && (
-              <span className="challenges-mult">
-                {' '}×{Math.min(2, 1 + streak * 0.1).toFixed(1)} streak bonus active
-              </span>
-            )}
-          </p>
-        </div>
-        {streak > 0 && (
-          <div className="challenges-streak" title={`${streak} day streak — keep it going!`}>
-            <span className="challenges-streak-fire">🔥</span>
-            <span className="challenges-streak-count">{streak}</span>
-            <span className="challenges-streak-label">day{streak !== 1 ? 's' : ''}</span>
-          </div>
-        )}
-      </div>
-      <div className="challenges-list">
-        {challenges.map((c, i) => {
-          const pct = Math.min(100, Math.round((c.progress / c.goal) * 100));
-          return (
-            <div key={i} className={`challenge-card ${c.completed ? 'challenge-card--done' : ''}`}>
-              <div className="challenge-top">
-                <span className="challenge-emoji">{c.emoji}</span>
-                <div className="challenge-info">
-                  <div className="challenge-desc">{c.desc}</div>
-                  <div className="challenge-progress-text">{c.completed ? '✅ Complete!' : `${c.progress} / ${c.goal}`}</div>
-                </div>
-                <div className="challenge-reward">
-                  +🪹{streak > 0 ? Math.round(c.reward * Math.min(2, 1 + streak * 0.1)) : c.reward}
-                  {streak > 0 && <span className="challenge-reward-base"> (base 🪹{c.reward})</span>}
-                </div>
-              </div>
-              <div className="challenge-bar-track">
-                <div className="challenge-bar-fill" style={{ width: `${pct}%`, background: c.completed ? '#7ec8a0' : '#6ab0de' }} />
-              </div>
-            </div>
-          );
-        })}
-        {challenges.length === 0 && (
-          <div className="challenges-empty">No challenges loaded yet — they'll appear on next tick!</div>
-        )}
-      </div>
-      {challenges.length > 0 && challenges.every(c => c.completed) && (
-        <div className="challenges-complete-banner">🎉 All challenges complete! Come back tomorrow for new ones.</div>
-      )}
     </div>
   );
 }
@@ -752,12 +632,12 @@ function ApiKeyModal({ onClose }) {
           onKeyDown={e => e.key === 'Enter' && handleSave()} autoFocus
         />
         {val && !val.startsWith('sk-ant-') && (
-          <p style={{ color: '#f5a623', fontSize: '0.8rem', margin: '6px 0 0' }}>⚠️ Anthropic keys usually start with <code>sk-ant-</code></p>
+          <p style={{ color: '#f5a623', fontSize: '0.8rem', margin: '6px 0 0' }}>Anthropic keys usually start with <code>sk-ant-</code></p>
         )}
         <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
           {getApiKey() && <button className="btn btn-sm btn-danger" onClick={() => { setApiKey(''); setVal(''); }}>Clear Key</button>}
           <button className="btn btn-sm" onClick={onClose}>Cancel</button>
-          <button className="btn btn-sm btn-primary" onClick={handleSave} disabled={!val.trim()}>{saved ? '✅ Saved!' : 'Save Key'}</button>
+          <button className="btn btn-sm btn-primary" onClick={handleSave} disabled={!val.trim()}>{saved ? 'Saved' : 'Save Key'}</button>
         </div>
       </div>
     </div>
@@ -809,7 +689,7 @@ function TankTabs({ tanks, activeTankId, onSelectTank, onUnlockTank, canUnlock, 
         return (
         <div className="tank-tab tank-tab-unlock">
           {needsPrestige ? (
-            <div className="tank-unlock-locked">🔒 Requires Prestige {canUnlock.minPrestige}</div>
+            <div className="tank-unlock-locked">Requires Prestige {canUnlock.minPrestige}</div>
           ) : !unlocking ? (
             <button className="btn btn-sm btn-unlock" onClick={() => setUnlocking(true)}>+ Unlock Tank (🪙{canUnlock.cost})</button>
           ) : (
@@ -852,12 +732,12 @@ function MagicWinModal({ totalReward, onDismiss, onNavigate }) {
     <div className="win-modal-overlay" onClick={onDismiss}>
       <div className="win-modal" onClick={e => e.stopPropagation()}>
         <div className="win-modal-stars">
-          {['✨','🌟','✨','⭐','🌟','✨','⭐'].map((s, i) => <span key={i} className="win-star" style={{ animationDelay: `${i * 0.15}s` }}>{s}</span>)}
+          
         </div>
-        <div className="win-modal-title">🔮 Legend of the Deep 🔮</div>
+        <div className="win-modal-title">Legend of the Deep</div>
         <div className="win-modal-subtitle">You have discovered all 7 Magic Fish</div>
         <div className="win-modal-fish-row">
-          {['🐡','🐠','🐟','🦈','🐙','🦑','🦐'].map((e, i) => <span key={i} className="win-fish-icon" style={{ animationDelay: `${i * 0.1}s` }}>{e}</span>)}
+          
         </div>
         <p className="win-modal-lore">
           Your aquarium has become the stuff of legend. Sailors speak of it in hushed tones.
@@ -867,7 +747,7 @@ function MagicWinModal({ totalReward, onDismiss, onNavigate }) {
         <div className="win-modal-reward">Total reward collected: <strong>🪙 {totalReward.toLocaleString()}</strong></div>
         <div className="win-modal-unlocks">
           <div className="win-unlock-item">
-            🎨 <strong>Legend Throne</strong> decoration unlocked —{' '}
+            <strong>Legend Throne</strong> decoration unlocked —{' '}
             <button className="btn btn-sm" onClick={() => { onDismiss(); onNavigate('decor'); }}>
               Open Decor tab
             </button>
@@ -876,8 +756,8 @@ function MagicWinModal({ totalReward, onDismiss, onNavigate }) {
           <div className="win-unlock-item">🏆 <strong>+🪙500</strong> achievement bonus awarded!</div>
         </div>
         <div className="win-modal-actions">
-          <button className="btn btn-sm" onClick={() => { onDismiss(); onNavigate('magic'); }}>🔮 View Magic Fish</button>
-          <button className="btn btn-primary win-continue-btn" onClick={onDismiss}>✨ Continue Playing</button>
+          <button className="btn btn-sm" onClick={() => { onDismiss(); onNavigate('magic'); }}>View Magic Fish</button>
+          <button className="btn btn-primary win-continue-btn" onClick={onDismiss}>Continue Playing</button>
         </div>
         <div className="win-modal-hint">The ocean has more secrets. Keep breeding.</div>
       </div>

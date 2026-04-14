@@ -8,47 +8,47 @@ import { createDefaultState } from './gameState.js';
 // ── Ascension Tree ──────────────────────────────────────────
 export const ASCENSION_BRANCHES = {
   collector: {
-    id: 'collector', name: "Collector's Eye", icon: '🔍', color: '#44ccff',
+    id: 'collector', name: "Collector's Eye", icon: '', color: '#44ccff',
     desc: 'See more, find more, know more.',
     tiers: [
-      { id: 'allele_scanner',    cost: 1, name: 'Allele Scanner',    desc: 'Fish panel shows hidden recessive alleles', icon: '🧬' },
-      { id: 'trait_forecast',    cost: 2, name: 'Trait Forecast',    desc: 'Customers preview what traits they want 30s early', icon: '🔮' },
-      { id: 'species_radar',     cost: 3, name: 'Species Radar',     desc: 'Undiscovered species glow in your tank', icon: '📡' },
-      { id: 'better_starters',   cost: 4, name: 'Phenotype Memory',  desc: 'Start each run with 2 uncommon fish', icon: '🧠' },
-      { id: 'omniscience',       cost: 5, name: 'Omniscience',       desc: 'Gene Journal starts fully revealed', icon: '👁️' },
+      { id: 'allele_scanner',    cost: 1, name: 'Allele Scanner',    desc: 'Fish panel shows hidden recessive alleles', icon: '' },
+      { id: 'trait_forecast',    cost: 2, name: 'Trait Forecast',    desc: 'Customers preview what traits they want 30s early', icon: '' },
+      { id: 'species_radar',     cost: 3, name: 'Species Radar',     desc: 'Undiscovered species glow in your tank', icon: '' },
+      { id: 'better_starters',   cost: 4, name: 'Phenotype Memory',  desc: 'Start each run with 2 uncommon fish', icon: '' },
+      { id: 'omniscience',       cost: 5, name: 'Omniscience',       desc: 'Gene Journal starts fully revealed', icon: '' },
     ],
   },
   mogul: {
-    id: 'mogul', name: "Mogul's Touch", icon: '💰', color: '#ffcc33',
+    id: 'mogul', name: "Mogul's Touch", icon: '', color: '#ffcc33',
     desc: 'Make more money, faster.',
     tiers: [
-      { id: 'silver_tongue',     cost: 1, name: 'Silver Tongue',     desc: 'Haggling success rate +25%', icon: '🗣️' },
-      { id: 'premium_clients',   cost: 2, name: 'Premium Clientele', desc: 'Wealthy Patrons appear 2× more often', icon: '👑' },
-      { id: 'bulk_orders',       cost: 3, name: 'Bulk Orders',       desc: 'Wanted Board holds 5 posters instead of 3', icon: '📋' },
-      { id: 'market_insider',    cost: 4, name: 'Market Insider',    desc: 'Hot trait shown 24h in advance', icon: '📊' },
-      { id: 'golden_touch',      cost: 5, name: 'Golden Touch',      desc: 'Purity price bonus doubled', icon: '✨' },
+      { id: 'silver_tongue',     cost: 1, name: 'Silver Tongue',     desc: 'Haggling success rate +25%', icon: '' },
+      { id: 'premium_clients',   cost: 2, name: 'Premium Clientele', desc: 'Wealthy Patrons appear 2× more often', icon: '' },
+      { id: 'bulk_orders',       cost: 3, name: 'Bulk Orders',       desc: 'Wanted Board holds 5 posters instead of 3', icon: '' },
+      { id: 'market_insider',    cost: 4, name: 'Market Insider',    desc: 'Hot trait shown 24h in advance', icon: '' },
+      { id: 'golden_touch',      cost: 5, name: 'Golden Touch',      desc: 'Purity price bonus doubled', icon: '' },
     ],
   },
   weaver: {
-    id: 'weaver', name: 'Gene Weaver', icon: '🧬', color: '#cc66ff',
+    id: 'weaver', name: 'Gene Weaver', icon: '', color: '#cc66ff',
     desc: 'Faster, better, more controlled breeding.',
     tiers: [
-      { id: 'fertility_boost',   cost: 1, name: 'Fertility Boost',   desc: 'Base clutch size becomes 2 eggs', icon: '🥚' },
-      { id: 'dominant_selector', cost: 2, name: 'Dominant Selector', desc: 'Choose which parent dominates one gene per breed', icon: '🎯' },
-      { id: 'mutation_catalyst', cost: 3, name: 'Mutation Catalyst', desc: 'Tier 1 mutations appear 3× more often', icon: '⚗️' },
-      { id: 'recipe_mastery',    cost: 4, name: 'Recipe Mastery',    desc: 'Mutation recipe success rate +50%', icon: '📖' },
-      { id: 'gene_splicing',     cost: 5, name: 'Gene Splicing',     desc: 'Guarantee 1 specific allele per breed (500🪙)', icon: '✂️' },
+      { id: 'fertility_boost',   cost: 1, name: 'Fertility Boost',   desc: 'Base clutch size becomes 2 eggs', icon: '' },
+      { id: 'dominant_selector', cost: 2, name: 'Dominant Selector', desc: 'Choose which parent dominates one gene per breed', icon: '' },
+      { id: 'mutation_catalyst', cost: 3, name: 'Mutation Catalyst', desc: 'Tier 1 mutations appear 3× more often', icon: '' },
+      { id: 'recipe_mastery',    cost: 4, name: 'Recipe Mastery',    desc: 'Mutation recipe success rate +50%', icon: '' },
+      { id: 'gene_splicing',     cost: 5, name: 'Gene Splicing',     desc: 'Guarantee 1 specific allele per breed (500🪙)', icon: '' },
     ],
   },
   master: {
-    id: 'master', name: 'Aquarium Master', icon: '🏗️', color: '#44dd99',
+    id: 'master', name: 'Aquarium Master', icon: '', color: '#44dd99',
     desc: 'Start stronger every run.',
     tiers: [
-      { id: 'quick_start',       cost: 1, name: 'Quick Start',       desc: 'Start with 500🪙 instead of 325🪙', icon: '💵' },
-      { id: 'auto_systems',      cost: 2, name: 'Auto-Systems',      desc: 'Auto-feed and purifier level 1 free at start', icon: '⚙️' },
-      { id: 'tank_head_start',   cost: 3, name: 'Tank Head Start',   desc: 'Start with 2 tanks instead of 1', icon: '🏠' },
-      { id: 'legacy_hatchery',   cost: 4, name: 'Legacy Hatchery',   desc: 'Breeding bay available from the start + 1 free breed', icon: '🐣' },
-      { id: 'aquarium_empire',   cost: 5, name: 'Aquarium Empire',   desc: 'Start with all basic upgrades at level 1', icon: '🏰' },
+      { id: 'quick_start',       cost: 1, name: 'Quick Start',       desc: 'Start with 500🪙 instead of 325🪙', icon: '' },
+      { id: 'auto_systems',      cost: 2, name: 'Auto-Systems',      desc: 'Auto-feed and purifier level 1 free at start', icon: '' },
+      { id: 'tank_head_start',   cost: 3, name: 'Tank Head Start',   desc: 'Start with 2 tanks instead of 1', icon: '' },
+      { id: 'legacy_hatchery',   cost: 4, name: 'Legacy Hatchery',   desc: 'Breeding bay available from the start + 1 free breed', icon: '' },
+      { id: 'aquarium_empire',   cost: 5, name: 'Aquarium Empire',   desc: 'Start with all basic upgrades at level 1', icon: '' },
     ],
   },
 };
@@ -109,13 +109,13 @@ export function buyUnlock(state, branchId, tierIndex) {
 
 // ── Coral Fragments ─────────────────────────────────────────
 export const CORAL_SHOP = [
-  { id: 'starter_uncommon', name: 'Starter Egg (Uncommon)', cost: 5,  icon: '🥚', desc: 'Begin next run with a bonus uncommon egg' },
-  { id: 'starter_rare',     name: 'Starter Egg (Rare)',     cost: 15, icon: '🌟', desc: 'Begin next run with a bonus rare egg' },
-  { id: 'coin_pouch',       name: 'Coin Pouch',             cost: 3,  icon: '💰', desc: '+200 starting coins on next run' },
-  { id: 'lucky_charm',      name: 'Lucky Charm',            cost: 8,  icon: '🍀', desc: '+5% mutation chance for first 10 breeds' },
-  { id: 'theme_deep',       name: 'Deep Ocean Theme',       cost: 10, icon: '🌊', desc: 'Permanent tank theme', cosmetic: true },
-  { id: 'theme_biolum',     name: 'Bioluminescent Cave',    cost: 25, icon: '💎', desc: 'Permanent tank theme', cosmetic: true },
-  { id: 'golden_scales',    name: 'Golden Scales',          cost: 20, icon: '✨', desc: 'All fish have subtle gold shimmer', cosmetic: true },
+  { id: 'starter_uncommon', name: 'Starter Egg (Uncommon)', cost: 5,  icon: '', desc: 'Begin next run with a bonus uncommon egg' },
+  { id: 'starter_rare',     name: 'Starter Egg (Rare)',     cost: 15, icon: '', desc: 'Begin next run with a bonus rare egg' },
+  { id: 'coin_pouch',       name: 'Coin Pouch',             cost: 3,  icon: '', desc: '+200 starting coins on next run' },
+  { id: 'lucky_charm',      name: 'Lucky Charm',            cost: 8,  icon: '', desc: '+5% mutation chance for first 10 breeds' },
+  { id: 'theme_deep',       name: 'Deep Ocean Theme',       cost: 10, icon: '', desc: 'Permanent tank theme', cosmetic: true },
+  { id: 'theme_biolum',     name: 'Bioluminescent Cave',    cost: 25, icon: '', desc: 'Permanent tank theme', cosmetic: true },
+  { id: 'golden_scales',    name: 'Golden Scales',          cost: 20, icon: '', desc: 'All fish have subtle gold shimmer', cosmetic: true },
 ];
 
 // ── Perform Ascension ───────────────────────────────────────

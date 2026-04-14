@@ -6,11 +6,11 @@
 import { createDefaultState } from './gameState.js';
 
 const PRESTIGE_BONUSES = {
-  coinMult:     { base: 1.0, perLevel: 0.15, label: 'Coin Earn Rate',     icon: '🪙', desc: '+15% coin income per prestige' },
-  breedSpeed:   { base: 1.0, perLevel: 0.10, label: 'Breeding Speed',     icon: '🧬', desc: '+10% faster breeding per prestige' },
-  rarityLuck:   { base: 0,   perLevel: 0.02, label: 'Rarity Luck',        icon: '🍀', desc: '+2% chance of rarer offspring per prestige' },
-  startCoins:   { base: 325, perLevel: 200,  label: 'Starting Capital',   icon: '💰', desc: '+200 starting coins per prestige' },
-  maxTanks:     { base: 3,   perLevel: 1,    label: 'Max Tanks',          icon: '🏗️', desc: '+1 unlockable tank per prestige (up to 6)', max: 6 },
+  coinMult:     { base: 1.0, perLevel: 0.15, label: 'Coin Earn Rate',     icon: '', desc: '+15% coin income per prestige' },
+  breedSpeed:   { base: 1.0, perLevel: 0.10, label: 'Breeding Speed',     icon: '', desc: '+10% faster breeding per prestige' },
+  rarityLuck:   { base: 0,   perLevel: 0.02, label: 'Rarity Luck',        icon: '', desc: '+2% chance of rarer offspring per prestige' },
+  startCoins:   { base: 325, perLevel: 200,  label: 'Starting Capital',   icon: '', desc: '+200 starting coins per prestige' },
+  maxTanks:     { base: 3,   perLevel: 1,    label: 'Max Tanks',          icon: '', desc: '+1 unlockable tank per prestige (up to 6)', max: 6 },
 };
 
 // Requirements to prestige
