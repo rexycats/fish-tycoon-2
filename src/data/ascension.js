@@ -8,7 +8,7 @@ import { createDefaultState } from './gameState.js';
 // ── Ascension Tree ──────────────────────────────────────────
 export const ASCENSION_BRANCHES = {
   collector: {
-    id: 'collector', name: "Collector's Eye", icon: '', color: '#44ccff',
+    id: 'collector', name: "Collector's Eye", icon: '', color: '#5aa8a0',
     desc: 'See more, find more, know more.',
     tiers: [
       { id: 'allele_scanner',    cost: 1, name: 'Allele Scanner',    desc: 'Fish panel shows hidden recessive alleles', icon: '' },
@@ -19,7 +19,7 @@ export const ASCENSION_BRANCHES = {
     ],
   },
   mogul: {
-    id: 'mogul', name: "Mogul's Touch", icon: '', color: '#ffcc33',
+    id: 'mogul', name: "Mogul's Touch", icon: '', color: '#d4a843',
     desc: 'Make more money, faster.',
     tiers: [
       { id: 'silver_tongue',     cost: 1, name: 'Silver Tongue',     desc: 'Haggling success rate +25%', icon: '' },

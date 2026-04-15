@@ -22,12 +22,9 @@ const VIEWS = [
   { id: 'stats',    label: 'Statistics' },
 ];
 
-export default function RecordsSection({ onNavigate }) {
+export default function RecordsSection({ onNavigate, generatingLoreFor, aiError, onGenerateLore }) {
   const [view, setView] = useState('fishdex');
   const player = useGameStore(s => s.player);
-  const generatingLoreFor = useGameStore(s => s._generatingLoreFor);
-  const aiError = useGameStore(s => s._aiError);
-  const handleGenerateLore = useGameStore(s => s.generateLore);
 
   return (
     <div className="sim-section">
@@ -45,7 +42,7 @@ export default function RecordsSection({ onNavigate }) {
           <TabErrorBoundary name="fishdex">
             <MemoFishdex
               fishdex={player.fishdex || []}
-              onGenerateLore={handleGenerateLore}
+              onGenerateLore={onGenerateLore}
               generatingLoreFor={generatingLoreFor}
               aiError={aiError}
               legendFishUnlocked={!!player.legendFishUnlocked}

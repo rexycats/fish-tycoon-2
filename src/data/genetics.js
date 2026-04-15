@@ -449,11 +449,11 @@ function generateProceduralName(ph, genome = null) {
 }
 
 export const RARITY = {
-  common:    { label: 'Common',    color: '#7ec8a0', priceMultiplier: 1.0 },
-  uncommon:  { label: 'Uncommon',  color: '#6ab0de', priceMultiplier: 2.5 },
-  rare:      { label: 'Rare',      color: '#b07ee8', priceMultiplier: 6.0 },
-  epic:      { label: 'Epic',      color: '#f0c040', priceMultiplier: 15.0 },
-  legendary: { label: 'Legendary', color: '#ff7eb3', priceMultiplier: 40.0 },
+  common:    { label: 'Common',    color: '#5aaa70', priceMultiplier: 1.0 },
+  uncommon:  { label: 'Uncommon',  color: '#5a9aaa', priceMultiplier: 2.5 },
+  rare:      { label: 'Rare',      color: '#8a70a8', priceMultiplier: 6.0 },
+  epic:      { label: 'Epic',      color: '#b0944a', priceMultiplier: 15.0 },
+  legendary: { label: 'Legendary', color: '#a06080', priceMultiplier: 40.0 },
 };
 
 export const GROWTH_STAGES = {

@@ -61,23 +61,23 @@ export default function TitleScreen({ onStart }) {
             <span className="title-word-2">2</span>
           </span>
         </h1>
-        <p className="title-tagline">Build your dream aquarium</p>
+        <p className="title-tagline">Breed. Trade. Manage.</p>
       </div>
 
       {/* Menu */}
       <div className="title-menu">
         {hasSave && (
           <button className="title-btn title-btn-primary" onClick={() => handleStart('continue')}>
-            ▶ Continue
+            Continue
           </button>
         )}
         <button className="title-btn" onClick={() => handleStart(hasSave ? 'continue' : 'new')}>
-          {hasSave ? '🔄 New Game' : '▶ Start Game'}
+          {hasSave ? 'New Game' : 'Start Game'}
         </button>
       </div>
 
       <div className="title-footer">
-        <span className="title-version">v0.1.0</span>
+        <span className="title-version">v0.9.0</span>
         <span className="title-credit">Made with love</span>
       </div>
     </div>

@@ -51,11 +51,11 @@ const Icons = {
 };
 
 const NAV_SECTIONS = [
-  { id: 'aquarium',  label: 'Aquarium' },
-  { id: 'market',    label: 'Market' },
-  { id: 'breeding',  label: 'Breeding' },
-  { id: 'records',   label: 'Records' },
-  { id: 'office',    label: 'Office' },
+  { id: 'aquarium',  label: 'Aquarium',  key: '1' },
+  { id: 'market',    label: 'Market',    key: '2' },
+  { id: 'breeding',  label: 'Breeding',  key: '3' },
+  { id: 'records',   label: 'Records',   key: '4' },
+  { id: 'office',    label: 'Office',    key: '5' },
 ];
 
 export default function NavRail({ active, onNavigate, badges = {} }) {
@@ -63,13 +63,13 @@ export default function NavRail({ active, onNavigate, badges = {} }) {
     <nav className="nav-rail">
       <div className="nav-rail-brand">FT2</div>
       <div className="nav-rail-items">
-        {NAV_SECTIONS.map(({ id, label }) => (
+        {NAV_SECTIONS.map(({ id, label, key }) => (
           <button
             key={id}
             className={`nav-rail-btn${active === id ? ' nav-rail-btn--active' : ''}`}
             onClick={() => onNavigate(id)}
-            title={label}
           >
+            <span className="nav-rail-key">{key}</span>
             <span className="nav-rail-icon">{Icons[id]}</span>
             <span className="nav-rail-label">{label}</span>
             {badges[id] && (
@@ -82,11 +82,12 @@ export default function NavRail({ active, onNavigate, badges = {} }) {
         <button
           className="nav-rail-btn nav-rail-btn--settings"
           onClick={() => onNavigate('settings')}
-          title="Settings"
+          
         >
           <span className="nav-rail-icon">{Icons.settings}</span>
           <span className="nav-rail-label">Settings</span>
         </button>
+        <div className="nav-rail-version">v0.9.0</div>
       </div>
     </nav>
   );

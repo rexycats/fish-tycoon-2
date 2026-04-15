@@ -48,9 +48,9 @@ function TraitOddsGrid({ genomeA, genomeB }) {
                   <div className="trait-odds-bar"
                     style={{
                       width: `${chance}%`,
-                      background: chance === 100 ? '#7ec8a0'
-                        : chance >= 50 ? '#6ab0de'
-                        : chance >= 25 ? '#b07ee8' : '#f0c040',
+                      background: chance === 100 ? '#5aaa70'
+                        : chance >= 50 ? '#5a9aaa'
+                        : chance >= 25 ? '#8a70a8' : '#b0944a',
                     }}
                   />
                   <span className="trait-odds-text">
@@ -318,7 +318,7 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
         {bothSelected && !canPredict && (
           <div className="breed-predictions">
             <div className="breed-predictions-title">Offspring Prediction</div>
-            <div className="predict-more" style={{ padding: '8px 0', color: '#6ab0de' }}>
+            <div className="predict-more" style={{ padding: '8px 0', color: '#5a9aaa' }}>
               Offspring genetics are unpredictable when one or both parents are a real species.
               Breed them to find out!
             </div>

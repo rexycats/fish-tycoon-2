@@ -4,7 +4,7 @@
 import React, { useMemo } from 'react';
 import { useGameStore } from '../store/gameStore.js';
 
-const RC = { common: '#7ec8a0', uncommon: '#6ab0de', rare: '#b07ee8', epic: '#f0c040', legendary: '#ff7eb3' };
+const RC = { common: '#5aaa70', uncommon: '#5a9aaa', rare: '#8a70a8', epic: '#b0944a', legendary: '#a06080' };
 
 function StatCard({ icon, label, value, sub }) {
   return (

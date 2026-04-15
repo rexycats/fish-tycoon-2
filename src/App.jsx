@@ -5,7 +5,7 @@ import { TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
 import { getApiKey, setApiKey } from './services/aiService.js';
 import { getActiveEvent } from './data/seasonal.js';
 import { canPrestige } from './data/prestige.js';
-import { startMusic, isMusicPlaying, playTabSwitch as _playTabSwitch } from './services/soundService.js';
+import { startMusic, isMusicPlaying, playTabSwitch as _playTabSwitch, playClick } from './services/soundService.js';
 import TankView       from './components/TankView.jsx';
 import FishPanel      from './components/FishPanel.jsx';
 import HUD            from './components/HUD.jsx';
@@ -35,6 +35,7 @@ import DiscoveryCeremony from './components/DiscoveryCeremony.jsx';
 import NavRail, { NAV_TO_TABS } from './components/NavRail.jsx';
 import RecordsSection from './components/RecordsSection.jsx';
 import OfficeSection from './components/OfficeSection.jsx';
+import GameStatusBar from './components/GameStatusBar.jsx';
 import { TUTORIAL_STEPS } from './data/tutorial.js';
 
 import { useGameStore } from './store/gameStore.js';
@@ -70,6 +71,8 @@ export default function App() {
   const tanks           = useGameStore(s => s.tanks);
   const shop            = useGameStore(s => s.shop);
   const breedingTank    = useGameStore(s => s.breedingTank);
+  const extraBays       = useGameStore(s => s.extraBays || []);
+  const maxBays         = useGameStore(s => s.maxBays || 1);
   const log             = useGameStore(s => s.log);
   const dailyChallenges = useGameStore(s => s.dailyChallenges);
   const showOffline     = useGameStore(s => s.showOffline);
@@ -129,6 +132,8 @@ export default function App() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
   const [showSettings, setShowSettings]   = useState(false);
+  const [showGameMenu, setShowGameMenu]   = useState(false);
+  const [showLogTray, setShowLogTray]     = useState(false);
   const [hatchRevealFish, setHatchRevealFish] = useState(null);
   const [celebration, setCelebration] = useState(null);
   const [discoverySpecies, setDiscoverySpecies] = useState(null);
@@ -143,18 +148,37 @@ export default function App() {
   useEffect(() => {
     const handler = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
-      switch (e.key.toLowerCase()) {
-        case '1': case '2': case '3': case '4': case '5': case '6': {
-          const idx = parseInt(e.key) - 1;
-          if (tanks[idx]) setActiveTankId(tanks[idx].id);
-          break;
-        }
+      const key = e.key.toLowerCase();
+
+      // F5 = quicksave
+      if (e.key === 'F5') { e.preventDefault(); useGameStore.getState().saveGame?.(); return; }
+
+      switch (key) {
+        // Section navigation
+        case '1': handleNavChange('aquarium'); break;
+        case '2': handleNavChange('market'); break;
+        case '3': handleNavChange('breeding'); break;
+        case '4': handleNavChange('records'); break;
+        case '5': handleNavChange('office'); break;
+        // Fish actions
         case 'f': if (selectedFish) feedFish(selectedFish.id); break;
         case 'a': if (activeTank) useGameStore.getState().feedAllInTank(activeTank.id); break;
         case 's': if (selectedFish?.stage === 'adult') toggleSellFish(selectedFish.id); break;
         case 'm': if (selectedFish?.disease) useMedicine(selectedFish.id); break;
+        // Game controls
+        case 'l': setShowLogTray(v => !v); break;
         case ' ': e.preventDefault(); togglePause(); break;
-        case 'escape': setShowSettings(false); setShowResetConfirm(false); setShowApiSetup(false); break;
+        case 'escape':
+          if (showSettings || showResetConfirm || showApiSetup) {
+            setShowSettings(false); setShowResetConfirm(false); setShowApiSetup(false);
+          } else if (showGameMenu) {
+            setShowGameMenu(false);
+            playClick();
+          } else {
+            setShowGameMenu(true);
+            playClick();
+          }
+          break;
         case 'tab': {
           e.preventDefault();
           const sections = ['aquarium', 'market', 'breeding', 'records', 'office'];
@@ -164,8 +188,10 @@ export default function App() {
         }
       }
     };
+    const suppress = (e) => e.preventDefault();
     window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener('contextmenu', suppress);
+    return () => { window.removeEventListener('keydown', handler); window.removeEventListener('contextmenu', suppress); };
   }, [selectedFish, activeTank, activeTab, tanks]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Level-up flash ─────────────────────────────────────
@@ -288,6 +314,28 @@ export default function App() {
     [player, fish, tanks, shop, breedingTank, log, dailyChallenges, offlineSummary, market]
   );
 
+  // ── Loading splash ─────────────────────────────────────────
+  const [showSplash, setShowSplash] = useState(true);
+  useEffect(() => {
+    if (!showSplash) return;
+    const t = setTimeout(() => setShowSplash(false), 1800);
+    return () => clearTimeout(t);
+  }, [showSplash]);
+
+  if (showSplash) {
+    return (
+      <div className="loading-splash">
+        <div className="loading-splash-inner">
+          <div className="loading-splash-title">FISH TYCOON 2</div>
+          <div className="loading-splash-bar">
+            <div className="loading-splash-fill" />
+          </div>
+          <div className="loading-splash-sub">Loading</div>
+        </div>
+      </div>
+    );
+  }
+
   // ── Title screen ──────────────────────────────────────────
   if (showTitle) {
     return <TitleScreen onStart={(mode) => {
@@ -331,53 +379,47 @@ export default function App() {
       />
 
       <div className="sim-main">
-      {/* ── Sim header: HUD + contextual controls ──── */}
-      <div className="sim-header">
-        <MemoHUD
-          player={player}
-          shop={shop}
-          tanks={tanks}
-          activeTank={activeTank}
-          selectedFishTankId={selectedFish?.tankId}
-          fish={fish}
-          onBuyFood={() => buySupply('food', 10, 10, activeTank?.id)}
-          onTreatWater={treatWater}
-          onToggleAutoFeed={toggleAutoFeed}
-          onUseHeater={useHeater}
-          soundOn={soundOn}
-          onToggleSound={toggleSound}
-        />
-        {activeSection === 'aquarium' && (
-          <TankTabs
-            tanks={tanks}
-            activeTankId={activeTank?.id}
-            onSelectTank={setActiveTankId}
-            onUnlockTank={unlockTank}
-            canUnlock={TANK_UNLOCK[tanks.length]}
-            playerCoins={player.coins}
-            fish={fish}
-            onRename={renameTank}
-            prestigeLevel={player.prestigeLevel || 0}
-          />
-        )}
-        {activeSection === 'aquarium' && activeTank && (activeTank.supplies?.food ?? 0) <= 5 && (
-          <div className="low-supply-banner">
-            Low food in <strong>{activeTank.name}</strong> — {activeTank.supplies?.food ?? 0} left{' '}
-            <button className="low-supply-banner__btn" onClick={() => buySupply('food', 10, 10, activeTank.id)}>
-              Buy food
-            </button>
-          </div>
-        )}
-      </div>
 
-      <main className="sim-viewport">
+      <main className={`sim-viewport ${activeSection === 'aquarium' ? 'sim-viewport--aquarium' : ''}`}>
         {/* ── Aquarium section ─────────────────────────── */}
         {activeSection === 'aquarium' && (
           <>
-            {tanks.length > 1
-              ? <AquariumOverview tanks={tanks} fish={fish} activeTankId={activeTank?.id} onSelectTank={setActiveTankId} />
-              : null
-            }
+            {/* HUD overlays the tank */}
+            <div className="aquarium-hud-overlay">
+              <MemoHUD
+                player={player}
+                shop={shop}
+                tanks={tanks}
+                activeTank={activeTank}
+                selectedFishTankId={selectedFish?.tankId}
+                fish={fish}
+                onBuyFood={() => buySupply('food', 10, 10, activeTank?.id)}
+                onTreatWater={treatWater}
+                onToggleAutoFeed={toggleAutoFeed}
+                onUseHeater={useHeater}
+                soundOn={soundOn}
+                onToggleSound={toggleSound}
+              />
+              <TankTabs
+                tanks={tanks}
+                activeTankId={activeTank?.id}
+                onSelectTank={setActiveTankId}
+                onUnlockTank={unlockTank}
+                canUnlock={TANK_UNLOCK[tanks.length]}
+                playerCoins={player.coins}
+                fish={fish}
+                onRename={renameTank}
+                prestigeLevel={player.prestigeLevel || 0}
+              />
+            </div>
+            {activeTank && (activeTank.supplies?.food ?? 0) <= 5 && (
+              <div className="aquarium-alert-bar">
+                Low food in {activeTank.name} — {activeTank.supplies?.food ?? 0} left
+                <button className="aquarium-alert-btn" onClick={() => buySupply('food', 10, 10, activeTank.id)}>
+                  Buy food
+                </button>
+              </div>
+            )}
             <div className="sim-aquarium">
               <div className="tank-col">
                 <MemoTankView
@@ -389,7 +431,8 @@ export default function App() {
                   listedFishIds={shop.listedFish || []}
                 />
               </div>
-              <div className="sim-inspector">
+              {selectedFish && (
+              <div className="sim-inspector sim-inspector--open">
                 <MemoFishPanel
                   fish={selectedFish}
                   onFeed={feedFish}
@@ -411,8 +454,20 @@ export default function App() {
                   onNavigate={handleTabChange}
                 />
               </div>
+              )}
             </div>
           </>
+        )}
+
+        {/* ── Compact status bar for non-aquarium sections ── */}
+        {activeSection !== 'aquarium' && (
+          <div className="sim-status-bar">
+            <span className="sim-status-coins">{player.coins?.toLocaleString() || 0} coins</span>
+            <span className="sim-status-sep" />
+            <span className="sim-status-fish">{fish.length} fish</span>
+            <span className="sim-status-sep" />
+            <span className="sim-status-label">{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}</span>
+          </div>
         )}
 
         {/* ── Market section ──────────────────────────── */}
@@ -440,8 +495,8 @@ export default function App() {
             <MemoBreedingLab
               fish={fish}
               breedingTank={breedingTank}
-              extraBays={game.extraBays || []}
-              maxBays={game.maxBays || 1}
+              extraBays={extraBays}
+              maxBays={maxBays}
               onSelectForBreeding={selectForBreeding}
               onCollectEgg={collectEgg}
               onCancelBreeding={cancelBreeding}
@@ -452,7 +507,12 @@ export default function App() {
 
         {/* ── Records section ───────────────────────── */}
         {activeSection === 'records' && (
-          <RecordsSection onNavigate={handleTabChange} />
+          <RecordsSection
+            onNavigate={handleTabChange}
+            generatingLoreFor={generatingLoreFor}
+            aiError={aiError}
+            onGenerateLore={handleGenerateLore}
+          />
         )}
 
         {/* ── Office section ────────────────────────── */}
@@ -461,29 +521,14 @@ export default function App() {
         )}
       </main>
 
-      {/* ── Bottom log strip ──────────────────────────── */}
-      <div className="sim-log">
+      {/* ── Collapsible log tray ─────────────────────── */}
+      <div className={`sim-log ${showLogTray ? 'sim-log--open' : ''}`}>
         <MemoLogPanel log={log} />
       </div>
 
-      <footer className="app-footer">
-        <button className="btn btn-sm" onClick={() => setShowSettings(true)} title="Settings">Settings</button>
-        <button className="btn btn-sm btn-danger" onClick={() => setShowResetConfirm(true)}>Reset</button>
-        <button className="btn btn-sm" onClick={handleExportSave} title="Download save">Export</button>
-        <label className="btn btn-sm" title="Load save" style={{ cursor: 'pointer' }}>
-          Import
-          <input type="file" accept=".json" style={{ display: 'none' }} onChange={e => handleImportSave(e.target.files[0])} />
-        </label>
-        {canPrestige(useGameStore.getState()) && (
-          <button className="btn btn-sm btn-prestige" onClick={performPrestige} title="Reset for permanent bonuses">
-            Prestige
-          </button>
-        )}
-        <button className="btn btn-sm" onClick={() => setShowApiSetup(true)} title="Configure AI key">
-          AI {getApiKey() ? '(on)' : '(off)'}
-        </button>
-        <span className="footer-tip">Auto-saves every 30s</span>
-      </footer>
+      {/* ── Game status bar ───────────────────────────── */}
+      <GameStatusBar paused={paused} onTogglePause={togglePause} showLog={showLogTray} onToggleLog={() => setShowLogTray(v => !v)} />
+
       </div>{/* /sim-main */}
       </div>{/* /sim-shell */}
 
@@ -535,6 +580,34 @@ export default function App() {
         </div>
       )}
 
+      {/* ── Game Menu (Escape) ─────────────────────── */}
+      {showGameMenu && (
+        <div className="game-menu-overlay" onClick={() => setShowGameMenu(false)}>
+          <div className="game-menu" onClick={e => e.stopPropagation()}>
+            <div className="game-menu-title">FISH TYCOON 2</div>
+            <div className="game-menu-version">v0.9.0</div>
+            <div className="game-menu-buttons">
+              <button className="game-menu-btn" onClick={() => { playClick(); setShowGameMenu(false); }}>Resume</button>
+              <button className="game-menu-btn" onClick={() => { playClick(); setShowGameMenu(false); setShowSettings(true); }}>Settings</button>
+              <button className="game-menu-btn" onClick={() => { playClick(); handleExportSave(); }}>Save Game</button>
+              <button className="game-menu-btn" onClick={() => { playClick(); setShowGameMenu(false); setShowCredits(true); }}>Credits</button>
+              <button className="game-menu-btn game-menu-btn--danger" onClick={() => { playClick(); setShowGameMenu(false); setShowResetConfirm(true); }}>Reset</button>
+            </div>
+            <div className="game-menu-hints">
+              <span>ESC — Menu</span>
+              <span>SPACE — Pause</span>
+              <span>1-5 — Sections</span>
+              <span>F — Feed</span>
+              <span>S — Sell</span>
+              <span>A — Feed All</span>
+              <span>M — Medicine</span>
+              <span>L — Log</span>
+              <span>F5 — Save</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
       {showCredits && <Credits onClose={() => setShowCredits(false)} />}
       <Tutorial />
@@ -561,58 +634,6 @@ export default function App() {
   );
 }
 
-// ── Aquarium Overview Panel ───────────────────────────────────
-function AquariumOverview({ tanks, fish, activeTankId, onSelectTank }) {
-  return (
-    <div className="aquarium-overview">
-      <div className="aquarium-overview-title">Aquarium Overview</div>
-      <div className="aquarium-overview-grid">
-        {tanks.map(tank => {
-          const tankFish  = fish.filter(f => f.tankId === tank.id);
-          const sick      = tankFish.filter(f => f.disease).length;
-          const adults    = tankFish.filter(f => f.stage === 'adult').length;
-          const eggs      = tankFish.filter(f => f.stage === 'egg').length;
-          const juveniles = tankFish.filter(f => f.stage === 'juvenile').length;
-          const wq        = Math.round(tank.waterQuality ?? 100);
-          const hap       = Math.round(tank.happiness ?? 100);
-          const wqColor   = wq  > 60 ? '#7ec8a0' : wq  > 30 ? '#f0c040' : '#ff7070';
-          const hapColor  = hap > 60 ? '#7ec8a0' : hap > 30 ? '#f0c040' : '#ff7070';
-          const isActive  = tank.id === activeTankId;
-          return (
-            <div
-              key={tank.id}
-              className={`overview-card ${isActive ? 'overview-card--active' : ''}`}
-              onClick={() => onSelectTank(tank.id)}
-            >
-              <div className="overview-card-name">
-                {tank.name}{sick > 0 && <span className="overview-alert"> {sick} sick</span>}
-              </div>
-              <div className="overview-card-counts">
-                <span title="Adults">{adults} fish</span>
-                {juveniles > 0 && <span title="Juveniles">{juveniles} juv</span>}
-                {eggs > 0 && <span title="Eggs">{eggs} eggs</span>}
-                <span className="overview-capacity">/{tank.capacity}</span>
-              </div>
-              <div className="overview-bars">
-                <div className="overview-bar-row">
-                  <span className="overview-bar-label">WQ</span>
-                  <div className="overview-bar-track"><div className="overview-bar-fill" style={{ width: `${wq}%`, background: wqColor }} /></div>
-                  <span className="overview-bar-val">{wq}%</span>
-                </div>
-                <div className="overview-bar-row">
-                  <span className="overview-bar-label">HP</span>
-                  <div className="overview-bar-track"><div className="overview-bar-fill" style={{ width: `${hap}%`, background: hapColor }} /></div>
-                  <span className="overview-bar-val">{hap}%</span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 // ── API Key Setup Modal ───────────────────────────────────────
 function ApiKeyModal({ onClose }) {
   const [val, setVal]     = useState(getApiKey());
@@ -621,7 +642,7 @@ function ApiKeyModal({ onClose }) {
   return (
     <div className="win-modal-overlay" onClick={onClose}>
       <div className="win-modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
-        <div className="win-modal-title" style={{ fontSize: '1.3rem' }}>🤖 AI Fish Naming</div>
+        <div className="win-modal-title" style={{ fontSize: '1.3rem' }}>AI Fish Naming</div>
         <p style={{ color: 'var(--text-dim)', fontSize: '0.88rem', margin: '8px 0 16px' }}>
           Paste your Anthropic API key to unlock AI-generated fish names and lore.
           Your key is stored only in this browser (localStorage) and never sent anywhere except Anthropic's API.
@@ -659,12 +680,12 @@ function TankTabs({ tanks, activeTankId, onSelectTank, onUnlockTank, canUnlock, 
         const typeInfo = TANK_TYPES[tank.type] || TANK_TYPES.display;
         return (
           <div key={tank.id} className={`tank-tab ${isActive ? 'active' : ''}`} onClick={() => { onSelectTank(tank.id); setEditingId(null); }}>
-            <span className="tank-tab-emoji">{typeInfo.emoji}</span>
+            
             <div className="tank-tab-arc" title={`${count}/${tank.capacity} fish`}>
               <svg width="28" height="28" viewBox="0 0 28 28">
                 <circle cx="14" cy="14" r="10" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="3"/>
                 <circle cx="14" cy="14" r="10" fill="none"
-                  stroke={isActive ? '#d4a830' : pct > 80 ? '#ff5566' : pct > 50 ? '#f5c542' : '#3ddba0'}
+                  stroke={isActive ? 'var(--gold)' : pct > 80 ? 'var(--danger)' : pct > 50 ? '#b0944a' : 'var(--success)'}
                   strokeWidth="3" strokeDasharray={`${(pct / 100) * 62.8} 62.8`} strokeDashoffset="15.7" strokeLinecap="round"
                   style={{ transition: 'stroke-dasharray 0.5s ease' }}
                 />
@@ -679,7 +700,7 @@ function TankTabs({ tanks, activeTankId, onSelectTank, onUnlockTank, canUnlock, 
                 onClick={e => e.stopPropagation()}
               />
             ) : (
-              <span className="tank-tab-name" onDoubleClick={e => { e.stopPropagation(); setEditingId(tank.id); setEditName(tank.name); }} title="Double-click to rename">{tank.name}</span>
+              <span className="tank-tab-name" onDoubleClick={e => { e.stopPropagation(); setEditingId(tank.id); setEditName(tank.name); }}>{tank.name}</span>
             )}
           </div>
         );
@@ -691,7 +712,7 @@ function TankTabs({ tanks, activeTankId, onSelectTank, onUnlockTank, canUnlock, 
           {needsPrestige ? (
             <div className="tank-unlock-locked">Requires Prestige {canUnlock.minPrestige}</div>
           ) : !unlocking ? (
-            <button className="btn btn-sm btn-unlock" onClick={() => setUnlocking(true)}>+ Unlock Tank (🪙{canUnlock.cost})</button>
+            <button className="btn btn-sm btn-unlock" onClick={() => setUnlocking(true)}>+ Unlock Tank ({canUnlock.cost})</button>
           ) : (
             <div className="tank-unlock-picker" onClick={e => e.stopPropagation()}>
               <select className="tank-type-select" value={unlockType} onChange={e => setUnlockType(e.target.value)}>
@@ -713,7 +734,7 @@ function ResetConfirmModal({ onConfirm, onCancel }) {
   return (
     <div className="win-modal-overlay" onClick={onCancel}>
       <div className="win-modal" style={{ maxWidth: 360 }} onClick={e => e.stopPropagation()}>
-        <div className="win-modal-title" style={{ fontSize: '1.3rem' }}>🔄 Reset Game?</div>
+        <div className="win-modal-title" style={{ fontSize: '1.3rem' }}>Reset Game?</div>
         <p style={{ color: 'var(--text-dim)', fontSize: '0.88rem', margin: '8px 0 20px' }}>
           All progress will be permanently lost. This cannot be undone.
         </p>

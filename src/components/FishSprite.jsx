@@ -205,7 +205,7 @@ function EggSprite({ uid, size, aura, isGlow, selected, onClick }) {
 
       {selected && (
         <ellipse cx="30" cy="34" rx="18" ry="22"
-                 fill="none" stroke="#f0c040" strokeWidth="2"
+                 fill="none" stroke="#b0944a" strokeWidth="2"
                  strokeDasharray="5 3" opacity="0.9"
                  style={{ animation: 'shimmer-ring-march 0.9s linear infinite' }}/>
       )}
@@ -333,7 +333,7 @@ function JuvenileSprite({ uid, C, size, aura, isGlow, isSpot, selected, flipped,
 
       {selected && (
         <ellipse cx="36" cy="28" rx="25" ry="19"
-                 fill="none" stroke="#f0c040" strokeWidth="2"
+                 fill="none" stroke="#b0944a" strokeWidth="2"
                  strokeDasharray="5 3" opacity="0.9"
                  style={{ animation: 'shimmer-ring-march 0.9s linear infinite' }}/>
       )}
@@ -727,7 +727,7 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
           ══════════════════════════════════════════════ */}
       {selected && (
         <ellipse cx={cx} cy={cy} rx={rx + 9} ry={ry + 8}
-                 fill="none" stroke="#f0c040" strokeWidth="2.5"
+                 fill="none" stroke="#b0944a" strokeWidth="2.5"
                  strokeDasharray="6 3"
                  opacity="0.92"
                  style={{ animation: 'shimmer-ring-march 0.9s linear infinite' }}/>

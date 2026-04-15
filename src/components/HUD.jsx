@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Tip from './GameTooltip.jsx';
 import { useGameStore } from '../store/gameStore.js';
 import { getLevelFromXp, getLevelTitle } from '../data/levels.js';
 import { upgradeCost } from '../data/constants.js';
@@ -28,10 +29,10 @@ function IncomeRate() {
 
   if (rate <= 0) return null;
   return (
-    <span className="hud2-income-rate" title="Estimated income per minute">
+    <Tip text="Income per minute"><span className="hud2-income-rate">
       
       <span className="hud2-income-val">{rate}/min</span>
-    </span>
+    </span></Tip>
   );
 }
 
@@ -175,10 +176,10 @@ function CoinDisplay({ value }) {
 /* ── Compact stat pill ─────────────────────────────────────── */
 function StatPill({ icon, value, label, color, alert }) {
   return (
-    <div className={`hud2-pill ${alert ? 'hud2-pill--alert' : ''}`} title={label}>
+    <Tip text={label}><div className={`hud2-pill ${alert ? 'hud2-pill--alert' : ''}`}>
       <span className="hud2-pill-icon">{icon}</span>
       <span className="hud2-pill-val" style={color ? { color } : undefined}>{value}</span>
-    </div>
+    </div></Tip>
   );
 }
 
@@ -186,7 +187,7 @@ function StatPill({ icon, value, label, color, alert }) {
 function RepBadge({ rep }) {
   const r    = rep || 0;
   const tier = r < 100 ? 'Local' : r < 300 ? 'Known' : r < 600 ? 'Popular' : 'Famous';
-  const col  = r < 100 ? '#8aa4c8' : r < 300 ? '#6ab0de' : r < 600 ? '#b07ee8' : '#f0c040';
+  const col  = r < 100 ? '#6a7a88' : r < 300 ? '#5a9aaa' : r < 600 ? '#8a70a8' : '#b0944a';
   const next = r < 100 ? 100 : r < 300 ? 300 : r < 600 ? 600 : 999;
   const pct  = Math.min(100, Math.round((r / next) * 100));
   return (
@@ -202,7 +203,7 @@ function RepBadge({ rep }) {
 /* ── Happiness mini-bar ────────────────────────────────────── */
 function HappinessBar({ value }) {
   const v   = Math.max(0, Math.min(100, value ?? 100));
-  const col = v > 70 ? '#3ddba0' : v > 40 ? '#f5c542' : '#ff5566';
+  const col = v > 70 ? '#5aaa70' : v > 40 ? '#b0944a' : '#c44040';
   const em  = v > 70 ? 'Good' : v > 40 ? 'Fair' : 'Low';
   return (
     <div className="hud2-happy" title={`Happiness: ${v}%`}>
@@ -225,7 +226,7 @@ function SaveIndicator() {
     return () => clearTimeout(t);
   }, [flash]);
   if (!visible) return null;
-  return <span className="hud2-save-indicator" title="Game saved">Saved</span>;
+  return <span className="hud2-save-indicator">Saved</span>;
 }
 
 /* ── Urgent Offer Banner ───────────────────────────────────── */
@@ -282,8 +283,8 @@ export default function HUD({
   const tank    = displayTank;
   const wq      = Math.round(tank.waterQuality ?? 100);
   const temp    = tank.temperature ?? 74;
-  const wqCol   = wq  > 70 ? '#3ddba0' : wq  > 40 ? '#f5c542' : '#ff5566';
-  const tempCol = (temp < 68 || temp > 82) ? '#ff5566' : (temp < 71 || temp > 79) ? '#f5c542' : '#3ddba0';
+  const wqCol   = wq  > 70 ? '#5aaa70' : wq  > 40 ? '#b0944a' : '#c44040';
+  const tempCol = (temp < 68 || temp > 82) ? '#c44040' : (temp < 71 || temp > 79) ? '#b0944a' : '#5aaa70';
   const fishCnt = fish ? fish.filter(f => f.tankId === tank.id).length : 0;
   const food    = tank.supplies?.food ?? 0;
   const tempBad = temp < 68 || temp > 82;
@@ -328,7 +329,6 @@ export default function HUD({
             </button>
           </>
         )}
-        <SaveIndicator />
       </div>
 
       {/* ── Row 2: tank stats · weather · quick actions ─────── */}
@@ -380,7 +380,7 @@ export default function HUD({
             className="hud2-btn"
             onClick={onBuyFood}
             disabled={player.coins < 10}
-            title="Buy 10 food"
+            
           >
             + <span className="hud2-btn-label">Food</span>
           </button>

@@ -12,8 +12,8 @@ const SHADOW_LIFETIME = 3500; // ms before shadow swims away
 const SPAWN_INTERVAL = 900; // ms between new shadows
 
 const RARITY_COLORS = {
-  common: '#7ec8a0', uncommon: '#6ab0de', rare: '#b07ee8',
-  epic: '#f0c040', legendary: '#ff7eb3',
+  common: '#5aaa70', uncommon: '#5a9aaa', rare: '#8a70a8',
+  epic: '#b0944a', legendary: '#a06080',
 };
 
 export default function CatchOfDayPanel() {

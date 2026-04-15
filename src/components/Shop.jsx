@@ -6,11 +6,11 @@ import { upgradeCost } from '../data/constants.js';
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import RareMarket from './RareMarket.jsx';
 
-const RC = { common: '#7ec8a0', uncommon: '#6ab0de', rare: '#b07ee8', epic: '#f0c040', legendary: '#ff7eb3' };
+const RC = { common: '#5aaa70', uncommon: '#5a9aaa', rare: '#8a70a8', epic: '#b0944a', legendary: '#a06080' };
 
 // ── Storefront customer SVG ────────────────────────────────
 function CustomerFigure({ emoji, name, fishName, coins, rarity }) {
-  const rc = RC[rarity] || '#7ec8a0';
+  const rc = RC[rarity] || '#5aaa70';
   return (
     <div className="customer-walk">
       <div className="customer-figure">
@@ -56,15 +56,15 @@ function StorefrontSVG({ activeCustomer }) {
                 fill="none" stroke="#2a70c0" strokeWidth="2"/>
         ))}
         {/* Sign */}
-        <rect x="180" y="4" width="240" height="28" rx="6" fill="#0a1828" stroke="#d4a830" strokeWidth="1.5"/>
-        <text x="300" y="22" textAnchor="middle" fill="#d4a830" fontSize="13"
+        <rect x="180" y="4" width="240" height="28" rx="6" fill="#0a0e14" stroke="#d4a843" strokeWidth="1.5"/>
+        <text x="300" y="22" textAnchor="middle" fill="#d4a843" fontSize="13"
               fontFamily="Cinzel, serif" fontWeight="600">Aquarium Shop</text>
         {/* Windows */}
-        <rect x="30"  y="55" width="80" height="35" rx="4" fill="#0e3060" stroke="#2a5090" strokeWidth="1"/>
-        <rect x="490" y="55" width="80" height="35" rx="4" fill="#0e3060" stroke="#2a5090" strokeWidth="1"/>
+        <rect x="30"  y="55" width="80" height="35" rx="4" fill="#141820" stroke="#2a3540" strokeWidth="1"/>
+        <rect x="490" y="55" width="80" height="35" rx="4" fill="#141820" stroke="#2a3540" strokeWidth="1"/>
         {/* Door */}
-        <rect x="250" y="58" width="100" height="32" rx="3" fill="#0c2448" stroke="#2a5090" strokeWidth="1"/>
-        <circle cx="345" cy="74" r="3" fill="#d4a830"/>
+        <rect x="250" y="58" width="100" height="32" rx="3" fill="#0c1420" stroke="#2a3540" strokeWidth="1"/>
+        <circle cx="345" cy="74" r="3" fill="#d4a843"/>
         {/* Fish in windows */}
       </svg>
 
@@ -311,7 +311,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
           <div className="market-ticker-tags">
             {Object.entries(game.market.modifiers || {}).map(([rarity, mult]) => {
               const pct = Math.round((mult - 1) * 100);
-              const color = pct > 0 ? '#7ec8a0' : pct < 0 ? '#ff7070' : '#888';
+              const color = pct > 0 ? '#5aaa70' : pct < 0 ? '#c44040' : '#888';
               return (
                 <span key={rarity} className="market-tag" style={{ color }}>
                   {rarity}: {pct > 0 ? '+' : ''}{pct}%

@@ -9,8 +9,8 @@ import FishSprite from './FishSprite.jsx';
 const RARITY_COLORS = {
   common:    '#aabbcc',
   uncommon:  '#66ccff',
-  rare:      '#b07ee8',
-  epic:      '#ffcc33',
+  rare:      '#8a70a8',
+  epic:      '#d4a843',
   legendary: '#ff66aa',
 };
 

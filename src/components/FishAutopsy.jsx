@@ -98,7 +98,7 @@ function AutopsyCard({ record }) {
           </div>
           <div className="autopsy-detail-row">
             <span className="autopsy-detail-label">Water Quality:</span>
-            <span style={{ color: record.waterQuality < 30 ? '#ff6040' : '#7ec8a0' }}>
+            <span style={{ color: record.waterQuality < 30 ? '#ff6040' : '#5aaa70' }}>
               {record.waterQuality}%
             </span>
           </div>

@@ -21,19 +21,34 @@ const VIEWS = [
 
 export default function OfficeSection() {
   const [view, setView] = useState('contracts');
-  const game = useGameStore(s => s.game);
-  const player = useGameStore(s => s.player);
-  const tanks = useGameStore(s => s.tanks);
-  const activeTankId = tanks?.[0]?.id;
-  const activeTank = tanks?.find(t => t.id === activeTankId) || tanks?.[0];
-  const dailyChallenges = useGameStore(s => s.dailyChallenges || []);
 
-  const buyDecoration = useGameStore(s => s.buyDecoration);
-  const placeDecoration = useGameStore(s => s.placeDecoration);
-  const removeDecoration = useGameStore(s => s.removeDecoration);
-  const claimUnlockedDecoration = useGameStore(s => s.claimUnlockedDecoration);
-  const buyTheme = useGameStore(s => s.buyTheme);
-  const applyTheme = useGameStore(s => s.applyTheme);
+  // Bug 2 fix: subscribe to individual fields, not s.game
+  const player = useGameStore(s => s.player);
+  const fish   = useGameStore(s => s.fish);
+  const tanks  = useGameStore(s => s.tanks);
+  const shop   = useGameStore(s => s.shop);
+  const activeTank = tanks?.[0]; // Decor always targets first tank for simplicity
+
+  // Bug 4 fix: dailyChallenges is { day, challenges: [] } — extract the array
+  const dailyChallenges = useGameStore(s => s.dailyChallenges?.challenges || []);
+
+  // Bug 3 fix: wrap callbacks to provide tankId
+  const _buyDecoration = useGameStore(s => s.buyDecoration);
+  const _placeDecoration = useGameStore(s => s.placeDecoration);
+  const _removeDecoration = useGameStore(s => s.removeDecoration);
+  const _claimUnlockedDecoration = useGameStore(s => s.claimUnlockedDecoration);
+  const _buyTheme = useGameStore(s => s.buyTheme);
+  const _applyTheme = useGameStore(s => s.applyTheme);
+
+  const handleBuyDecor = (decorId) => _buyDecoration(decorId, activeTank?.id);
+  const handlePlaceDecor = (decorId) => _placeDecoration(decorId, activeTank?.id);
+  const handleRemoveDecor = (decorId) => _removeDecoration(decorId, activeTank?.id);
+  const handleClaimDecor = (decorId) => _claimUnlockedDecoration?.(decorId);
+  const handleBuyTheme = (themeId) => _buyTheme(themeId, activeTank?.id);
+  const handleApplyTheme = (themeId) => _applyTheme(themeId, activeTank?.id);
+
+  // Build game-like object for DecorationPanel (it expects game.player, game.fish, etc)
+  const game = { player, fish, tanks, shop };
 
   return (
     <div className="sim-section">
@@ -61,13 +76,13 @@ export default function OfficeSection() {
           <MemoDecorationPanel
             game={game}
             activeTank={activeTank}
-            onBuyDecor={buyDecoration}
-            onPlaceDecor={placeDecoration}
-            onRemoveDecor={removeDecoration}
+            onBuyDecor={handleBuyDecor}
+            onPlaceDecor={handlePlaceDecor}
+            onRemoveDecor={handleRemoveDecor}
             unlockedDecorations={player.unlockedDecorations || []}
-            onClaimUnlockedDecor={claimUnlockedDecoration}
-            onBuyTheme={buyTheme}
-            onApplyTheme={applyTheme}
+            onClaimUnlockedDecor={handleClaimDecor}
+            onBuyTheme={handleBuyTheme}
+            onApplyTheme={handleApplyTheme}
           />
         )}
         {view === 'autopsy' && (
@@ -78,11 +93,16 @@ export default function OfficeSection() {
   );
 }
 
-// ── Daily Challenges (moved here from App.jsx) ────────────
+// ── Daily Challenges ──────────────────────────────────────
 function DailyChallengesPanel({ dailyChallenges, streak = 0 }) {
   const claimDailyReward = useGameStore(s => s.claimDailyReward);
   const player = useGameStore(s => s.player);
+
   if (!dailyChallenges || dailyChallenges.length === 0) return null;
+
+  // Bug 5 fix: use toDateString() to match store format
+  const today = new Date().toDateString();
+  const canClaim = !player.lastDailyClaimDate || player.lastDailyClaimDate !== today;
 
   return (
     <div className="daily-challenges-panel">
@@ -94,24 +114,24 @@ function DailyChallengesPanel({ dailyChallenges, streak = 0 }) {
       )}
       <div className="challenge-list">
         {dailyChallenges.map((c, i) => {
-          const done = c.progress >= c.target;
+          const done = c.progress >= (c.goal || c.target);
           return (
             <div key={i} className={`challenge-card ${done ? 'challenge-card--done' : ''}`}>
               <div className="challenge-desc">{c.desc}</div>
               <div className="challenge-progress">
                 <div className="challenge-bar">
-                  <div className="challenge-bar-fill" style={{ width: `${Math.min(100, (c.progress / c.target) * 100)}%` }} />
+                  <div className="challenge-bar-fill" style={{ width: `${Math.min(100, (c.progress / (c.goal || c.target || 1)) * 100)}%` }} />
                 </div>
-                <span className="challenge-count">{c.progress}/{c.target}</span>
+                <span className="challenge-count">{c.progress}/{c.goal || c.target}</span>
               </div>
               {done && <span className="challenge-reward">+{c.reward}</span>}
             </div>
           );
         })}
       </div>
-      {!player.lastDailyClaimDate || player.lastDailyClaimDate !== new Date().toISOString().slice(0, 10) ? (
+      {canClaim && (
         <button className="btn btn-sm" onClick={claimDailyReward}>Claim Daily Reward</button>
-      ) : null}
+      )}
     </div>
   );
 }

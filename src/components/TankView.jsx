@@ -926,8 +926,8 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
                     <div className="fish-tooltip-bar">
                       <div className="fish-tooltip-fill" style={{
                         width: `${healthPct}%`,
-                        background: healthPct > 60 ? '#3ddba0' : healthPct > 30 ? '#f5c542' : '#ff5566',
-                        color: healthPct < 30 ? '#ff5566' : 'transparent',
+                        background: healthPct > 60 ? '#5aaa70' : healthPct > 30 ? '#b0944a' : '#c44040',
+                        color: healthPct < 30 ? '#c44040' : 'transparent',
                         boxShadow: healthPct < 30 ? '0 0 6px currentColor' : 'none',
                         animation: healthPct < 30 ? 'bar-critical-pulse 1.1s ease-in-out infinite' : 'none',
                       }}/>

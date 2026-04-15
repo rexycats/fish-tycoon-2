@@ -7,10 +7,10 @@ import React, { useState } from 'react';
 import { MAGIC_FISH } from '../data/genetics.js';
 
 const RARITY_COLORS = {
-  uncommon:  '#6ab0de',
-  rare:      '#b07ee8',
-  epic:      '#f0c040',
-  legendary: '#ff7eb3',
+  uncommon:  '#5a9aaa',
+  rare:      '#8a70a8',
+  epic:      '#b0944a',
+  legendary: '#a06080',
 };
 
 // Silhouette SVG matching the fish's body shape

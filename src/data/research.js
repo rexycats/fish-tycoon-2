@@ -22,7 +22,7 @@ export const RESEARCH_BRANCHES = {
     ],
   },
   business: {
-    id: 'business', label: 'Business', emoji: '', color: '#f0c040',
+    id: 'business', label: 'Business', emoji: '', color: '#b0944a',
     tiers: [
       { cost: 250,  label: 'Marketing 101',         effect: { customerSpeed: 0.9 },    desc: '-10% time between customers' },
       { cost: 600,  label: 'Premium Pricing',        effect: { saleBonus: 1.1 },        desc: '+10% sale prices' },

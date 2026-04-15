@@ -6,8 +6,8 @@ import { buildChromacode, purityTier } from '../data/geneAnalysis.js';
 
 const PURITY_STYLES = {
   1: { label: 'Mixed',     color: '#708090', glow: false },
-  2: { label: 'Refined',   color: '#6ab0de', glow: false },
-  3: { label: 'Pure',      color: '#b07ee8', glow: true  },
+  2: { label: 'Refined',   color: '#5a9aaa', glow: false },
+  3: { label: 'Pure',      color: '#8a70a8', glow: true  },
   4: { label: 'Perfected', color: '#ffd700', glow: true  },
 };
 

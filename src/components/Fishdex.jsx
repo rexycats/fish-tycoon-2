@@ -9,7 +9,7 @@ import FishSprite from './FishSprite.jsx';
 // ── Fish silhouette ────────────────────────────────────────
 function FishSilhouette({ bodyShape, primaryColor, glow, rarity, size = 48 }) {
   const colors = {
-    Crimson: ['#e84040', '#ff7070'], Gold: ['#e8a020', '#ffd060'],
+    Crimson: ['#e84040', '#c44040'], Gold: ['#e8a020', '#ffd060'],
     Violet: ['#9040e8', '#c070ff'], Azure: ['#2080e8', '#60b0ff'],
     Emerald: ['#20a840', '#50d870'], White: ['#c0d0e0', '#eef4ff'],
   };

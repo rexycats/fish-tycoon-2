@@ -75,7 +75,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
   const disease = fish.disease ? DISEASES[fish.disease] : null;
   const healthPct = Math.round(fish.health);
   const satietyPct = Math.max(0, 100 - Math.round(fish.hunger));
-  const healthColor = disease ? '#ff4455' : healthPct > 70 ? '#3ddba0' : healthPct > 40 ? '#f5c542' : '#ff6055';
+  const healthColor = disease ? '#ff4455' : healthPct > 70 ? '#5aaa70' : healthPct > 40 ? '#b0944a' : '#ff6055';
   const satietyColor = satietyPct > 70 ? '#5db8e8' : satietyPct > 40 ? '#f5a742' : '#ff6055';
   const hasGenetics = fish.genome && fish.phenotype && fish.species?.visualType !== 'species';
   const isLegendary = fish.species?.rarity === 'legendary';

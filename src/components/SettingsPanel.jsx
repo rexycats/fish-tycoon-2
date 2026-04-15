@@ -53,19 +53,44 @@ export default function SettingsPanel({ onClose }) {
             <kbd>A</kbd> Feed all &nbsp;
             <kbd>S</kbd> Toggle sell &nbsp;
             <kbd>M</kbd> Use medicine &nbsp;
-            <kbd>Space</kbd> Pause ticks &nbsp;
-            <kbd>Tab</kbd> Next tab &nbsp;
-            <kbd>Esc</kbd> Close panels
+            <kbd>Space</kbd> Pause &nbsp;
+            <kbd>1-5</kbd> Navigate &nbsp;
+            <kbd>Tab</kbd> Next section &nbsp;
+            <kbd>Esc</kbd> Close
           </div>
         </div>
 
         {typeof window !== 'undefined' && window.electronAPI && (
           <div className="settings-section">
             <button className="btn btn-sm" onClick={() => document.documentElement.requestFullscreen?.()}>
-              🖥️ Toggle Fullscreen
+              Toggle Fullscreen
             </button>
           </div>
         )}
+
+        <div className="settings-section">
+          <div className="settings-section-title">Save Management</div>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            <button className="btn btn-sm" onClick={() => {
+              const s = useGameStore.getState();
+              const blob = new Blob([JSON.stringify(s)], { type: 'application/json' });
+              const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+              a.download = `fish-tycoon-save-${new Date().toISOString().slice(0,10)}.json`; a.click();
+            }}>Export Save</button>
+            <label className="btn btn-sm" style={{ cursor: 'pointer' }}>
+              Import Save
+              <input type="file" accept=".json" style={{ display: 'none' }} onChange={e => {
+                const file = e.target.files[0]; if (!file) return;
+                const reader = new FileReader();
+                reader.onload = ev => { try { useGameStore.getState().importSave(ev.target.result); } catch {} };
+                reader.readAsText(file);
+              }} />
+            </label>
+            <button className="btn btn-sm btn-danger" onClick={() => {
+              if (confirm('Reset all progress? This cannot be undone.')) useGameStore.getState().resetGame();
+            }}>Reset Game</button>
+          </div>
+        </div>
 
         <div className="settings-footer">
           <button className="btn btn-sm btn-primary" onClick={onClose}>Done</button>

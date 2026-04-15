@@ -437,7 +437,7 @@ export const DECOR_CATALOG = [
       <rect x="${x-20*s}" y="${y-4*s}" width="${8*s}" height="${6*s}" rx="${1*s}" fill="#162850"/>
       <rect x="${x+12*s}" y="${y-4*s}" width="${8*s}" height="${6*s}" rx="${1*s}" fill="#162850"/>
       <!-- star emblem -->
-      <text x="${x}" y="${y-22*s}" text-anchor="middle" font-size="${22*s}" style="filter:drop-shadow(0 0 5px #f0c040)">★</text>
+      <text x="${x}" y="${y-22*s}" text-anchor="middle" font-size="${22*s}" style="filter:drop-shadow(0 0 5px #b0944a)">★</text>
       <!-- crown finials -->
       ${[-20,0,20].map((dx,i)=>`<path d="M${x+dx*s},${y-50*s} L${x+dx*s},${y-62*s} L${x+(dx+6)*s},${y-56*s} L${x+(dx+12)*s},${y-62*s} L${x+(dx+12)*s},${y-50*s}" fill="${['#c8901c','#e0b030','#c8901c'][i]}" stroke="#a07010" stroke-width="${s}"/>`).join('')}
       <!-- gold trim -->
