@@ -234,6 +234,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   };
 
   // ── Feed splash trigger (listen for food changes) ──────
+  const wq = waterQuality;  // declared early — used by prevWqRef and waterBg memo
   const prevFoodRef = useRef(tank?.supplies?.food ?? 0);
   useEffect(() => {
     const food = tank?.supplies?.food ?? 0;
@@ -447,7 +448,6 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   // wq must be declared at component scope — it is used both in the waterBg memo
   // and directly in JSX (dirty-water overlay). Scoping it inside useMemo would make
   // it invisible to the render return, causing a ReferenceError when wq < 40.
-  const wq = waterQuality;
   const waterBg = useMemo(() => {
     // Custom background from tankBackgrounds system
     if (tank?.backgroundId) {
