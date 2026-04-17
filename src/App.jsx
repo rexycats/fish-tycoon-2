@@ -32,8 +32,8 @@ import EquipmentPanel from './components/EquipmentPanel.jsx';
 import Mentor from './components/Mentor.jsx';
 // import { useGamepad } from './hooks/useGamepad.js';
 import NavRail, { NAV_TO_TABS } from './components/NavRail.jsx';
-const RecordsSection = lazy(() => import('./components/RecordsSection.jsx'));
-const OfficeSection = lazy(() => import('./components/OfficeSection.jsx'));
+import RecordsSection from './components/RecordsSection.jsx';
+import OfficeSection from './components/OfficeSection.jsx';
 import GameStatusBar from './components/GameStatusBar.jsx';
 import { TUTORIAL_STEPS } from './data/tutorial.js';
 

@@ -43,10 +43,10 @@ export default class ErrorBoundary extends React.Component {
           >
             Refresh
           </button>
-          <details style={{ marginTop: '2rem', opacity: 0.3, fontSize: '0.7rem', maxWidth: 500 }}>
+          <details style={{ marginTop: '2rem', opacity: 0.5, fontSize: '0.75rem', maxWidth: 600 }}>
             <summary>Technical details</summary>
-            <pre style={{ textAlign: 'left', whiteSpace: 'pre-wrap' }}>
-              {this.state.error?.toString()}
+            <pre style={{ textAlign: 'left', whiteSpace: 'pre-wrap', color: '#ff8888', background: '#111', padding: '12px', borderRadius: '4px', maxHeight: '300px', overflow: 'auto' }}>
+              {this.state.error?.stack || this.state.error?.toString()}
             </pre>
           </details>
         </div>
