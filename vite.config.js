@@ -8,5 +8,10 @@ export default defineConfig({
   base: isElectron ? './' : '/fish-tycoon-2/',
   build: {
     minify: false,
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
   },
 })

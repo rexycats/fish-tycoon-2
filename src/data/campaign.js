@@ -1,6 +1,7 @@
 // ============================================================
 // FISH TYCOON 2 — CAMPAIGN LEVELS
 // ============================================================
+import { getLevelFromXp } from './levels.js';
 
 export const CAMPAIGN_LEVELS = [
   {
@@ -60,7 +61,7 @@ export const CAMPAIGN_LEVELS = [
       { id: 'start_breed', label: 'Start a breeding pair',    type: 'stat', key: 'breedingsStarted', target: 1 },
       { id: 'collect_egg', label: 'Collect a breeding egg',   type: 'stat', key: 'eggsCollected',     target: 1 },
       { id: 'hatch_egg',   label: 'Hatch an egg',             type: 'stat', key: 'eggsHatched',       target: 1 },
-      { id: 'discover_3',  label: 'Discover 3 new species',   type: 'fishdex', target: 5 },
+      { id: 'discover_3',  label: 'Discover 5 new species',   type: 'fishdex', target: 5 },
       { id: 'own_8',       label: 'Own 8 fish at once',       type: 'fishCount', target: 8 },
     ],
 
@@ -197,7 +198,7 @@ export function checkObjective(obj, state) {
     case 'fishCount':
       return (state.fish || []).length >= obj.target;
     case 'playerLevel':
-      return (state.player?.level || 1) >= obj.target;
+      return getLevelFromXp(state.player?.xp || 0).level >= obj.target;
     case 'hasRarity': {
       const rarities = obj.rarity || [];
       return (state.fish || []).some(f => rarities.includes(f.species?.rarity));
@@ -221,7 +222,7 @@ export function getObjectiveProgress(obj, state) {
     case 'fishCount':
       return { current: (state.fish || []).length, target: obj.target };
     case 'playerLevel':
-      return { current: state.player?.level || 1, target: obj.target };
+      return { current: getLevelFromXp(state.player?.xp || 0).level, target: obj.target };
     case 'hasRarity': {
       const has = (state.fish || []).some(f => (obj.rarity || []).includes(f.species?.rarity));
       return { current: has ? 1 : 0, target: 1 };
@@ -238,12 +239,12 @@ export function getStarRating(level, state) {
   let stars = 1;
   if (level.stars[2]) {
     const s2 = level.stars[2];
-    if (s2.stat && (state.player?.stats?.[s2.stat] || 0) >= s2.target) stars = 2;
+    if (s2.stat && (state.player?.[s2.stat] || state.player?.stats?.[s2.stat] || 0) >= s2.target) stars = 2;
     if (s2.type === 'fishdex' && (state.player?.fishdex || []).length >= s2.target) stars = 2;
   }
   if (level.stars[3] && stars >= 2) {
     const s3 = level.stars[3];
-    if (s3.stat && (state.player?.stats?.[s3.stat] || 0) >= s3.target) stars = 3;
+    if (s3.stat && (state.player?.[s3.stat] || state.player?.stats?.[s3.stat] || 0) >= s3.target) stars = 3;
     if (s3.type === 'fishdex' && (state.player?.fishdex || []).length >= s3.target) stars = 3;
     if (s3.type === 'hasRarity' && (state.fish || []).some(f => (s3.rarity || []).includes(f.species?.rarity))) stars = 3;
   }

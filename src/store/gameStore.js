@@ -1472,7 +1472,7 @@ export const useGameStore = create(
           ).length;
           const totalEarned = (state.shop.salesHistory || [])
             .filter(s => s.fishName === fish.species?.name)
-            .reduce((sum, s) => sum + (s.price || 0), 0);
+            .reduce((sum, s) => sum + (s.coins || 0), 0);
           state.memorials.unshift({
             id: fish.id,
             name: fish.nickname || fish.species?.name || 'Unknown',

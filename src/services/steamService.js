@@ -31,8 +31,8 @@ const STEAM_ACHIEVEMENT_MAP = {
   magic_3:        'ACH_HALFWAY_THERE',
   magic_7:        'ACH_LEGEND_OF_THE_DEEP',
   // New system achievements
-  staff_hired:    'ACH_FIRST_HIRE',
-  research_done:  'ACH_SCHOLAR',
+  hire_staff:     'ACH_FIRST_HIRE',
+  full_research:  'ACH_SCHOLAR',
   prestige_1:     'ACH_PRESTIGE',
   campaign_1:     'ACH_CAMPAIGN_START',
   campaign_5:     'ACH_CAMPAIGN_MASTER',

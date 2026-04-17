@@ -525,6 +525,92 @@ function migrateSave(parsed, fromVersion) {
   return parsed;
 }
 
+// ── Normalization: runs on EVERY load (even same-version saves) ─
+// Ensures all fields exist even if save was created before a feature was added
+function normalizeSave(parsed) {
+  if (!parsed) return parsed;
+
+  // Player
+  if (!parsed.player) parsed.player = {};
+  if (!parsed.player.stats) parsed.player.stats = {};
+  parsed.player.stats.fishBought ??= 0;
+  parsed.player.stats.fishListed ??= 0;
+  parsed.player.stats.breedingsStarted ??= 0;
+  parsed.player.stats.eggsHatched ??= 0;
+  parsed.player.stats.wantedFulfilled ??= 0;
+  parsed.player.stats.fishDied ??= 0;
+  parsed.player.stats.fishSold ??= 0;
+  parsed.player.stats.fishFed ??= 0;
+  parsed.player.stats.eggsCollected ??= 0;
+  parsed.player.stats.medicineUsed ??= 0;
+  parsed.player.stats.waterTreated ??= 0;
+  if (!parsed.player.fishdex) parsed.player.fishdex = [];
+  if (!parsed.player.achievements) parsed.player.achievements = [];
+  if (!parsed.player.autopsies) parsed.player.autopsies = [];
+  if (!parsed.player.tutorialFlags) parsed.player.tutorialFlags = {};
+  if (!parsed.player.mentorFlags) parsed.player.mentorFlags = {};
+  if (!parsed.player.repMilestones) parsed.player.repMilestones = {};
+  if (!parsed.player.research) parsed.player.research = { marine_biology: 0, genetics: 0, business: 0 };
+  parsed.player.coins ??= 0;
+  parsed.player.xp ??= 0;
+  parsed.player.totalCoinsEarned ??= 0;
+  parsed.player.prestigeLevel ??= 0;
+
+  // Campaign
+  if (!parsed.campaign) {
+    parsed.campaign = { mode: 'sandbox', activeLevelId: null, completedLevels: {}, levelCompleted: false };
+  }
+  if (!parsed.campaign.completedLevels) parsed.campaign.completedLevels = {};
+  parsed.campaign.activeLevelId ??= null;
+  parsed.campaign.levelCompleted ??= false;
+  parsed.campaign.mode ??= 'sandbox';
+
+  // Shop
+  if (!parsed.shop) parsed.shop = { listedFish: [], fishPrices: {}, slots: 4, upgrades: {}, lastCustomerAt: 0, reputation: 0 };
+  if (!parsed.shop.salesHistory) parsed.shop.salesHistory = [];
+  if (!parsed.shop.upgrades) parsed.shop.upgrades = {};
+  parsed.shop.reputation ??= 0;
+
+  // Tanks
+  if (!parsed.tanks) parsed.tanks = [];
+  for (const t of parsed.tanks) {
+    if (!t.equipment) t.equipment = [];
+    if (!t.supplies) t.supplies = {};
+    if (!t.decorations) t.decorations = { placed: [] };
+    t.size ??= 'medium';
+    t.capacity ??= 12;
+    t.waterQuality ??= 100;
+    t.temperature ??= 74;
+    t.happiness ??= 100;
+  }
+
+  // Fish
+  if (!parsed.fish) parsed.fish = [];
+
+  // Breeding
+  if (!parsed.breedingTank) {
+    parsed.breedingTank = { slots: [null, null], eggReady: false, breedingStartedAt: null, breedingDurationMs: 300000 };
+  }
+
+  // Subsystems
+  if (!parsed.staff) parsed.staff = [];
+  if (!parsed.notifications) parsed.notifications = [];
+  if (!parsed.suppliers) parsed.suppliers = { unlocked: ['basic'], activeSupplier: 'basic' };
+  if (!parsed.unlockedRooms) parsed.unlockedRooms = ['lobby'];
+  if (!parsed.roomAssignments) parsed.roomAssignments = {};
+  if (!parsed.giftShop) parsed.giftShop = { unlocked: false, level: 0, totalEarned: 0 };
+  if (!parsed.cafe) parsed.cafe = { unlocked: false, level: 0, totalEarned: 0 };
+  if (!parsed.statsHistory) parsed.statsHistory = [];
+  if (!parsed.reviews) parsed.reviews = [];
+  if (!parsed.log) parsed.log = [];
+  parsed.gameClock ??= Date.now();
+  parsed.gameSpeed ??= 1;
+  parsed.lastSnapshotAt ??= 0;
+  parsed.lastWageDay ??= 0;
+
+  return parsed;
+}
+
 // ── Platform detection ──────────────────────────────────
 const isElectron = () => typeof window !== 'undefined' && window.electronAPI?.isElectron;
 
@@ -602,9 +688,9 @@ export function loadGame() {
     const fromVersion = parsed.version ?? 0;
     if (fromVersion !== SAVE_VERSION) {
       console.warn(`Migrating save from v${fromVersion} → v${SAVE_VERSION}`);
-      return migrateSave(parsed, fromVersion);
+      return normalizeSave(migrateSave(parsed, fromVersion));
     }
-    return parsed;
+    return normalizeSave(parsed);
   } catch (e) { console.error('Load failed:', e); return null; }
 }
 
@@ -617,7 +703,7 @@ export async function loadGameAsync() {
         const parsed = result.data;
         if (parsed?.player && Array.isArray(parsed?.fish)) {
           const fromVersion = parsed.version ?? 0;
-          return fromVersion !== SAVE_VERSION ? migrateSave(parsed, fromVersion) : parsed;
+          return normalizeSave(fromVersion !== SAVE_VERSION ? migrateSave(parsed, fromVersion) : parsed);
         }
       }
     }
@@ -663,7 +749,7 @@ export async function importSave(fileOrNull) {
       throw new Error('Invalid save file — missing required fields.');
     }
     const fromVersion = parsed.version ?? 0;
-    return fromVersion !== SAVE_VERSION ? migrateSave(parsed, fromVersion) : parsed;
+    return normalizeSave(fromVersion !== SAVE_VERSION ? migrateSave(parsed, fromVersion) : parsed);
   }
 
   // Web: read from File object
@@ -676,7 +762,7 @@ export async function importSave(fileOrNull) {
           return reject(new Error('Invalid save file — missing required fields.'));
         }
         const fromVersion = parsed.version ?? 0;
-        const migrated = fromVersion !== SAVE_VERSION ? migrateSave(parsed, fromVersion) : parsed;
+        const migrated = normalizeSave(fromVersion !== SAVE_VERSION ? migrateSave(parsed, fromVersion) : parsed);
         resolve(migrated);
       } catch {
         reject(new Error('Could not parse save file — is it a valid JSON export?'));
