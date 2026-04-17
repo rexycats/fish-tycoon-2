@@ -39,6 +39,7 @@ import { createStaffMember, getStaffWage, getTrainCost, getHireCost, getMaxStaff
 import { RESEARCH_BRANCHES, getResearchEffects } from '../data/research.js';
 import { TANK_SIZES, getNextTankSize } from '../data/tankSizes.js';
 import { EQUIPMENT_TYPES, createEquipment } from '../data/equipment.js';
+import { ROOMS } from '../data/rooms.js';
 import { LOAN_TIERS } from '../data/loans.js';
 import { TANK_BACKGROUNDS } from '../data/tankBackgrounds.js';
 import { MILESTONES } from '../data/milestones.js';
@@ -993,6 +994,8 @@ export const useGameStore = create(
             cafe: { unlocked: false, level: 0, totalEarned: 0 },
             notifications: [],
             suppliers: { unlocked: ['basic'], activeSupplier: 'basic' },
+            unlockedRooms: ['lobby'],
+            roomAssignments: {},
           };
           set(state => { Object.assign(state, newState); });
         },
@@ -1224,6 +1227,50 @@ export const useGameStore = create(
           playCoin();
           const names = { giftShop: 'Gift Shop', cafe: 'Café' };
           addLogDraft(state, `${names[amenityId]} upgraded to level ${amenity.level + 1}!`);
+        }),
+
+        // ── Rooms ────────────────────────────────────────────
+        unlockRoom: (roomId) => set(state => {
+          const room = ROOMS.find(r => r.id === roomId);
+          if (!room) return;
+          if ((state.unlockedRooms || []).includes(roomId)) {
+            fireToast('Room already unlocked!', 'alert', '');
+            return;
+          }
+          if (room.minRep && (state.shop?.reputation || 0) < room.minRep) {
+            fireToast(`Requires ${room.minRep} reputation.`, 'alert', '');
+            return;
+          }
+          if (room.minPrestige && (state.player?.prestigeLevel || 0) < room.minPrestige) {
+            fireToast(`Requires Prestige ${room.minPrestige}.`, 'alert', '');
+            return;
+          }
+          if (state.player.coins < room.cost) {
+            playWarning();
+            addLogDraft(state, 'Not enough coins!');
+            return;
+          }
+          state.player.coins -= room.cost;
+          if (!state.unlockedRooms) state.unlockedRooms = ['lobby'];
+          state.unlockedRooms.push(roomId);
+          playCoin();
+          addLogDraft(state, `Unlocked ${room.label}!`);
+          fireToast(`${room.label} is now open!`, 'success', '');
+        }),
+
+        assignTankToRoom: (tankId, roomId) => set(state => {
+          if (!state.roomAssignments) state.roomAssignments = {};
+          const room = ROOMS.find(r => r.id === roomId);
+          if (!room) return;
+          if (!(state.unlockedRooms || []).includes(roomId)) return;
+          // Check room capacity
+          const tanksInRoom = (state.tanks || []).filter(t => (state.roomAssignments[t.id] || 'lobby') === roomId).length;
+          if (state.roomAssignments[tankId] !== roomId && tanksInRoom >= room.maxTanks) {
+            fireToast(`${room.label} is full (${room.maxTanks} tanks max).`, 'alert', '');
+            return;
+          }
+          state.roomAssignments[tankId] = roomId;
+          addLogDraft(state, `Moved tank to ${room.label}.`);
         }),
 
         // ── Notifications ───────────────────────────────────

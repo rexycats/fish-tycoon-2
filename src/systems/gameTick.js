@@ -17,6 +17,8 @@ import { STAFF_ROLES, getStaffWage } from '../data/staff.js';
 import { getResearchEffects } from '../data/research.js';
 import { getActiveEvent as getSeasonalEvent } from '../data/seasonal.js';
 import { getEquipmentEffects, EQUIPMENT_TYPES } from '../data/equipment.js';
+import { computeVisitorFlow, computeVisitorSatisfaction } from './visitors.js';
+import { getRoomBonus } from '../data/rooms.js';
 const _getCampaignLevel = (id) => CAMPAIGN_LEVELS.find(l => l.id === id) || null;
 
 export const TICK_INTERVAL_MS = 1000;
@@ -374,7 +376,7 @@ function maybeSpreadDisease(tankFish, wq, capacity, now) {
 }
 
 // ── Process one tank's fish for one tick ───────────────────
-function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, playerBoosts = {}, upgradeLevels = {}, diff = {}, researchFx = {}) {
+function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, playerBoosts = {}, upgradeLevels = {}, diff = {}, researchFx = {}, roomBonus = {}) {
   const bonuses  = getTankBonuses(tank.type);
 
   // Active boost multipliers (boosts store expiry timestamps)
@@ -415,7 +417,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
     // Vitamin immunity
     if (fish.vitaminUntil && fish.vitaminUntil > now) return fish;
     // Hardy personality resistance
-    let chance = DISEASE_BASE_CHANCE * (diff.diseaseMult || 1) * (researchFx.diseaseResist || 1) * (eqFx.diseaseResist || 1);
+    let chance = DISEASE_BASE_CHANCE * (diff.diseaseMult || 1) * (researchFx.diseaseResist || 1) * (eqFx.diseaseResist || 1) * (roomBonus.diseaseResist || 1);
     if (fish.personality === 'hardy') chance *= 0.4;
     if (wq < 30) chance *= DISEASE_WATER_MULT;
     if (tankFish.length / (tank.capacity || 12) > 0.8) chance *= DISEASE_CROWD_MULT;
@@ -541,6 +543,8 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
       }
     }
     happiness = Math.max(0, happiness - compatPenalty);
+    // Room happiness bonus (e.g. Tropical Wing +15%)
+    if (roomBonus.happinessMult) happiness = Math.min(100, Math.round(happiness * roomBonus.happinessMult));
   }
 
   // Equipment breakdown check
@@ -778,7 +782,8 @@ export function processTick(state) {
 
   for (const tank of next.tanks) {
     const tankFishList = fishByTank.get(tank.id) || [];
-    const { updatedTank, updatedTankFish } = processOneTank(tank, tankFishList, messages, now, hatcheryLevel, next.player?.boosts, upgradeLevels, diff, researchFx);
+    const roomBonus = getRoomBonus(next, tank.id);
+    const { updatedTank, updatedTankFish } = processOneTank(tank, tankFishList, messages, now, hatcheryLevel, next.player?.boosts, upgradeLevels, diff, researchFx, roomBonus);
     updatedTanks.push(updatedTank);
     allUpdatedFish.push(...updatedTankFish);
   }
@@ -1083,6 +1088,16 @@ export function processTick(state) {
         };
       }
     }
+
+    // ── Visitor simulation ────────────────────────────────
+    const visitorFlow = computeVisitorFlow(next);
+    const visitorSatisfaction = computeVisitorSatisfaction(next);
+    next = { ...next, visitors: {
+      current: visitorFlow.currentVisitors,
+      perMin: visitorFlow.visitorsPerMin,
+      satisfaction: visitorSatisfaction,
+      totalToday: (next.visitors?.totalToday || 0) + visitorFlow.currentVisitors,
+    }};
 
     // Auto-Medic: per-minute chance to cure sick fish
     const autoMedicLevel = upgradeLevels.autoMedic || 0;
@@ -1578,6 +1593,7 @@ function processCustomerVisit(state, messages) {
 
   const salePriceBoost = (state.player?.boosts?.salePrice || 0) > now ? 1.25 : 1.0;
   const researchSaleBonus = getResearchEffects(state).saleBonus || 1;
+  const roomSaleBonus = getRoomBonus(state, fish.tankId).saleMult || 1;
   const streakMult = getStreakMultiplier(state.player?.dailyStreak || 0);
 
   // Urgent offer multiplier
@@ -1594,7 +1610,7 @@ function processCustomerVisit(state, messages) {
   const jackpot = checkJackpot(totalSales);
   const jackpotMult = jackpot ? jackpot.multiplier : 1;
 
-  const earnedCoins = Math.max(1, Math.round(finalPrice * salePriceBoost * researchSaleBonus * streakMult * urgentMult * jackpotMult));
+  const earnedCoins = Math.max(1, Math.round(finalPrice * salePriceBoost * researchSaleBonus * roomSaleBonus * streakMult * urgentMult * jackpotMult));
   if (jackpot) messages.push(`${jackpot.label} ${jackpotMult}× payout on this sale! ${earnedCoins}`);
   if (urgentMult > 1) messages.push(`Urgent buyer paid ${urgentMult}× premium!`);
   const repGain     = Math.ceil((fish.species?.rarityScore ?? 5) / 10) + (askPrice > autoPrice ? 1 : 0);

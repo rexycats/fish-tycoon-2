@@ -164,6 +164,63 @@ export function playWarning() {
 // ── Ambient Music (procedural underwater soundscape) ───────
 const SCALE = [261.6, 293.7, 329.6, 392.0, 440.0, 523.3]; // C pentatonic
 
+// Chord progression for ambient pads (Cmaj7 → Am7 → Fmaj7 → G)
+const CHORD_PROGRESSION = [
+  [130.8, 164.8, 196.0, 246.9],  // Cmaj7
+  [110.0, 130.8, 164.8, 196.0],  // Am7
+  [87.3,  110.0, 130.8, 164.8],  // Fmaj7
+  [98.0,  123.5, 146.8, 174.6],  // G
+];
+let _chordIndex = 0;
+
+function schedulePadChord(c, dest) {
+  if (!_musicPlaying) return;
+  const chord = CHORD_PROGRESSION[_chordIndex % CHORD_PROGRESSION.length];
+  _chordIndex++;
+  const now = c.currentTime;
+  for (const freq of chord) {
+    const o = c.createOscillator();
+    const g = c.createGain();
+    const filt = c.createBiquadFilter();
+    o.type = 'sine';
+    o.frequency.value = freq;
+    filt.type = 'lowpass';
+    filt.frequency.setValueAtTime(300, now);
+    filt.frequency.linearRampToValueAtTime(600, now + 4);
+    filt.frequency.linearRampToValueAtTime(200, now + 8);
+    o.connect(filt);
+    filt.connect(g);
+    g.connect(dest);
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(0.012, now + 2);
+    g.gain.setValueAtTime(0.012, now + 6);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 9);
+    o.start(now);
+    o.stop(now + 9);
+  }
+  // Next chord in 8-12 seconds
+  setTimeout(() => schedulePadChord(c, dest), 8000 + Math.random() * 4000);
+}
+
+function scheduleShimmer(c, dest) {
+  if (!_musicPlaying) return;
+  // High sparkle notes - like light through water
+  const shimmerFreqs = [1047, 1175, 1319, 1568, 1760];
+  const freq = shimmerFreqs[Math.floor(Math.random() * shimmerFreqs.length)];
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = 'sine';
+  o.frequency.value = freq;
+  o.connect(g);
+  g.connect(dest);
+  const now = c.currentTime;
+  g.gain.setValueAtTime(0, now);
+  g.gain.linearRampToValueAtTime(0.006, now + 0.1);
+  g.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+  o.start(now);
+  o.stop(now + 1.5);
+  setTimeout(() => scheduleShimmer(c, dest), 5000 + Math.random() * 10000);
+}
+
 function createDroneLayer(c, freq, dest) {
   const o = c.createOscillator(), g = c.createGain();
   o.type = 'sine'; o.frequency.value = freq;
@@ -207,6 +264,10 @@ export function startMusic() {
   // Start melodic notes
   scheduleNote(c, dest);
   setTimeout(() => scheduleNote(c, dest), 2000);
+  // Ambient pad chords
+  setTimeout(() => schedulePadChord(c, dest), 3000);
+  // High shimmer sparkles
+  setTimeout(() => scheduleShimmer(c, dest), 6000);
   // Ambient underwater noise — filtered white noise
   startAmbientNoise(c, dest);
   // Ambient bubble pops

@@ -9,6 +9,7 @@ import DecorationPanel from './DecorationPanel.jsx';
 import FishAutopsyPanel from './FishAutopsy.jsx';
 import StaffPanel from './StaffPanel.jsx';
 import ResearchPanel from './ResearchPanel.jsx';
+import RoomPanel from './RoomPanel.jsx';
 import TabErrorBoundary from './TabErrorBoundary.jsx';
 import { useGameStore } from '../store/gameStore.js';
 
@@ -19,6 +20,7 @@ const VIEWS = [
   { id: 'contracts', label: 'Contracts' },
   { id: 'staff',     label: 'Staff' },
   { id: 'research',  label: 'Research' },
+  { id: 'rooms',     label: 'Rooms' },
   { id: 'decor',     label: 'Decor' },
   { id: 'autopsy',   label: 'Autopsy' },
 ];
@@ -94,6 +96,9 @@ export default function OfficeSection() {
         )}
         {view === 'research' && (
           <ResearchPanel />
+        )}
+        {view === 'rooms' && (
+          <RoomPanel />
         )}
         {view === 'autopsy' && (
           <MemoFishAutopsy autopsies={player.autopsies || []} />

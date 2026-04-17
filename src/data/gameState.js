@@ -6,7 +6,7 @@ import { createFish } from './genetics.js';
 import { getDefaultDecorations, getDefaultThemes } from './decorations.js';
 
 const SAVE_KEY     = 'fishtycoon2_save';
-const SAVE_VERSION = 13;
+const SAVE_VERSION = 14;
 
 // ── Tank types / purposes ──────────────────────────────────
 export const TANK_TYPES = {
@@ -50,6 +50,14 @@ export const ACHIEVEMENT_DEFS = [
   { id: 'magic_1',         label: 'First Wonder',      desc: 'Discover the first Magic Fish',      emoji: '', secret: false, tier: 'rare'   },
   { id: 'magic_3',         label: 'Halfway There',     desc: 'Discover 3 of the 7 Magic Fish',     emoji: '', secret: false, tier: 'rare'   },
   { id: 'magic_7',         label: 'Legend of the Deep',desc: 'Discover all 7 Magic Fish',          emoji: '', secret: true,  tier: 'secret' },
+  { id: 'hire_staff',      label: 'Boss Mode',         desc: 'Hire your first staff member',        emoji: '', secret: false, tier: 'common' },
+  { id: 'full_research',   label: 'Scholar',           desc: 'Complete an entire research branch',  emoji: '', secret: false, tier: 'rare'   },
+  { id: 'equip_all',       label: 'Fully Equipped',    desc: 'Install 4 different equipment types',emoji: '', secret: false, tier: 'rare'   },
+  { id: 'five_star',       label: 'Five Stars',        desc: 'Receive a 5-star review',             emoji: '', secret: false, tier: 'common' },
+  { id: 'unlock_room',     label: 'Room to Grow',      desc: 'Unlock a second aquarium room',       emoji: '', secret: false, tier: 'common' },
+  { id: 'rep_100',         label: 'Famous Aquarium',   desc: 'Reach 100 reputation',                emoji: '', secret: false, tier: 'rare'   },
+  { id: 'supplier_all',    label: 'Connected',         desc: 'Unlock all 5 suppliers',              emoji: '', secret: true,  tier: 'secret' },
+  { id: 'species_50',      label: 'Completionist',     desc: 'Discover 50 different species',       emoji: '', secret: true,  tier: 'secret' },
 ];
 
 // ── Default tank factory ───────────────────────────────────
@@ -105,6 +113,8 @@ export function createDefaultState() {
     cafe: { unlocked: false, level: 0, totalEarned: 0 },
     notifications: [],
     suppliers: { unlocked: ['basic'], activeSupplier: 'basic' },
+    unlockedRooms: ['lobby'],
+    roomAssignments: {},
     campaign: {
       mode: 'sandbox',
       activeLevelId: null,
@@ -504,6 +514,13 @@ function migrateSave(parsed, fromVersion) {
     }
   }
 
+  // v13 → v14: Rooms, visitors
+  if (fromVersion < 14) {
+    parsed.unlockedRooms = parsed.unlockedRooms || ['lobby'];
+    parsed.roomAssignments = parsed.roomAssignments || {};
+    parsed.visitors = parsed.visitors || { current: 0, perMin: 0, satisfaction: 50, totalToday: 0 };
+  }
+
   parsed.version = SAVE_VERSION;
   return parsed;
 }
@@ -764,9 +781,18 @@ export function checkAchievements(state, messages) {
   const upgrades = shop.upgrades || {};
   if (Object.values(upgrades).some(u => u.level >= (u.maxLevel || 3))) award('upgrade_max');
 
-  // survived_night is checked every tick in processTick (gameTick.js), not here,
-  // because checkAchievements only fires on event triggers and would miss the
-  // nightly window entirely if no other achievement fires between 11pm–6am.
+  // New feature achievements
+  if ((state.staff || []).length >= 1) award('hire_staff');
+  const research = player.research || {};
+  if (Object.values(research).some(v => v >= 4)) award('full_research');
+  const allEqTypes = new Set();
+  for (const t of tanks) { for (const eq of (t.equipment || [])) allEqTypes.add(eq.typeId); }
+  if (allEqTypes.size >= 4) award('equip_all');
+  if ((state.reviews || []).some(r => r.stars >= 5)) award('five_star');
+  if ((state.unlockedRooms || []).length >= 2) award('unlock_room');
+  if ((shop.reputation || 0) >= 100) award('rep_100');
+  if ((state.suppliers?.unlocked || []).length >= 5) award('supplier_all');
+  if (fishdex.length >= 50) award('species_50');
 
   if (newAchievements.length === 0) return state;
   return {
