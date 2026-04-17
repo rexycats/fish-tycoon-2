@@ -373,7 +373,7 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
 
   // ── Adult geometry — distinct shapes per body type ──────
   const W     = isGiant ? size * 1.35 : size;
-  const H     = isGiant ? size * 0.85 : size * 0.65;
+  const _h     = isGiant ? size * 0.85 : size * 0.65;
   const shape = phenotype.bodyShape;
   const isRound = shape === 'Round' || shape === 'Orb';
   const fin   = phenotype.finType;
@@ -419,7 +419,7 @@ function FishSprite({ fish, size = 60, flipped = false, selected = false, onClic
   const isPlain  = pattern === 'Plain';
 
   return (
-    <svg width={W} height={H} viewBox="0 0 100 60" onClick={onClick}
+    <svg width={W} height={_h} viewBox="0 0 100 60" onClick={onClick}
       style={{
         cursor: onClick ? 'pointer' : 'default',
         transform: flipped ? 'scaleX(-1)' : 'none',

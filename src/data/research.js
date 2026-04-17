@@ -32,11 +32,11 @@ export const RESEARCH_BRANCHES = {
   },
 };
 
-function getResearchLevel(state, branchId) {
+export function getResearchLevel(state, branchId) {
   return state.player?.research?.[branchId] || 0;
 }
 
-function getNextResearch(branchId, level) {
+export function getNextResearch(branchId, level) {
   const branch = RESEARCH_BRANCHES[branchId];
   if (!branch || level >= branch.tiers.length) return null;
   return branch.tiers[level];
@@ -68,4 +68,3 @@ export function getResearchEffects(state) {
   return effects;
 }
 
-export { getResearchLevel, getNextResearch };

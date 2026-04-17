@@ -45,7 +45,7 @@ function ClownfishSprite({
   const variantKey = fish?.colorVariant || 'default';
 
   const W = size;
-  const H = size * 0.68;
+  const _h = size * 0.68;
 
   // ── Juvenile: only 1 white bar (head bar), smaller body ──
   const isJuvenile = stage === 'juvenile';
@@ -87,7 +87,7 @@ function ClownfishSprite({
 
   return (
     <svg
-      width={W} height={H}
+      width={W} height={_h}
       viewBox="0 0 100 68"
       onClick={onClick}
       style={{

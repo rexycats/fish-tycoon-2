@@ -7,6 +7,6 @@ export default defineConfig({
   plugins: [react()],
   base: isElectron ? './' : '/fish-tycoon-2/',
   build: {
-    minify: 'terser',
+    minify: false,
   },
 })

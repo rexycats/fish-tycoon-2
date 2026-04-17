@@ -151,11 +151,11 @@ function GoldfishSprite({
   const ts          = isJuvenile ? 0.60 : 1.00;  // tail scale
 
   const W = size;
-  const H = size * 0.80;   // goldfish is deeper-bodied than most
+  const _h = size * 0.80;   // goldfish is deeper-bodied than most
 
   return (
     <svg
-      width={W} height={H}
+      width={W} height={_h}
       viewBox="0 0 100 80"
       onClick={onClick}
       style={{

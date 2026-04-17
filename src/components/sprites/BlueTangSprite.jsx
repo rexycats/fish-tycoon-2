@@ -57,7 +57,7 @@ function BlueTangSprite({
   })();
 
   const W = size;
-  const H = size * 0.72;
+  const _h = size * 0.72;
 
   // ── Egg: small blue oval ──────────────────────────────────
   if (stage === 'egg') {
@@ -89,7 +89,7 @@ function BlueTangSprite({
 
   return (
     <svg
-      width={W} height={H}
+      width={W} height={_h}
       viewBox="0 0 100 72"
       onClick={onClick}
       style={{

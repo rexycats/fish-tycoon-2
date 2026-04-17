@@ -66,7 +66,7 @@ function BettaSprite({
 
   // Betta is wider than tall — viewBox 110 × 80, body takes ~60% of height
   const W = size;
-  const H = size * 0.73;
+  const _h = size * 0.73;
 
   // ── Egg: small deep-red oval with teal tint ───────────────
   if (stage === 'egg') {
@@ -108,7 +108,7 @@ function BettaSprite({
 
   return (
     <svg
-      width={W} height={H}
+      width={W} height={_h}
       viewBox="0 0 110 80"
       onClick={onClick}
       style={{

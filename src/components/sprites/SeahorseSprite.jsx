@@ -15,7 +15,7 @@ function SeahorseSprite({ fish, size = 60, flipped = false, selected = false, on
   const aura = RARITY_AURA[rarity];
   const variant = fish?.colorVariant || 'default';
   const W = size * 0.6;
-  const H = size;
+  const _h = size;
 
   const variantStyle = variant === 'yellow' ? { filter: 'hue-rotate(60deg) saturate(1.2)' }
     : variant === 'purple' ? { filter: 'hue-rotate(-40deg) saturate(1.3)' }
@@ -23,7 +23,7 @@ function SeahorseSprite({ fish, size = 60, flipped = false, selected = false, on
     : {};
 
   return (
-    <svg width={W} height={H} viewBox="0 0 50 85" onClick={onClick}
+    <svg width={W} height={_h} viewBox="0 0 50 85" onClick={onClick}
       style={{ cursor: onClick ? 'pointer' : 'default', transform: flipped ? 'scaleX(-1)' : 'none', overflow: 'visible', ...variantStyle }}>
       <defs>
         <filter id={`shsh-${uid}`} x="-30%" y="-15%" width="160%" height="140%">

@@ -198,11 +198,11 @@ function MandarinDragonetSprite({
   const ds           = isJuvenile ? 0.55 : 1.00;  // dorsal scale
 
   const W = size;
-  const H = size * 0.72;
+  const _h = size * 0.72;
 
   return (
     <svg
-      width={W} height={H}
+      width={W} height={_h}
       viewBox="0 0 100 72"
       onClick={onClick}
       style={{

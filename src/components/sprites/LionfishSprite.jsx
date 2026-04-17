@@ -15,7 +15,7 @@ function LionfishSprite({ fish, size = 60, flipped = false, selected = false, on
   const aura = RARITY_AURA[rarity];
   const variant = fish?.colorVariant || 'default';
   const W = size;
-  const H = size * 0.85;
+  const _h = size * 0.85;
 
   const variantStyle = variant === 'black' ? { filter: 'saturate(0.5) brightness(0.6)' }
     : variant === 'golden' ? { filter: 'hue-rotate(30deg) saturate(1.3) brightness(1.1)' }
@@ -34,7 +34,7 @@ function LionfishSprite({ fish, size = 60, flipped = false, selected = false, on
   }
 
   return (
-    <svg width={W} height={H} viewBox="0 0 90 76" onClick={onClick}
+    <svg width={W} height={_h} viewBox="0 0 90 76" onClick={onClick}
       style={{ cursor: onClick ? 'pointer' : 'default', transform: flipped ? 'scaleX(-1)' : 'none', overflow: 'visible', ...variantStyle }}>
       <defs>
         <filter id={`lfsh-${uid}`} x="-25%" y="-25%" width="150%" height="160%">

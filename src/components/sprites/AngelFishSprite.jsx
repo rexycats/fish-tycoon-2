@@ -67,9 +67,9 @@ function AngelFishSprite({
   // Angelfish viewBox: 90 wide × 120 tall — taller than wide.
   // Extra 10px headroom (5 top, 5 bottom) prevents dorsal/anal filament tips
   // from sitting exactly on the viewBox edge and getting subpixel-clipped.
-  // W/H ratio reflects that — fish appears tall and narrow.
+  // W/_h ratio reflects that — fish appears tall and narrow.
   const W = size * 0.82;
-  const H = size * 1.20;
+  const _h = size * 1.20;
 
   // ── Egg: small silver oval with faint gold glint ──────────
   if (stage === 'egg') {
@@ -114,7 +114,7 @@ function AngelFishSprite({
 
   return (
     <svg
-      width={W} height={H}
+      width={W} height={_h}
       viewBox="0 0 90 120"
       onClick={onClick}
       style={{
