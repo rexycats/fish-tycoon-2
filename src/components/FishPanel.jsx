@@ -25,6 +25,11 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
     }
   }, [fish?.id]);
 
+  const market = useGameStore(s => s.market);
+  const gameClock = useGameStore(s => s.gameClock);
+  const hasBredBefore = useGameStore(s => (s.player?.stats?.eggsCollected || 0) > 0);
+  const hasMutationSeen = useGameStore(s => (s.player?.fishdex || []).some(e => e.phenotype?.mutation && e.phenotype.mutation !== 'None'));
+
   if (!fish) {
     return (
       <div className="fish-panel fish-panel--empty">
@@ -58,11 +63,6 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
   if (!fish.species) return <div className="fish-panel"><p>Fish data missing</p></div>;
   const rarity = RARITY[fish.species?.rarity] || { label: 'Unknown', color: '#888', priceMultiplier: 1 };
   const fishCompat = getCompat(fish);
-  const market = useGameStore(s => s.market);
-  const gameClock = useGameStore(s => s.gameClock);
-  // Progressive disclosure — hide advanced sections until player has context
-  const hasBredBefore = useGameStore(s => (s.player?.stats?.eggsCollected || 0) > 0);
-  const hasMutationSeen = useGameStore(s => (s.player?.fishdex || []).some(e => e.phenotype?.mutation && e.phenotype.mutation !== 'None'));
   const marketMult = getMarketMultiplier(fish, market);
   const basePrice = Math.round((fish.species?.basePrice || 100) * ((fish.health || 100) / 100));
   const salePrice = Math.round(basePrice * marketMult);

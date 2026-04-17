@@ -12,22 +12,24 @@ import { RARITY } from '../data/genetics.js';
 import Chromacode from './Chromacode.jsx';
 
 export default function BreedingForecast({ fishA, fishB }) {
-  if (!fishA?.genome || !fishB?.genome) return null;
+  const hasGenomes = fishA?.genome && fishB?.genome;
 
   const forecast = useMemo(
-    () => perGeneBreedingForecast(fishA.genome, fishB.genome),
-    [fishA.id, fishB.id]
+    () => hasGenomes ? perGeneBreedingForecast(fishA.genome, fishB.genome) : [],
+    [fishA?.id, fishB?.id, hasGenomes]
   );
 
   const rarityForecast = useMemo(
-    () => breedingRarityForecast(fishA.genome, fishB.genome),
-    [fishA.id, fishB.id]
+    () => hasGenomes ? breedingRarityForecast(fishA.genome, fishB.genome) : {},
+    [fishA?.id, fishB?.id, hasGenomes]
   );
 
   const carriers = useMemo(
-    () => findSharedCarriers(fishA.genome, fishB.genome),
-    [fishA.id, fishB.id]
+    () => hasGenomes ? findSharedCarriers(fishA.genome, fishB.genome) : [],
+    [fishA?.id, fishB?.id, hasGenomes]
   );
+
+  if (!hasGenomes) return null;
 
   const purityA = purityTier(fishA.genome);
   const purityB = purityTier(fishB.genome);
