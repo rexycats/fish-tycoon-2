@@ -241,6 +241,7 @@ export function getStarRating(level, state) {
     const s2 = level.stars[2];
     if (s2.stat && (state.player?.[s2.stat] || state.player?.stats?.[s2.stat] || 0) >= s2.target) stars = 2;
     if (s2.type === 'fishdex' && (state.player?.fishdex || []).length >= s2.target) stars = 2;
+    if (s2.type === 'hasRarity' && (state.fish || []).some(f => (s2.rarity || []).includes(f.species?.rarity))) stars = 2;
   }
   if (level.stars[3] && stars >= 2) {
     const s3 = level.stars[3];
