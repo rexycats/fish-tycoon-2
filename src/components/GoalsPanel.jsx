@@ -255,7 +255,7 @@ export default function GoalsPanel() {
 
           {reviews.length > 0 && (
             <>
-              <div className="goals-section-title" style={{marginTop:'1rem'}}>📰 Latest Reviews</div>
+              <div className="goals-section-title" style={{marginTop:'1rem'}}>Latest Reviews</div>
               {reviews.slice(0, 5).map((r, i) => (
                 <div key={i} className="goals-review">
                   <span className="goals-review-stars">{'★'.repeat(r.stars)}</span>

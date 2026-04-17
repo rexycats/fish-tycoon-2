@@ -9,8 +9,9 @@ export default function WantedBoard() {
   const posters = useGameStore(s => s.wantedPosters || []);
   const fish = useGameStore(s => s.fish);
   const fulfillWanted = useGameStore(s => s.fulfillWanted);
+  const gameClock = useGameStore(s => s.gameClock || Date.now());
 
-  const activePosters = posters.filter(p => !p.fulfilled && p.expiresAt > Date.now());
+  const activePosters = posters.filter(p => !p.fulfilled && p.expiresAt > gameClock);
 
   if (activePosters.length === 0) {
     return (
@@ -27,7 +28,7 @@ export default function WantedBoard() {
       <div className="wanted-posters">
         {activePosters.map(poster => {
           const matchingFish = fish.filter(f => fishMatchesPoster(f, poster));
-          const hoursLeft = Math.max(0, Math.ceil((poster.expiresAt - Date.now()) / 3600000));
+          const hoursLeft = Math.max(0, Math.ceil((poster.expiresAt - gameClock) / 3600000));
           const urgent = hoursLeft <= 1;
           return (
             <div key={poster.id} className={`wanted-poster ${urgent ? 'wanted-poster--urgent' : ''}`}>

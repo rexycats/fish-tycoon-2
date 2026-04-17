@@ -24,7 +24,7 @@ export default function SettingsPanel({ onClose }) {
   return (
     <div className="win-modal-overlay" onClick={onClose}>
       <div className="settings-modal" onClick={e => e.stopPropagation()}>
-        <div className="settings-title">⚙️ Settings</div>
+        <div className="settings-title">Settings</div>
 
         <div className="settings-section">
           <div className="settings-section-title">Audio</div>
@@ -38,6 +38,11 @@ export default function SettingsPanel({ onClose }) {
           <SettingsToggle label="Water Distortion" value={distortion} onChange={v => updateSetting('distortion', v)} hint="SVG ripple effect (disable for performance)" />
           <SettingsToggle label="Particles & Plankton" value={particles} onChange={v => updateSetting('particles', v)} hint="Floating particles and plankton dots" />
           <SettingsToggle label="Reduced Motion" value={reducedMotion} onChange={v => updateSetting('reducedMotion', v)} hint="Disable most animations" />
+        </div>
+
+        <div className="settings-section">
+          <div className="settings-section-title">Difficulty</div>
+          <SettingsDifficulty />
         </div>
 
         <div className="settings-section">
@@ -121,6 +126,32 @@ function SettingsToggle({ label, value, onChange, hint }) {
       <button className={`settings-toggle ${value ? 'on' : 'off'}`} onClick={() => onChange(!value)}>
         {value ? 'ON' : 'OFF'}
       </button>
+    </div>
+  );
+}
+
+function SettingsDifficulty() {
+  const difficulty = useGameStore(s => s.difficulty || 'normal');
+  const isCampaign = useGameStore(s => s.campaign?.mode === 'campaign');
+  const presets = [
+    { id: 'easy',   label: 'EASY',   desc: '+50% coins, less disease, slower hunger' },
+    { id: 'normal', label: 'NORMAL', desc: 'Balanced experience' },
+    { id: 'hard',   label: 'HARD',   desc: '-40% coins, more disease, faster decay' },
+  ];
+  return (
+    <div className="settings-difficulty">
+      {presets.map(p => (
+        <button
+          key={p.id}
+          className={`settings-diff-btn ${difficulty === p.id ? 'settings-diff-btn--active' : ''}`}
+          onClick={() => useGameStore.setState({ difficulty: p.id })}
+          disabled={isCampaign}
+        >
+          <span className="settings-diff-label">{p.label}</span>
+          <span className="settings-diff-desc">{p.desc}</span>
+        </button>
+      ))}
+      {isCampaign && <div className="settings-diff-note">Difficulty is locked during campaign levels.</div>}
     </div>
   );
 }

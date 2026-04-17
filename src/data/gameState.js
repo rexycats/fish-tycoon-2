@@ -6,7 +6,7 @@ import { createFish } from './genetics.js';
 import { getDefaultDecorations, getDefaultThemes } from './decorations.js';
 
 const SAVE_KEY     = 'fishtycoon2_save';
-const SAVE_VERSION = 8;
+const SAVE_VERSION = 13;
 
 // ── Tank types / purposes ──────────────────────────────────
 export const TANK_TYPES = {
@@ -58,6 +58,7 @@ export function createDefaultTank(id, type = 'display') {
   return {
     id,
     type,
+    size: 'medium',
     name: tankTypeDef.label,
     capacity: 12,
     waterQuality: 100,
@@ -92,6 +93,23 @@ export function createDefaultState() {
     version: SAVE_VERSION,
     lastSavedAt: Date.now(),
     lastTickAt: Date.now(),
+    gameClock: Date.now(),
+    gameSpeed: 1,
+    difficulty: 'normal',
+    staff: [],
+    lastWageDay: 0,
+    statsHistory: [],
+    lastSnapshotAt: 0,
+    giftShop: { unlocked: false, level: 0, totalEarned: 0 },
+    cafe: { unlocked: false, level: 0, totalEarned: 0 },
+    notifications: [],
+    suppliers: { unlocked: ['basic'], activeSupplier: 'basic' },
+    campaign: {
+      mode: 'sandbox',
+      activeLevelId: null,
+      completedLevels: {},
+      levelCompleted: false,
+    },
     offlineSummary: null,
 
     player: {
@@ -110,7 +128,7 @@ export function createDefaultState() {
       fishdex: [],
       achievements: [],
       magicFishFound: [],   // array of magic fish IDs found
-      stats: { eggsCollected: 0, totalFishBred: 0, medicineUsed: 0, waterTreated: 0 },
+      stats: { eggsCollected: 0, totalFishBred: 0, medicineUsed: 0, waterTreated: 0, fishBought: 0, fishListed: 0, breedingsStarted: 0, eggsHatched: 0, wantedFulfilled: 0, fishDied: 0, fishSold: 0, fishFed: 0 },
       autopsies: [],        // post-mortem records
       boosts: {},           // active booster flags, e.g. { rarityBoost: 1, luckyCharm: 1 }
       unlockedDecorations: [], // decoration IDs granted by achievements (not purchasable)
@@ -427,6 +445,58 @@ function migrateSave(parsed, fromVersion) {
   if (parsed.reviews?.length > 10) parsed.reviews.length = 10;
   if (parsed.player?.autopsies?.length > 100) parsed.player.autopsies.length = 100;
   if (parsed.player?.fishdex?.length > 500) parsed.player.fishdex.length = 500;
+
+  // v8 → v9: Game clock + speed controls
+  if (fromVersion < 9) {
+    parsed.gameClock = parsed.gameClock || parsed.lastTickAt || Date.now();
+    parsed.gameSpeed = parsed.gameSpeed || 1;
+  }
+
+  // v9 → v10: Campaign mode
+  if (fromVersion < 10) {
+    parsed.campaign = parsed.campaign || {
+      mode: 'sandbox',
+      activeLevelId: null,
+      completedLevels: {},
+      levelCompleted: false,
+    };
+    // Ensure stats exist for campaign tracking
+    if (parsed.player?.stats) {
+      parsed.player.stats.fishBought = parsed.player.stats.fishBought || 0;
+      parsed.player.stats.fishListed = parsed.player.stats.fishListed || 0;
+      parsed.player.stats.breedingsStarted = parsed.player.stats.breedingsStarted || 0;
+      parsed.player.stats.eggsHatched = parsed.player.stats.eggsHatched || 0;
+      parsed.player.stats.wantedFulfilled = parsed.player.stats.wantedFulfilled || 0;
+      parsed.player.stats.fishDied = parsed.player.stats.fishDied || 0;
+      parsed.difficulty = parsed.difficulty || 'normal';
+    }
+  }
+
+  // v10 → v11: Staff system + stats history
+  if (fromVersion < 11) {
+    parsed.staff = parsed.staff || [];
+    parsed.lastWageDay = parsed.lastWageDay || 0;
+    parsed.statsHistory = parsed.statsHistory || [];
+    parsed.lastSnapshotAt = parsed.lastSnapshotAt || 0;
+  }
+
+  // v11 → v12: Tank sizes + Gift shop/Café
+  if (fromVersion < 12) {
+    if (parsed.tanks) {
+      for (const t of parsed.tanks) {
+        if (!t.size) t.size = 'medium';
+      }
+    }
+    parsed.giftShop = parsed.giftShop || { unlocked: false, level: 0, totalEarned: 0 };
+    parsed.cafe = parsed.cafe || { unlocked: false, level: 0, totalEarned: 0 };
+  }
+
+  // v12 → v13: Notifications, suppliers, repMilestones
+  if (fromVersion < 13) {
+    parsed.notifications = parsed.notifications || [];
+    parsed.suppliers = parsed.suppliers || { unlocked: ['basic'], activeSupplier: 'basic' };
+    if (parsed.player) parsed.player.repMilestones = parsed.player.repMilestones || {};
+  }
 
   parsed.version = SAVE_VERSION;
   return parsed;

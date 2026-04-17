@@ -167,7 +167,7 @@ function DecorShopCard({ decor, owned, coins, onBuy, onSelectPlace, isSelected }
               className={`btn btn-sm ${isSelected ? 'btn-warn' : 'btn-place'}`}
               onClick={e => { e.stopPropagation(); onSelectPlace(isSelected ? null : decor.id); }}
             >
-              {isSelected ? '✕ Cancel' : '📍 Place'}
+              {isSelected ? '✕ Cancel' : 'Place'}
             </button>
           )}
         </div>
@@ -186,7 +186,7 @@ function PlacedItemRow({ item, onRemove }) {
       <span className="placed-item-name">{decor.label}</span>
       <span className="placed-item-pos">({Math.round(item.x)}, {Math.round(item.y)})</span>
       <button className="btn btn-sm btn-warn" onClick={() => onRemove(item.instanceId)}>
-        🗑 Remove
+        Remove
       </button>
     </div>
   );
@@ -360,7 +360,7 @@ function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveD
       {subTab === 'placed' && (
         <div className="placed-items-list">
           {placed.length === 0 ? (
-            <p className="decor-empty">No decorations placed yet. Buy some and click 📍 Place!</p>
+            <p className="decor-empty">No decorations placed yet. Buy some and click Place!</p>
           ) : (
             placed.map(item => (
               <PlacedItemRow
@@ -401,7 +401,7 @@ function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveD
                             className="btn btn-sm btn-place"
                             onClick={() => handleSelectPlace(decor.id)}
                           >
-                            {selectedDecorType === decor.id ? '✕ Cancel' : '📍 Place'}
+                            {selectedDecorType === decor.id ? '✕ Cancel' : 'Place'}
                           </button>
                         ) : (
                           <button

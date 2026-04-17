@@ -2,13 +2,14 @@
 // DISCOVERY CEREMONY — Theatrical reveal for new species
 // ============================================================
 import React, { useState, useEffect, useRef } from 'react';
+import FishSprite from './FishSprite.jsx';
 
 const RARITY_CONFIG = {
-  common:    { bg: 'discovery-bg--common',    stars: '★',       color: '#8899aa' },
-  uncommon:  { bg: 'discovery-bg--uncommon',  stars: '★★',      color: '#44cc88' },
-  rare:      { bg: 'discovery-bg--rare',      stars: '★★★',     color: '#6688ff' },
-  epic:      { bg: 'discovery-bg--epic',      stars: '★★★★',    color: '#cc66ff' },
-  legendary: { bg: 'discovery-bg--legendary', stars: '★★★★★',   color: '#ffaa33' },
+  common:    { bg: 'discovery-bg--common',    stars: '★',       color: '#6a7a88' },
+  uncommon:  { bg: 'discovery-bg--uncommon',  stars: '★★',      color: '#5aaa70' },
+  rare:      { bg: 'discovery-bg--rare',      stars: '★★★',     color: '#5a8aaa' },
+  epic:      { bg: 'discovery-bg--epic',      stars: '★★★★',    color: '#8a70a8' },
+  legendary: { bg: 'discovery-bg--legendary', stars: '★★★★★',   color: '#d4a843' },
 };
 
 export default function DiscoveryCeremony({ species, onDismiss }) {
@@ -45,7 +46,7 @@ export default function DiscoveryCeremony({ species, onDismiss }) {
                 '--cx': `${10 + Math.random() * 80}%`,
                 '--cd': `${0.5 + Math.random() * 1.5}s`,
                 '--cr': `${Math.random() * 360}deg`,
-                '--cc': ['#ff4466', '#44bbff', '#ffcc33', '#44ff88', '#cc66ff', '#ff8844'][i % 6],
+                '--cc': ['#c44040', '#5a9aaa', '#d4a843', '#5aaa70', '#8a70a8', '#b07848'][i % 6],
               }}
             />
           ))}
@@ -54,6 +55,19 @@ export default function DiscoveryCeremony({ species, onDismiss }) {
 
       <div className="discovery-card">
         <div className="discovery-banner">NEW SPECIES!</div>
+        <div className="discovery-fish-display">
+          <FishSprite
+            fish={{
+              id: 'discovery-preview',
+              stage: 'adult',
+              species: { name: species?.name, rarity: species?.rarity, key: species?.key, visualType: species?.visualType },
+              phenotype: species?.phenotype || { primaryColor: 'Azure', bodyShape: 'Round', finType: 'Standard', pattern: 'Solid', glow: 'None', size: 'Normal', mutation: 'None' },
+            }}
+            size={100}
+            flipped={false}
+            selected={false}
+          />
+        </div>
         <div className="discovery-name" style={{ color: config.color }}>
           {species?.name || 'Unknown'}
         </div>
@@ -64,7 +78,7 @@ export default function DiscoveryCeremony({ species, onDismiss }) {
           {species?.rarity?.toUpperCase()}
         </div>
         {species?.basePrice > 0 && (
-          <div className="discovery-value">Base Value: 🪙{species.basePrice}</div>
+          <div className="discovery-value">Base Value: {species.basePrice}</div>
         )}
       </div>
 

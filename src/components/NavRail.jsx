@@ -58,7 +58,7 @@ const NAV_SECTIONS = [
   { id: 'office',    label: 'Office',    key: '5' },
 ];
 
-export default function NavRail({ active, onNavigate, badges = {} }) {
+export default function NavRail({ active, onNavigate, badges = {}, disabledSections = {} }) {
   return (
     <nav className="nav-rail">
       <div className="nav-rail-brand">FT2</div>
@@ -66,7 +66,7 @@ export default function NavRail({ active, onNavigate, badges = {} }) {
         {NAV_SECTIONS.map(({ id, label, key }) => (
           <button
             key={id}
-            className={`nav-rail-btn${active === id ? ' nav-rail-btn--active' : ''}`}
+            className={`nav-rail-btn${active === id ? ' nav-rail-btn--active' : ''}${disabledSections[id] ? ' nav-rail-btn--disabled' : ''}`}
             onClick={() => onNavigate(id)}
           >
             <span className="nav-rail-key">{key}</span>
@@ -87,7 +87,7 @@ export default function NavRail({ active, onNavigate, badges = {} }) {
           <span className="nav-rail-icon">{Icons.settings}</span>
           <span className="nav-rail-label">Settings</span>
         </button>
-        <div className="nav-rail-version">v0.9.0</div>
+        <div className="nav-rail-version">v0.10.0</div>
       </div>
     </nav>
   );

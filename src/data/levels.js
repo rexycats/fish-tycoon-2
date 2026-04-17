@@ -58,7 +58,7 @@ export function getLevelTitle(level) {
   if (level >= 15) return 'Senior Aquarist';
   if (level >= 10) return 'Aquarist';
   if (level >= 5)  return 'Junior Aquarist';
-  return '🐚 Novice';
+  return 'Novice';
 }
 
 // Check if a feature is unlocked at current level

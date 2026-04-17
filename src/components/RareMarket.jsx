@@ -395,7 +395,8 @@ export default function RareMarket({ game, activeTank, onBuyRareItem }) {
   const coins     = game?.player?.coins ?? 0;
   const purchased = (game?.rareMarket?.purchased || []).filter(p => p.day === today);
   const boosts    = game?.player?.boosts || {};
-  const activeBoosts = Object.entries(boosts).filter(([, expiresAt]) => expiresAt > Date.now());
+  const gc = game?.gameClock || Date.now();
+  const activeBoosts = Object.entries(boosts).filter(([, expiresAt]) => expiresAt > gc);
 
   function boughtCount(itemId) {
     return purchased.filter(p => p.itemId === itemId).length;
@@ -428,7 +429,7 @@ export default function RareMarket({ game, activeTank, onBuyRareItem }) {
         <div className="rare-market-boosts">
           <span className="boosts-label">Active:</span>
           {activeBoosts.map(([key, expiresAt]) => {
-            const minsLeft = Math.max(0, Math.ceil((expiresAt - Date.now()) / 60_000));
+            const minsLeft = Math.max(0, Math.ceil((expiresAt - gc) / 60_000));
             return (
               <span key={key} className="boost-badge">
                 {BOOST_LABELS[key] || key} {minsLeft}m

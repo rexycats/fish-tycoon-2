@@ -41,3 +41,31 @@ function getNextResearch(branchId, level) {
   if (!branch || level >= branch.tiers.length) return null;
   return branch.tiers[level];
 }
+
+
+// Collect all active research effects into a single multiplier object
+export function getResearchEffects(state) {
+  const r = state.player?.research || {};
+  const effects = {
+    healthRegen: 1, diseaseResist: 1, lifespanMult: 1, cureBonus: 0,
+    breedSpeed: 1, rarityBoost: 1, mutationRate: 1,
+    customerSpeed: 1, saleBonus: 1, repGain: 1, passiveIncome: 1,
+  };
+  for (const [branchId, level] of Object.entries(r)) {
+    const branch = RESEARCH_BRANCHES[branchId];
+    if (!branch) continue;
+    for (let i = 0; i < level && i < branch.tiers.length; i++) {
+      const tier = branch.tiers[i];
+      for (const [key, val] of Object.entries(tier.effect)) {
+        if (key === 'cureBonus') {
+          effects[key] = (effects[key] || 0) + val;
+        } else {
+          effects[key] = (effects[key] || 1) * val;
+        }
+      }
+    }
+  }
+  return effects;
+}
+
+export { getResearchLevel, getNextResearch };

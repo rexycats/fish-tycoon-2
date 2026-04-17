@@ -8,9 +8,9 @@ export const LOAN_TIERS = [
   { id: 'large',   amount: 5000,  interest: 0.25, repayBy: 60 * 120, label: 'Major Investment', desc: '5,000🪙 at 25% interest, repay within 2 hours' },
 ];
 
-export function getLoanStatus(loan) {
+export function getLoanStatus(loan, now) {
   if (!loan || !loan.active) return null;
-  const elapsed = (Date.now() - loan.takenAt) / 1000;
+  const elapsed = ((now || Date.now()) - loan.takenAt) / 1000;
   const remaining = Math.max(0, loan.repayBy - elapsed);
   const totalOwed = Math.round(loan.amount * (1 + loan.interest));
   const overdue = remaining <= 0;

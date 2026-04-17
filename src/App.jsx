@@ -10,28 +10,25 @@ import TankView       from './components/TankView.jsx';
 import FishPanel      from './components/FishPanel.jsx';
 import HUD            from './components/HUD.jsx';
 import LogPanel       from './components/LogPanel.jsx';
-import Fishdex        from './components/Fishdex.jsx';
 import BreedingLab    from './components/BreedingLab.jsx';
 import Shop           from './components/Shop.jsx';
 import OfflineSummary from './components/OfflineSummary.jsx';
-import Achievements   from './components/Achievements.jsx';
-import MagicFishPanel from './components/MagicFish.jsx';
-import DecorationPanel from './components/DecorationPanel.jsx';
-import FishAutopsyPanel from './components/FishAutopsy.jsx';
 import SettingsPanel  from './components/SettingsPanel.jsx';
-import StatsPanel     from './components/StatsPanel.jsx';
-import GoalsPanel     from './components/GoalsPanel.jsx';
 import Tutorial       from './components/Tutorial.jsx';
-import FishShowPanel  from './components/FishShowPanel.jsx';
 import CatchOfDayPanel from './components/CatchOfDayPanel.jsx';
 import { EventPopup, HagglePopup } from './components/EventPopup.jsx';
 import TitleScreen    from './components/TitleScreen.jsx';
 import Credits        from './components/Credits.jsx';
 import HatchReveal    from './components/HatchReveal.jsx';
 import WantedBoard    from './components/WantedBoard.jsx';
-import GeneJournal    from './components/GeneJournal.jsx';
 import TabErrorBoundary from './components/TabErrorBoundary.jsx';
 import DiscoveryCeremony from './components/DiscoveryCeremony.jsx';
+import CampaignMap from './components/CampaignMap.jsx';
+import ObjectiveBar from './components/ObjectiveBar.jsx';
+import VictoryModal from './components/VictoryModal.jsx';
+import { CAMPAIGN_LEVELS } from './data/campaign.js';
+import AmenitiesPanel from './components/AmenitiesPanel.jsx';
+import NotificationCenter from './components/NotificationCenter.jsx';
 import NavRail, { NAV_TO_TABS } from './components/NavRail.jsx';
 import RecordsSection from './components/RecordsSection.jsx';
 import OfficeSection from './components/OfficeSection.jsx';
@@ -54,14 +51,11 @@ const MemoHUD            = memo(HUD);
 const MemoLogPanel       = memo(LogPanel);
 const MemoShop           = Shop; // already memo'd with custom comparator
 const MemoBreedingLab    = memo(BreedingLab);
-const MemoFishdex        = memo(Fishdex);
-const MemoAchievements   = memo(Achievements);
-const MemoMagicFishPanel = memo(MagicFishPanel);
-const MemoDecorationPanel = memo(DecorationPanel);
-const MemoFishAutopsy    = memo(FishAutopsyPanel);
 
 export default function App() {
   const [showTitle, setShowTitle] = useState(true);
+  const [showCampaignMap, setShowCampaignMap] = useState(false);
+  const [victoryLevelId, setVictoryLevelId] = useState(null);
   const [levelFlash, setLevelFlash] = useState(false);
   const prevLevelRef = useRef(null);
 
@@ -75,6 +69,7 @@ export default function App() {
   const maxBays         = useGameStore(s => s.maxBays || 1);
   const log             = useGameStore(s => s.log);
   const dailyChallenges = useGameStore(s => s.dailyChallenges);
+  const campaign        = useGameStore(s => s.campaign);
   const showOffline     = useGameStore(s => s.showOffline);
   const offlineSummary  = useGameStore(s => s.offlineSummary);
   const soundOn         = useGameStore(s => s.soundOn);
@@ -126,7 +121,6 @@ export default function App() {
   const coinDeltas = useCoinDeltas();
 
   // ── Tab + badge state ──────────────────────────────────────
-  const [activeTab, setActiveTab]         = useState('tank');
   const [activeSection, setActiveSection] = useState('aquarium');
   const [showApiSetup, setShowApiSetup]   = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -151,7 +145,7 @@ export default function App() {
       const key = e.key.toLowerCase();
 
       // F5 = quicksave
-      if (e.key === 'F5') { e.preventDefault(); useGameStore.getState().saveGame?.(); return; }
+      if (e.key === 'F5') { e.preventDefault(); useGameStore.getState().quickSave(); return; }
 
       switch (key) {
         // Section navigation
@@ -167,6 +161,8 @@ export default function App() {
         case 'm': if (selectedFish?.disease) useMedicine(selectedFish.id); break;
         // Game controls
         case 'l': setShowLogTray(v => !v); break;
+        case ',': { const gs = useGameStore.getState(); gs.setGameSpeed(Math.max(1, (gs.gameSpeed || 1) - 1)); break; }
+        case '.': { const gs = useGameStore.getState(); gs.setGameSpeed(Math.min(3, (gs.gameSpeed || 1) + 1)); break; }
         case ' ': e.preventDefault(); togglePause(); break;
         case 'escape':
           if (showSettings || showResetConfirm || showApiSetup) {
@@ -192,7 +188,7 @@ export default function App() {
     window.addEventListener('keydown', handler);
     window.addEventListener('contextmenu', suppress);
     return () => { window.removeEventListener('keydown', handler); window.removeEventListener('contextmenu', suppress); };
-  }, [selectedFish, activeTank, activeTab, tanks]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedFish, activeTank, activeSection, tanks, showSettings, showResetConfirm, showApiSetup, showGameMenu, showLogTray]);
 
   // ── Level-up flash ─────────────────────────────────────
   useEffect(() => {
@@ -212,6 +208,19 @@ export default function App() {
         if (fish) {
           setHatchRevealFish(fish);
           useGameStore.setState({ _pendingHatchReveal: null });
+        }
+      }
+    );
+    return unsub;
+  }, []);
+
+  // ── Campaign victory ──────────────────────────────────
+  useEffect(() => {
+    const unsub = useGameStore.subscribe(
+      s => s._pendingVictory,
+      (levelId) => {
+        if (levelId) {
+          setVictoryLevelId(levelId);
         }
       }
     );
@@ -265,7 +274,6 @@ export default function App() {
   const playTabSwitch = _playTabSwitch;
   const handleTabChange = useCallback((tab) => {
     playTabSwitch();
-    setActiveTab(tab);
     // Sync section to match the tab
     for (const [section, tabs] of Object.entries(NAV_TO_TABS)) {
       if (tabs.includes(tab)) { setActiveSection(section); break; }
@@ -339,11 +347,42 @@ export default function App() {
   // ── Title screen ──────────────────────────────────────────
   if (showTitle) {
     return <TitleScreen onStart={(mode) => {
-      if (mode === 'new') {
+      if (mode === 'campaign') {
+        setShowTitle(false);
+        setShowCampaignMap(true);
+        return;
+      }
+      if (mode === 'sandbox') {
+        const prevCompleted = useGameStore.getState().campaign?.completedLevels || {};
         useGameStore.getState().resetGame();
+        useGameStore.setState({ campaign: { mode: 'sandbox', activeLevelId: null, completedLevels: prevCompleted, levelCompleted: false } });
+        setShowTitle(false);
+        return;
+      }
+      // 'continue' — just resume
+      // If campaign mode but no active level, go to campaign map
+      const cs = useGameStore.getState().campaign;
+      if (cs?.mode === 'campaign' && !cs.activeLevelId) {
+        setShowTitle(false);
+        setShowCampaignMap(true);
+        return;
       }
       setShowTitle(false);
     }} />;
+  }
+
+  // ── Campaign map ──────────────────────────────────────────
+  if (showCampaignMap) {
+    return <CampaignMap
+      onStartLevel={(levelId) => {
+        useGameStore.getState().startCampaignLevel(levelId);
+        setShowCampaignMap(false);
+      }}
+      onBack={() => {
+        setShowCampaignMap(false);
+        setShowTitle(true);
+      }}
+    />;
   }
 
   return (
@@ -376,6 +415,12 @@ export default function App() {
           records: (newFishdexCount > 0 || newAchCount > 0) ? '!' : null,
           office: (challengeDone > 0 && challengeDone === challengeTotal) ? '✓' : null,
         }}
+        disabledSections={(() => {
+          if (campaign?.mode !== 'campaign' || !campaign.activeLevelId) return {};
+          const lvl = CAMPAIGN_LEVELS.find(l => l.id === campaign.activeLevelId);
+          const c = lvl?.constraints || {};
+          return { breeding: c.breedingDisabled || false };
+        })()}
       />
 
       <div className="sim-main">
@@ -433,6 +478,7 @@ export default function App() {
               </div>
               {selectedFish && (
               <div className="sim-inspector sim-inspector--open">
+                <button className="inspector-close-btn" onClick={() => setSelectedFishId(null)}>✕</button>
                 <MemoFishPanel
                   fish={selectedFish}
                   onFeed={feedFish}
@@ -486,6 +532,7 @@ export default function App() {
             />
             <WantedBoard />
             <CatchOfDayPanel />
+            <AmenitiesPanel />
           </div></TabErrorBoundary>
         )}
 
@@ -585,12 +632,25 @@ export default function App() {
         <div className="game-menu-overlay" onClick={() => setShowGameMenu(false)}>
           <div className="game-menu" onClick={e => e.stopPropagation()}>
             <div className="game-menu-title">FISH TYCOON 2</div>
-            <div className="game-menu-version">v0.9.0</div>
+            <div className="game-menu-version">v0.10.0</div>
             <div className="game-menu-buttons">
               <button className="game-menu-btn" onClick={() => { playClick(); setShowGameMenu(false); }}>Resume</button>
               <button className="game-menu-btn" onClick={() => { playClick(); setShowGameMenu(false); setShowSettings(true); }}>Settings</button>
-              <button className="game-menu-btn" onClick={() => { playClick(); handleExportSave(); }}>Save Game</button>
+              <button className="game-menu-btn" onClick={() => { playClick(); useGameStore.getState().quickSave(); }}>Save Game</button>
+              <button className="game-menu-btn" onClick={() => { playClick(); handleExportSave(); }}>Export Save</button>
               <button className="game-menu-btn" onClick={() => { playClick(); setShowGameMenu(false); setShowCredits(true); }}>Credits</button>
+              <button className="game-menu-btn" onClick={() => {
+                playClick();
+                useGameStore.getState().quickSave();
+                setShowGameMenu(false);
+                const isCampaign = useGameStore.getState().campaign?.mode === 'campaign';
+                if (isCampaign) {
+                  useGameStore.getState().abandonCampaignLevel();
+                  setShowCampaignMap(true);
+                } else {
+                  setShowTitle(true);
+                }
+              }}>{useGameStore.getState().campaign?.mode === 'campaign' ? 'Quit Level' : 'Quit to Title'}</button>
               <button className="game-menu-btn game-menu-btn--danger" onClick={() => { playClick(); setShowGameMenu(false); setShowResetConfirm(true); }}>Reset</button>
             </div>
             <div className="game-menu-hints">
@@ -602,6 +662,7 @@ export default function App() {
               <span>A — Feed All</span>
               <span>M — Medicine</span>
               <span>L — Log</span>
+              <span>, . — Speed</span>
               <span>F5 — Save</span>
             </div>
           </div>
@@ -627,6 +688,27 @@ export default function App() {
           totalReward={MAGIC_FISH.reduce((s, m) => s + m.reward, 0)}
           onDismiss={() => setShowWinModal(false)}
           onNavigate={handleTabChange}
+        />
+      )}
+
+      {/* ── Campaign objective bar ────────────────────── */}
+      <ObjectiveBar />
+
+      {/* ── Notification center ───────────────────────── */}
+      <NotificationCenter />
+
+      {/* ── Campaign victory modal ────────────────────── */}
+      {victoryLevelId && (
+        <VictoryModal
+          levelId={victoryLevelId}
+          onContinue={(nextLevelId) => {
+            setVictoryLevelId(null);
+            if (nextLevelId) {
+              useGameStore.getState().startCampaignLevel(nextLevelId);
+            } else {
+              setShowCampaignMap(true);
+            }
+          }}
         />
       )}
 
@@ -773,7 +855,7 @@ function MagicWinModal({ totalReward, onDismiss, onNavigate }) {
               Open Decor tab
             </button>
           </div>
-          <div className="win-unlock-item">🐉 <strong>Legend Fish</strong> species unlocked in the Fishdex!</div>
+          <div className="win-unlock-item"><strong>Legend Fish</strong> species unlocked in the Fishdex!</div>
           <div className="win-unlock-item">🏆 <strong>+🪙500</strong> achievement bonus awarded!</div>
         </div>
         <div className="win-modal-actions">

@@ -33,7 +33,11 @@ import { DECOR_CATALOG, TANK_THEMES } from '../data/decorations.js';
 import { fireToast } from '../components/ToastManager.jsx';
 import { syncSteamAchievement, syncAllSteamAchievements } from '../services/steamService.js';
 import { getLevelFromXp, XP_REWARDS, getLevelTitle } from '../data/levels.js';
-import { RESEARCH_BRANCHES } from '../data/research.js';
+import { CAMPAIGN_LEVELS, getLevelById, checkObjective, getStarRating } from '../data/campaign.js';
+import { checkTankCompat } from '../data/compatibility.js';
+import { createStaffMember, getStaffWage, getTrainCost, getHireCost, getMaxStaff, STAFF_ROLES } from '../data/staff.js';
+import { RESEARCH_BRANCHES, getResearchEffects } from '../data/research.js';
+import { TANK_SIZES, getNextTankSize } from '../data/tankSizes.js';
 import { LOAN_TIERS } from '../data/loans.js';
 import { TANK_BACKGROUNDS } from '../data/tankBackgrounds.js';
 import { MILESTONES } from '../data/milestones.js';
@@ -257,22 +261,22 @@ export const useGameStore = create(
           if (medKey !== correctMed) {
             playWarning();
             // Advance disease by 60 seconds (makes it worse)
-            fish.diseaseSince = (fish.diseaseSince || Date.now()) - 60_000;
+            fish.diseaseSince = (fish.diseaseSince || state.gameClock || Date.now()) - 60_000;
             addLogDraft(state, `Wrong treatment! ${medKey} doesn't treat ${fish.disease}. The disease worsened!`);
             if (!fish.treatmentLog) fish.treatmentLog = [];
-            fish.treatmentLog.push({ med: medKey, at: Date.now(), result: 'wrong' });
+            fish.treatmentLog.push({ med: medKey, at: state.gameClock || Date.now(), result: 'wrong' });
             return;
           }
 
           // Stage-based cure success rate
-          const stage = getDiseaseStage(fish.diseaseSince);
+          const stage = getDiseaseStage(fish.diseaseSince, state.gameClock);
           const successRate = CURE_SUCCESS_RATE[stage] || 0.5;
           // Hardy personality bonus
           const hardyBonus = fish.personality === 'hardy' ? 0.15 : 0;
           const success = Math.random() < (successRate + hardyBonus);
 
           if (!fish.treatmentLog) fish.treatmentLog = [];
-          fish.treatmentLog.push({ med: medKey, at: Date.now(), result: success ? 'cured' : 'failed', stage });
+          fish.treatmentLog.push({ med: medKey, at: state.gameClock || Date.now(), result: success ? 'cured' : 'failed', stage });
 
           if (success) {
             const diseaseName = fish.disease;
@@ -321,7 +325,7 @@ export const useGameStore = create(
             return;
           }
           tank.supplies.vitamins -= 1;
-          fish.vitaminUntil = Date.now() + 600_000; // 10 min immunity
+          fish.vitaminUntil = (state.gameClock || Date.now()) + 600_000; // 10 min immunity
           fish.health = Math.min(100, fish.health + 5);
           playCoin();
           addLogDraft(state, `${fish.nickname || fish.species?.name || 'fish'} received vitamins! 10 min disease immunity.`);
@@ -376,6 +380,14 @@ export const useGameStore = create(
         }),
 
         unlockTank: (type) => set(state => {
+          // Campaign constraint
+          if (state.campaign?.mode === 'campaign') {
+            const lvl = getLevelById(state.campaign.activeLevelId);
+            if (lvl?.constraints?.maxTanks && state.tanks.length >= lvl.constraints.maxTanks) {
+              fireToast('Tank limit reached for this level.', 'alert', '');
+              return;
+            }
+          }
           const unlock = TANK_UNLOCK[state.tanks.length];
           if (!unlock) {
             playWarning();
@@ -471,12 +483,12 @@ export const useGameStore = create(
             // Named species (clownfish, betta, etc.)
             const speciesDef = REAL_SPECIES_MAP[speciesKey];
             const phenotype = SPECIES_PHENOTYPES[speciesKey];
-            newFish = createFish({ stage: 'adult', tankId: tank.id, phenotype, targetRarity: speciesDef.rarity });
+            newFish = createFish({ stage: 'adult', tankId: tank.id, phenotype, targetRarity: speciesDef.rarity, now: state.gameClock });
             // Override species info for real species
             newFish.species = { ...newFish.species, ...speciesDef, visualType: 'species', key: speciesKey };
           } else {
             // Generic fish by rarity
-            newFish = createFish({ stage: 'adult', tankId: tank.id, targetRarity: targetRarity || 'common' });
+            newFish = createFish({ stage: 'adult', tankId: tank.id, targetRarity: targetRarity || 'common', now: state.gameClock });
           }
 
           // Assign personality to adult fish
@@ -487,8 +499,16 @@ export const useGameStore = create(
           }
 
           state.fish.push(newFish);
+          state.player.stats.fishBought = (state.player.stats.fishBought || 0) + 1;
           playCoin();
           addLogDraft(state, `Bought a ${newFish.species?.name || 'fish'}!`);
+          // Compatibility warning
+          const tankmates = state.fish.filter(f => f.tankId === tank.id && f.id !== newFish.id);
+          const issues = checkTankCompat(newFish, tankmates);
+          for (const issue of issues) {
+            addLogDraft(state, `${issue.message}`);
+            if (issue.severity === 'critical') fireToast(issue.message, 'alert', '');
+          }
         }),
 
         buyUpgrade: (upgradeKey) => set(state => {
@@ -508,7 +528,14 @@ export const useGameStore = create(
             state.tanks.forEach(t => { t.capacity = (t.capacity || 12) + 4; });
           }
           if (upgradeKey === 'breeding') {
-            state.breedingTank.breedingDurationMs = Math.round(BREEDING_BASE_MS * Math.pow(BREEDING_SPEED_FACTOR, upg.level));
+            const newDuration = Math.round(BREEDING_BASE_MS * Math.pow(BREEDING_SPEED_FACTOR, upg.level));
+            state.breedingTank.breedingDurationMs = newDuration;
+            // Also update all extra bays
+            if (state.extraBays) {
+              for (const bay of state.extraBays) {
+                bay.breedingDurationMs = newDuration;
+              }
+            }
           }
           if (upgradeKey === 'deepSea') {
             state.tanks.forEach(t => { t.capacity = (t.capacity || 12) + 6; });
@@ -571,7 +598,7 @@ export const useGameStore = create(
                 roll -= w;
                 if (roll <= 0) { rarity = r; break; }
               }
-              const egg = createFish({ stage: 'egg', tankId: tank.id, targetRarity: rarity });
+              const egg = createFish({ stage: 'egg', tankId: tank.id, targetRarity: rarity, now: state.gameClock });
               state.fish.push(egg);
               hatched.push(rarity);
             }
@@ -583,7 +610,7 @@ export const useGameStore = create(
 
           // ── Exotic Fish: spawn adult of target rarity ──
           if (item.type === 'fish' && item.targetRarity && tank) {
-            const newFish = createFish({ stage: 'adult', tankId: tank.id, targetRarity: item.targetRarity });
+            const newFish = createFish({ stage: 'adult', tankId: tank.id, targetRarity: item.targetRarity, now: state.gameClock });
             state.fish.push(newFish);
             addLogDraft(state, `${newFish.species?.name || 'Exotic fish'} (${newFish.species?.rarity}) added to ${tank.name}!`);
             playCoin();
@@ -605,7 +632,7 @@ export const useGameStore = create(
           // ── Timed boosts ──
           if (item.boost && item.boostDurationMs) {
             if (!state.player.boosts) state.player.boosts = {};
-            state.player.boosts[item.boost] = Date.now() + item.boostDurationMs;
+            state.player.boosts[item.boost] = (state.gameClock || Date.now()) + item.boostDurationMs;
           }
 
           playCoin();
@@ -677,6 +704,14 @@ export const useGameStore = create(
 
         selectForBreeding: (fishId, bayIndex = 0) => set(state => {
           if (!fishId) return;
+          // Campaign constraint
+          if (state.campaign?.mode === 'campaign') {
+            const lvl = getLevelById(state.campaign.activeLevelId);
+            if (lvl?.constraints?.breedingDisabled) {
+              fireToast('Breeding is not available in this level.', 'alert', '');
+              return;
+            }
+          }
           const bt = bayIndex === 0 ? state.breedingTank : state.extraBays?.[bayIndex - 1];
           if (!bt) return;
           if (bt.eggReady) return;
@@ -703,7 +738,8 @@ export const useGameStore = create(
           bt.slots[emptyIdx] = fishId;
           // If both slots filled, start breeding
           if (bt.slots[0] && bt.slots[1]) {
-            bt.breedingStartedAt = Date.now();
+            bt.breedingStartedAt = (state.gameClock || Date.now());
+            state.player.stats.breedingsStarted = (state.player.stats.breedingsStarted || 0) + 1;
             const fishA = findFish(state, bt.slots[0]);
             const fishB = findFish(state, bt.slots[1]);
             // Feature 7: Bonding — fish that breed together become bonded
@@ -762,7 +798,7 @@ export const useGameStore = create(
           }
 
           const mutagenLevel = state.shop?.upgrades?.mutagen?.level || 0;
-          const mutationBoostActive = (state.player?.boosts?.mutationBoost || 0) > Date.now();
+          const mutationBoostActive = (state.player?.boosts?.mutationBoost || 0) > (state.gameClock || Date.now());
           const mutationRate = (0.02 + mutagenLevel * 0.03) * (mutationBoostActive ? 3 : 1);
 
           // Create 1-3 eggs, each with unique genome
@@ -776,7 +812,7 @@ export const useGameStore = create(
           const newEggs = [];
           for (let i = 0; i < eggsToCreate; i++) {
             const childGenome = breedGenomes(bt.storedGenomeA, bt.storedGenomeB, null, mutationRate);
-            const egg = createFish({ stage: 'egg', tankId, genome: childGenome, parentIds, generation: childGen });
+            const egg = createFish({ stage: 'egg', tankId, genome: childGenome, parentIds, generation: childGen, now: state.gameClock });
             newEggs.push(egg);
             state.fish.push(egg);
           }
@@ -895,7 +931,277 @@ export const useGameStore = create(
 
         // ── Pause toggle ────────────────────────────────────
         paused: false,
-        togglePause: () => set(state => { state.paused = !state.paused; }),
+        togglePause: () => set(state => {
+          state.paused = !state.paused;
+          // Reset lastTickAt on unpause to prevent time-delta spike
+          if (!state.paused) state.lastTickAt = Date.now();
+        }),
+        setGameSpeed: (speed) => set(state => { state.gameSpeed = Math.max(1, Math.min(3, speed)); }),
+
+        // ── Campaign ──────────────────────────────────────
+        startCampaignLevel: (levelId) => {
+          const level = getLevelById(levelId);
+          if (!level) return;
+          const completedLevels = get().campaign?.completedLevels || {};
+          const fresh = createDefaultState();
+          const ls = level.startingState || {};
+          // Build starting fish
+          const startFish = [];
+          const fishCount = ls.starterFishCount || 0;
+          const fishStage = ls.starterFishStage || 'adult';
+          for (let i = 0; i < fishCount; i++) {
+            startFish.push(createFish({ stage: fishStage, tankId: 'tank_0' }));
+          }
+          // Build tanks
+          const tanks = [];
+          const tankCount = ls.tankCount || 1;
+          const cap = level.constraints?.tankCapacity || 12;
+          for (let i = 0; i < tankCount; i++) {
+            const t = createDefaultTank(`tank_${i}`, 'display');
+            t.capacity = cap;
+            tanks.push(t);
+          }
+          const newState = {
+            ...fresh,
+            campaign: {
+              mode: 'campaign',
+              activeLevelId: levelId,
+              completedLevels,
+              levelCompleted: false,
+              levelStartedAt: Date.now(),
+            },
+            player: {
+              ...fresh.player,
+              coins: ls.coins ?? 325,
+              stats: { ...fresh.player.stats, fishBought: 0, fishListed: 0, breedingsStarted: 0, eggsHatched: 0, wantedFulfilled: 0, fishDied: 0, fishSold: 0, fishFed: 0 },
+            },
+            tanks,
+            fish: ls.fish || startFish,
+            maxBays: ls.maxBays ?? 1,
+            breedingTank: {
+              ...fresh.breedingTank,
+              breedingDurationMs: fresh.breedingTank.breedingDurationMs,
+            },
+            gameClock: Date.now(),
+            gameSpeed: 1,
+            staff: [],
+            lastWageDay: 0,
+            giftShop: { unlocked: false, level: 0, totalEarned: 0 },
+            cafe: { unlocked: false, level: 0, totalEarned: 0 },
+            notifications: [],
+            suppliers: { unlocked: ['basic'], activeSupplier: 'basic' },
+          };
+          set(state => { Object.assign(state, newState); });
+        },
+
+        completeCampaignLevel: () => set(state => {
+          const levelId = state.campaign?.activeLevelId;
+          if (!levelId) return;
+          const level = getLevelById(levelId);
+          if (!level) return;
+          const stars = getStarRating(level, state);
+          const prev = state.campaign.completedLevels?.[levelId];
+          const bestStars = Math.max(stars, prev?.stars || 0);
+          state.campaign.completedLevels[levelId] = { stars: bestStars, completedAt: Date.now() };
+          // Unlock next levels
+          if (level.rewards?.unlocks) {
+            for (const uid of level.rewards.unlocks) {
+              if (!state.campaign.completedLevels[uid]) {
+                state.campaign.completedLevels[uid] = { stars: 0, unlocked: true };
+              }
+            }
+          }
+          state.campaign.activeLevelId = null;
+          state.campaign.levelCompleted = false;
+          state._pendingVictory = null;
+        }),
+
+        abandonCampaignLevel: () => set(state => {
+          state.campaign.activeLevelId = null;
+          state.campaign.levelCompleted = false;
+        }),
+
+        // ── Staff Management ────────────────────────────────
+        hireStaff: (role) => set(state => {
+          const cost = getHireCost(role);
+          const maxStaff = getMaxStaff(state.player?.level || 1);
+          if ((state.staff || []).length >= maxStaff) {
+            fireToast(`Staff limit reached (${maxStaff}). Level up to hire more.`, 'alert', '');
+            return;
+          }
+          if (state.player.coins < cost) {
+            playWarning();
+            addLogDraft(state, 'Not enough coins to hire!');
+            return;
+          }
+          state.player.coins -= cost;
+          const member = createStaffMember(role);
+          if (!state.staff) state.staff = [];
+          state.staff.push(member);
+          playCoin();
+          addLogDraft(state, `Hired ${member.name} as ${STAFF_ROLES[role]?.label || role}.`);
+        }),
+
+        fireStaff: (staffId) => set(state => {
+          const idx = (state.staff || []).findIndex(s => s.id === staffId);
+          if (idx < 0) return;
+          const member = state.staff[idx];
+          addLogDraft(state, `${member.name} has been let go.`);
+          state.staff.splice(idx, 1);
+        }),
+
+        assignStaff: (staffId, tankId) => set(state => {
+          const member = (state.staff || []).find(s => s.id === staffId);
+          if (!member) return;
+          member.assignedTankId = tankId;
+        }),
+
+        trainStaff: (staffId) => set(state => {
+          const member = (state.staff || []).find(s => s.id === staffId);
+          if (!member) return;
+          const roleDef = STAFF_ROLES[member.role];
+          if (!roleDef || member.level >= roleDef.maxLevel) {
+            fireToast('Already at max level.', 'alert', '');
+            return;
+          }
+          const cost = getTrainCost(member);
+          if (state.player.coins < cost) {
+            playWarning();
+            addLogDraft(state, 'Not enough coins to train!');
+            return;
+          }
+          state.player.coins -= cost;
+          member.level += 1;
+          playCoin();
+          addLogDraft(state, `${member.name} trained to level ${member.level + 1}!`);
+        }),
+
+        // ── Research ────────────────────────────────────────
+        purchaseResearch: (branchId) => set(state => {
+          const branch = RESEARCH_BRANCHES[branchId];
+          if (!branch) return;
+          if (!state.player.research) state.player.research = {};
+          const level = state.player.research[branchId] || 0;
+          if (level >= branch.tiers.length) {
+            fireToast('Branch fully researched!', 'alert', '');
+            return;
+          }
+          const tier = branch.tiers[level];
+          if (state.player.coins < tier.cost) {
+            playWarning();
+            addLogDraft(state, 'Not enough coins for research!');
+            return;
+          }
+          state.player.coins -= tier.cost;
+          state.player.research[branchId] = level + 1;
+          playCoin();
+          addLogDraft(state, `Researched: ${tier.label} — ${tier.desc}`);
+          fireToast(`${tier.label}: ${tier.desc}`, 'success', '');
+
+          // Apply breedSpeed research immediately to breeding duration
+          const fx = getResearchEffects(state);
+          if (fx.breedSpeed && fx.breedSpeed !== 1) {
+            const baseDuration = 300000;
+            const breedLvl = state.shop?.upgrades?.breeding?.level || 0;
+            const newDuration = Math.round(baseDuration * Math.pow(0.7, breedLvl) * fx.breedSpeed);
+            state.breedingTank.breedingDurationMs = newDuration;
+            if (state.extraBays) {
+              state.extraBays.forEach(bay => { bay.breedingDurationMs = newDuration; });
+            }
+          }
+        }),
+
+        // ── Tank Size Upgrade ───────────────────────────────
+        upgradeTankSize: (tankId) => set(state => {
+          const tank = state.tanks.find(t => t.id === tankId);
+          if (!tank) return;
+          const next = getNextTankSize(tank);
+          if (!next) {
+            fireToast('Tank is already at maximum size.', 'alert', '');
+            return;
+          }
+          if (next.minLevel && (state.player?.level || 1) < next.minLevel) {
+            fireToast(`Requires player level ${next.minLevel}.`, 'alert', '');
+            return;
+          }
+          if (state.player.coins < next.cost) {
+            playWarning();
+            addLogDraft(state, 'Not enough coins to upgrade tank!');
+            return;
+          }
+          state.player.coins -= next.cost;
+          tank.size = next.id;
+          const globalBonus = (state.shop?.upgrades?.capacity?.level || 0) * 4;
+          tank.capacity = next.capacity + globalBonus;
+          playCoin();
+          addLogDraft(state, `${tank.name} upgraded to ${next.label} (${tank.capacity} fish)!`);
+        }),
+
+        // ── Amenities: Gift Shop + Café ─────────────────────
+        unlockAmenity: (amenityId) => set(state => {
+          const amenity = state[amenityId];
+          if (!amenity) return;
+          if (amenity.unlocked) {
+            fireToast('Already unlocked!', 'alert', '');
+            return;
+          }
+          const costs = { giftShop: 500, cafe: 750 };
+          const cost = costs[amenityId] || 500;
+          if (state.player.coins < cost) {
+            playWarning();
+            addLogDraft(state, 'Not enough coins!');
+            return;
+          }
+          state.player.coins -= cost;
+          amenity.unlocked = true;
+          playCoin();
+          const names = { giftShop: 'Gift Shop', cafe: 'Café' };
+          addLogDraft(state, `${names[amenityId] || amenityId} unlocked!`);
+          fireToast(`${names[amenityId]} is now open for business!`, 'success', '');
+        }),
+
+        upgradeAmenity: (amenityId) => set(state => {
+          const amenity = state[amenityId];
+          if (!amenity || !amenity.unlocked) return;
+          if (amenity.level >= 4) {
+            fireToast('Already at max level!', 'alert', '');
+            return;
+          }
+          const upgCosts = [0, 400, 1000, 2500, 6000];
+          const cost = upgCosts[amenity.level + 1] || 9999;
+          if (state.player.coins < cost) {
+            playWarning();
+            addLogDraft(state, 'Not enough coins to upgrade!');
+            return;
+          }
+          state.player.coins -= cost;
+          amenity.level += 1;
+          playCoin();
+          const names = { giftShop: 'Gift Shop', cafe: 'Café' };
+          addLogDraft(state, `${names[amenityId]} upgraded to level ${amenity.level + 1}!`);
+        }),
+
+        // ── Notifications ───────────────────────────────────
+        pushNotification: (message, type = 'info') => set(state => {
+          if (!state.notifications) state.notifications = [];
+          state.notifications.unshift({ id: Date.now() + Math.random(), message, type, at: Date.now() });
+          if (state.notifications.length > 20) state.notifications.length = 20;
+        }),
+
+        dismissNotification: (notifId) => set(state => {
+          state.notifications = (state.notifications || []).filter(n => n.id !== notifId);
+        }),
+
+        // ── Suppliers ───────────────────────────────────────
+        switchSupplier: (supplierId) => set(state => {
+          const unlocked = state.suppliers?.unlocked || ['basic'];
+          if (!unlocked.includes(supplierId)) {
+            fireToast('Supplier not unlocked yet.', 'alert', '');
+            return;
+          }
+          state.suppliers.activeSupplier = supplierId;
+          addLogDraft(state, `Switched supplier to ${supplierId}.`);
+        }),
 
         // ── Special Orders ──────────────────────────────────
         fulfillOrder: (orderId, fishId) => set(state => {
@@ -942,7 +1248,7 @@ export const useGameStore = create(
           const tier = LOAN_TIERS.find(t => t.id === tierId);
           if (!tier) return;
           state.player.coins += tier.amount;
-          state.player.activeLoan = { active: true, tierId: tier.id, amount: tier.amount, interest: tier.interest, repayBy: tier.repayBy, takenAt: Date.now() };
+          state.player.activeLoan = { active: true, tierId: tier.id, amount: tier.amount, interest: tier.interest, repayBy: tier.repayBy, takenAt: (state.gameClock || Date.now()) };
           playCoin();
           addLogDraft(state, `Loan: +${tier.amount} at ${tier.interest*100}% interest.`);
         }),
@@ -1033,6 +1339,7 @@ export const useGameStore = create(
           const fish = findFish(state, fishId);
           if (!fish || !fishMatchesPoster(fish, poster)) return;
           poster.fulfilled = true;
+          state.player.stats.wantedFulfilled = (state.player.stats.wantedFulfilled || 0) + 1;
           state.player.coins += poster.reward;
           // Remove the fish (delivered to buyer)
           state.fish = state.fish.filter(f => f.id !== fishId);
@@ -1047,10 +1354,10 @@ export const useGameStore = create(
         refreshWantedBoard: () => set(state => {
           if (!state.wantedPosters) state.wantedPosters = [];
           const level = Math.floor((state.player.xp || 0) / 500) + 1;
-          const active = state.wantedPosters.filter(p => !p.fulfilled && p.expiresAt > Date.now());
+          const active = state.wantedPosters.filter(p => !p.fulfilled && p.expiresAt > (state.gameClock || Date.now()));
           const maxPosters = Math.min(3, 1 + Math.floor(level / 8));
           while (active.length < maxPosters) {
-            const poster = generateWantedPoster(level, active);
+            const poster = generateWantedPoster(level, active, state.gameClock);
             if (poster) { active.push(poster); state.wantedPosters.push(poster); }
             else break;
           }
@@ -1062,7 +1369,7 @@ export const useGameStore = create(
           state.player.coins += (coins || 0);
           if (xp) addXp(state, xp, 'micro');
           if (coins > 0) playCoin();
-          state.lastMicroEventAt = Date.now();
+          state.lastMicroEventAt = (state.gameClock || Date.now());
         }),
 
         // ── Fish memorial ─────────────────────────────────
@@ -1081,22 +1388,33 @@ export const useGameStore = create(
             rarity: fish.species?.rarity,
             personality: fish.personality,
             generation: fish.generation || 1,
-            livedDays: Math.round((Date.now() - (fish.bornAt || Date.now())) / 86400000 * 10) / 10,
+            livedDays: Math.round(((state.gameClock || (state.gameClock || Date.now())) - (fish.bornAt || (state.gameClock || (state.gameClock || Date.now())))) / 86400000 * 10) / 10,
             descendants,
             totalEarned,
-            diedAt: Date.now(),
+            diedAt: (state.gameClock || Date.now()),
           });
           // Keep last 50 memorials
           if (state.memorials.length > 50) state.memorials.length = 50;
         }),
 
         resetGame: () => set(state => {
+          const completedLevels = state.campaign?.completedLevels || {};
           const fresh = createDefaultState();
           Object.assign(state, fresh);
+          state.campaign.completedLevels = completedLevels;
         }),
 
         handleExportSave: () => {
           exportSave(get());
+        },
+
+        quickSave: () => {
+          const state = get();
+          if (saveGame(state)) {
+            set({ _saveFlash: Date.now() });
+          } else {
+            fireToast('Save failed — storage full?', 'alert', '');
+          }
         },
 
         handleImportSave: async (file) => {

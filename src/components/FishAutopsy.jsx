@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { RARITY } from '../data/genetics.js';
 import FishSprite from './FishSprite.jsx';
+import { useGameStore } from '../store/gameStore.js';
 
 const CAUSE_COLORS = {
   'Starvation':        '#e08840',
@@ -19,14 +20,14 @@ const CAUSE_COLORS = {
 };
 
 const CAUSE_ICONS = {
-  'Starvation':        '🍽️',
+  'Starvation':        '',
   'Water Toxicity':    '',
   'Temperature Shock': '',
-  'Ich':               '🔴',
-  'Fin Rot':           '🟤',
-  'Bloat':             '🟡',
-  'Velvet':            '🟠',
-  'Old Age / Unknown': '❓',
+  'Ich':               '',
+  'Fin Rot':           '',
+  'Bloat':             '',
+  'Velvet':            '',
+  'Old Age / Unknown': '',
 };
 
 const CAUSE_TIPS = {
@@ -42,13 +43,14 @@ const CAUSE_TIPS = {
 
 function AutopsyCard({ record }) {
   const [expanded, setExpanded] = useState(false);
+  const gc = useGameStore(s => s.gameClock || Date.now());
   const rarity    = RARITY[record.rarity] || RARITY.common;
   const causeCol  = CAUSE_COLORS[record.cause] || '#607080';
-  const causeIcon = CAUSE_ICONS[record.cause]  || '❓';
+  const causeIcon = CAUSE_ICONS[record.cause]  || '';
   const tip       = CAUSE_TIPS[record.cause]   || '';
 
   const timeAgo = (() => {
-    const diff = Date.now() - record.diedAt;
+    const diff = gc - record.diedAt;
     const min = Math.floor(diff / 60000);
     if (min < 1) return 'just now';
     if (min < 60) return `${min}m ago`;
@@ -114,7 +116,7 @@ function AutopsyCard({ record }) {
             </div>
           )}
           {tip && (
-            <div className="autopsy-tip">💡 {tip}</div>
+            <div className="autopsy-tip">{tip}</div>
           )}
           <div className="autopsy-phenotype">
             <div className="autopsy-ph-label">Genetics:</div>
@@ -170,7 +172,7 @@ function FishAutopsyPanel({ autopsies = [] }) {
           {topCause && (
             <div className="autopsy-stat">
               <div className="autopsy-stat-num" style={{ color: CAUSE_COLORS[topCause[0]] || '#aaa' }}>
-                {CAUSE_ICONS[topCause[0]] || '❓'}
+                {CAUSE_ICONS[topCause[0]] || ''}
               </div>
               <div className="autopsy-stat-label">Top Cause</div>
               <div className="autopsy-stat-sub">{topCause[0]}</div>
@@ -183,7 +185,7 @@ function FishAutopsyPanel({ autopsies = [] }) {
       <div className="autopsy-breakdown">
         {Object.entries(causeCounts).sort((a, b) => b[1] - a[1]).map(([cause, count]) => (
           <div key={cause} className="autopsy-breakdown-row">
-            <span className="autopsy-bd-icon">{CAUSE_ICONS[cause] || '❓'}</span>
+            <span className="autopsy-bd-icon">{CAUSE_ICONS[cause] || ''}</span>
             <span className="autopsy-bd-label">{cause}</span>
             <div className="autopsy-bd-bar-wrap">
               <div

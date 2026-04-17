@@ -11,6 +11,11 @@ import { getWeatherSeed, getCurrentWeather } from '../data/weather.js';
 import { generateReview } from '../data/reviews.js';
 import { checkNewDiscovery } from '../data/discoveries.js';
 import { checkJackpot, rollUrgentOffer, isOfferActive, getStreakMultiplier } from '../data/retention.js';
+import { CAMPAIGN_LEVELS, checkObjective as _checkObj } from '../data/campaign.js';
+import { getCompat as _getCompat } from '../data/compatibility.js';
+import { STAFF_ROLES, getStaffWage } from '../data/staff.js';
+import { getResearchEffects } from '../data/research.js';
+const _getCampaignLevel = (id) => CAMPAIGN_LEVELS.find(l => l.id === id) || null;
 
 export const TICK_INTERVAL_MS = 1000;
 
@@ -20,29 +25,29 @@ export const TICK_INTERVAL_MS = 1000;
 // sale prices. Gives players a reason to time their sales.
 // ============================================================
 const MARKET_HEADLINES = [
-  { mod: { common: 0.7, uncommon: 1.0, rare: 1.3, epic: 1.5 },  text: '📈 Rare fish market booming! Collectors paying top coin.' },
+  { mod: { common: 0.7, uncommon: 1.0, rare: 1.3, epic: 1.5 },  text: 'Rare fish market booming! Collectors paying top coin.' },
   { mod: { common: 1.4, uncommon: 1.1, rare: 0.9, epic: 0.8 },  text: 'Common fish craze! Everyone wants an easy starter pet.' },
   { mod: { common: 0.9, uncommon: 1.3, rare: 1.1, epic: 1.0 },  text: 'Mid-tier demand is high. Hobbyists are browsing.' },
   { mod: { common: 1.0, uncommon: 0.8, rare: 1.0, epic: 1.8 },  text: 'High-end buyers in town. Epic fish fetch premium prices.' },
-  { mod: { common: 1.1, uncommon: 1.1, rare: 1.1, epic: 1.1 },  text: '☀️ Good weather brings steady foot traffic. Prices are fair.' },
-  { mod: { common: 0.8, uncommon: 0.9, rare: 0.8, epic: 0.9 },  text: '📉 Slow day at the market. Buyers are cautious with coin.' },
-  { mod: { common: 1.2, uncommon: 1.2, rare: 0.7, epic: 0.7 },  text: '🎪 Fish fair in town! Budget shoppers flooding in.' },
-  { mod: { common: 0.9, uncommon: 1.0, rare: 1.4, epic: 1.2 },  text: '🧐 Collector convention nearby. Rare finds sell fast.' },
+  { mod: { common: 1.1, uncommon: 1.1, rare: 1.1, epic: 1.1 },  text: 'Good weather brings steady foot traffic. Prices are fair.' },
+  { mod: { common: 0.8, uncommon: 0.9, rare: 0.8, epic: 0.9 },  text: 'Slow day at the market. Buyers are cautious with coin.' },
+  { mod: { common: 1.2, uncommon: 1.2, rare: 0.7, epic: 0.7 },  text: 'Fish fair in town! Budget shoppers flooding in.' },
+  { mod: { common: 0.9, uncommon: 1.0, rare: 1.4, epic: 1.2 },  text: 'Collector convention nearby. Rare finds sell fast.' },
 ];
 
 const HOT_TRAITS = [
-  { gene: 'primaryColor', value: 'Crimson', label: '🔴 Crimson fish', bonus: 1.4 },
-  { gene: 'primaryColor', value: 'Gold',    label: '🟡 Gold fish',    bonus: 1.4 },
-  { gene: 'primaryColor', value: 'Azure',   label: '🔵 Azure fish',   bonus: 1.4 },
-  { gene: 'primaryColor', value: 'Violet',  label: '🟣 Violet fish',  bonus: 1.5 },
-  { gene: 'primaryColor', value: 'Emerald', label: '🟢 Emerald fish', bonus: 1.5 },
+  { gene: 'primaryColor', value: 'Crimson', label: 'Crimson fish', bonus: 1.4 },
+  { gene: 'primaryColor', value: 'Gold',    label: 'Gold fish',    bonus: 1.4 },
+  { gene: 'primaryColor', value: 'Azure',   label: 'Azure fish',   bonus: 1.4 },
+  { gene: 'primaryColor', value: 'Violet',  label: 'Violet fish',  bonus: 1.5 },
+  { gene: 'primaryColor', value: 'Emerald', label: 'Emerald fish', bonus: 1.5 },
   { gene: 'glow',         value: 'Luminous', label: 'Glowing fish', bonus: 1.6 },
   { gene: 'glow',         value: 'Radiant',  label: 'Radiant fish', bonus: 1.3 },
-  { gene: 'mutation',     value: 'Albino',    label: '🤍 Albino fish',  bonus: 1.5 },
+  { gene: 'mutation',     value: 'Albino',    label: 'Albino fish',  bonus: 1.5 },
   { gene: 'mutation',     value: 'Twin-tail', label: 'Twin-tail fish', bonus: 1.4 },
-  { gene: 'bodyShape',    value: 'Eel',      label: '🐍 Eel-shaped fish', bonus: 1.3 },
-  { gene: 'size',         value: 'Leviathan', label: '🐋 Leviathan fish',  bonus: 1.5 },
-  { gene: 'pattern',      value: 'Tiger',    label: '🐯 Tiger-pattern fish', bonus: 1.3 },
+  { gene: 'bodyShape',    value: 'Eel',      label: 'Eel-shaped fish', bonus: 1.3 },
+  { gene: 'size',         value: 'Leviathan', label: 'Leviathan fish',  bonus: 1.5 },
+  { gene: 'pattern',      value: 'Tiger',    label: 'Tiger-pattern fish', bonus: 1.3 },
 ];
 
 export function refreshMarket(state) {
@@ -103,7 +108,7 @@ const EARLY_EVENTS = [
       if (!adult) return state;
       messages.push({ message: `A customer is looking through the window! Try listing a fish for sale in the Shop tab.`, severity: 'warn' });
       // Force the next customer to arrive in 5 seconds
-      return { ...state, shop: { ...state.shop, lastCustomerAt: Date.now() - 13_000 } };
+      return { ...state, shop: { ...state.shop, lastCustomerAt: now - 13_000 } };
     },
   },
   {
@@ -115,7 +120,7 @@ const EARLY_EVENTS = [
       if (!tank) return state;
       const count = state.fish.filter(f => f.tankId === tank.id).length;
       if (count >= (tank.capacity || 12)) return state;
-      const egg = createFish({ stage: 'egg', tankId: tank.id, targetRarity: 'uncommon' });
+      const egg = createFish({ stage: 'egg', tankId: tank.id, targetRarity: 'uncommon', now });
       messages.push({ message: `A mysterious egg appeared in your tank! It looks unusual...`, severity: 'warn' });
       messages.push({ message: `Tip: Eggs hatch into juveniles, then grow into adults you can sell or breed.`, severity: 'info' });
       return { ...state, fish: [...state.fish, egg] };
@@ -179,14 +184,14 @@ const HEALTH_REGEN_HUNGER_THRESHOLD = 60;
 // --- FISH AGING ---
 // Fish have a lifespan based on rarity. After maxAge, health slowly declines.
 // Common fish live shorter; rare fish live longer. In real seconds:
-const LIFESPAN_BY_RARITY = {
+export const LIFESPAN_BY_RARITY = {
   common:    60 * 60 * 8,     // 8 hours
   uncommon:  60 * 60 * 16,    // 16 hours
   rare:      60 * 60 * 24,    // 24 hours
   epic:      60 * 60 * 48,    // 48 hours
   legendary: 60 * 60 * 72,    // 72 hours
 };
-const ELDER_HEALTH_DECAY = 0.005; // health lost per second after max age
+const ELDER_HEALTH_DECAY = 0.08; // health lost per tick after max age — elder phase lasts ~10-20 minutes at 1x
 
 // --- PASSIVE INCOME ---
 // Once per minute, tanks with adult fish trickle a small coin bonus
@@ -266,9 +271,9 @@ export const DISEASES = {
   },
 };
 
-export function getDiseaseStage(diseaseSince) {
+export function getDiseaseStage(diseaseSince, now) {
   if (!diseaseSince) return 'mild';
-  const elapsed = (Date.now() - diseaseSince) / 1000;
+  const elapsed = ((now || Date.now()) - diseaseSince) / 1000;
   let total = 0;
   for (const stage of DISEASE_STAGES) {
     total += STAGE_DURATION[stage];
@@ -291,6 +296,16 @@ const DISEASE_WATER_MULT   = 2.0;
 const DISEASE_CROWD_MULT   = 1.5;
 
 const CUSTOMER_BASE_INTERVAL_MS  = 18_000;
+
+// ── Difficulty multipliers ──────────────────────────────────
+export const DIFFICULTY_PRESETS = {
+  easy:   { coinMult: 1.5, diseaseMult: 0.3, hungerMult: 0.7, waterDecayMult: 0.5, customerSpeedMult: 1.3, label: 'Easy' },
+  normal: { coinMult: 1.0, diseaseMult: 1.0, hungerMult: 1.0, waterDecayMult: 1.0, customerSpeedMult: 1.0, label: 'Normal' },
+  hard:   { coinMult: 0.6, diseaseMult: 2.0, hungerMult: 1.5, waterDecayMult: 1.8, customerSpeedMult: 0.7, label: 'Hard' },
+};
+export function getDifficultyMults(state) {
+  return DIFFICULTY_PRESETS[state?.difficulty || 'normal'] || DIFFICULTY_PRESETS.normal;
+}
 const BASE_OFFLINE_SECONDS       = 60 * 60 * 48;   // 48h base cap
 const TANK_SITTER_BONUS_SECONDS  = 60 * 60 * 24;   // +24h per Tank Sitter level
 
@@ -328,15 +343,15 @@ function getTankBonuses(tankType) {
 }
 
 // ── Spread disease within a tank ──────────────────────────
-function maybeSpreadDisease(tankFish, wq, capacity) {
-  const sickFish = tankFish.filter(f => f.stage !== 'egg' && f.disease && getDiseaseStage(f.diseaseSince) !== 'incubating');
+function maybeSpreadDisease(tankFish, wq, capacity, now) {
+  const sickFish = tankFish.filter(f => f.stage !== 'egg' && f.disease && getDiseaseStage(f.diseaseSince, now) !== 'incubating');
   if (sickFish.length === 0) return tankFish;
 
   const crowded = tankFish.length / (capacity || 12) > 0.8;
   return tankFish.map(fish => {
     if (fish.disease || fish.stage === 'egg') return fish;
     // Vitamin immunity prevents catching diseases
-    if (fish.vitaminUntil && fish.vitaminUntil > Date.now()) return fish;
+    if (fish.vitaminUntil && fish.vitaminUntil > now) return fish;
     // Immunity check — fish that recovered from a disease are immune to it
     const immunities = fish.immunities || [];
     for (const sick of sickFish) {
@@ -349,7 +364,7 @@ function maybeSpreadDisease(tankFish, wq, capacity) {
       // Hardy fish resist disease
       if (fish.personality === 'hardy') chance *= 0.4;
       if (Math.random() < chance) {
-        return { ...fish, disease: sick.disease, diseaseSince: Date.now(), diseaseStage: 'incubating' };
+        return { ...fish, disease: sick.disease, diseaseSince: now, diseaseStage: 'incubating' };
       }
     }
     return fish;
@@ -357,7 +372,7 @@ function maybeSpreadDisease(tankFish, wq, capacity) {
 }
 
 // ── Process one tank's fish for one tick ───────────────────
-function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, playerBoosts = {}, upgradeLevels = {}) {
+function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, playerBoosts = {}, upgradeLevels = {}, diff = {}, researchFx = {}) {
   const bonuses  = getTankBonuses(tank.type);
 
   // Active boost multipliers (boosts store expiry timestamps)
@@ -367,7 +382,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
 
   // Water Purifier: -25% decay per level
   const purifierMult   = 1 - (upgradeLevels.purifier || 0) * 0.25;
-  const wq        = Math.max(0, tank.waterQuality - WATER_DECAY_RATE * purifierMult);
+  const wq        = Math.max(0, tank.waterQuality - WATER_DECAY_RATE * (diff.waterDecayMult || 1) * purifierMult);
   const temp      = tank.temperature ?? 74;
   // Climate Control: -30% drift per level
   const tempControlMult = 1 - (upgradeLevels.tempControl || 0) * 0.3;
@@ -394,9 +409,9 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
   let fishWithDisease = tankFish.map(fish => {
     if (fish.disease || fish.stage === 'egg') return fish;
     // Vitamin immunity
-    if (fish.vitaminUntil && fish.vitaminUntil > Date.now()) return fish;
+    if (fish.vitaminUntil && fish.vitaminUntil > now) return fish;
     // Hardy personality resistance
-    let chance = DISEASE_BASE_CHANCE;
+    let chance = DISEASE_BASE_CHANCE * (diff.diseaseMult || 1) * (researchFx.diseaseResist || 1);
     if (fish.personality === 'hardy') chance *= 0.4;
     if (wq < 30) chance *= DISEASE_WATER_MULT;
     if (tankFish.length / (tank.capacity || 12) > 0.8) chance *= DISEASE_CROWD_MULT;
@@ -410,7 +425,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
       if ((fish.immunities || []).includes(diseaseId)) return fish;
       // During incubation, player doesn't know the disease yet
       messages.push({ message: `${fish.species?.name || 'A fish'} in ${tank.name} looks unwell! Keep an eye on symptoms.`, severity: 'critical' });
-      return { ...fish, disease: diseaseId, diseaseSince: Date.now(), diagnosed: false };
+      return { ...fish, disease: diseaseId, diseaseSince: now, diagnosed: false };
     }
     return fish;
   });
@@ -421,21 +436,22 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
   // Process each fish in this tank
   const updatedTankFish = fishWithDisease.map(fish => {
     let f = { ...fish };
-    f.age = (f.age || 0) + 1;
+    // Age is derived from game clock, not tick counter — respects speed controls
+    f.age = Math.max(0, Math.floor((now - (f.bornAt || now)) / 1000));
 
     if (f.stage !== 'egg') {
       // Auto-feed effect
       if (autoFeedUsed) f.hunger = Math.max(0, (f.hunger || 0) - 35);
-      f.hunger = Math.min(100, (f.hunger || 0) + HUNGER_RATE * (f.personality === 'gluttonous' ? 1.4 : 1.0));
+      f.hunger = Math.min(100, (f.hunger || 0) + HUNGER_RATE * (diff.hungerMult || 1) * (f.personality === 'gluttonous' ? 1.4 : 1.0));
 
-      const regen = HEALTH_REGEN * (bonuses.healthRegenMult || 1) * regenBoost;
+      const regen = HEALTH_REGEN * (bonuses.healthRegenMult || 1) * regenBoost * (researchFx.healthRegen || 1);
 
       // Additive damage — all active stressors compound, capped at 0.25/tick
       let dmg = 0;
       if (f.disease) {
         const disease = DISEASES[f.disease];
         if (disease) {
-          const stage = getDiseaseStage(f.diseaseSince);
+          const stage = getDiseaseStage(f.diseaseSince, now);
           f.diseaseStage = stage; // store for UI
           dmg += getDiseaseDamage(f.disease, stage);
         }
@@ -445,7 +461,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
       if (tempStress)     dmg += 0.02;
 
       // Aging: fish past their lifespan slowly decline
-      const maxAge = LIFESPAN_BY_RARITY[f.species?.rarity || 'common'] || LIFESPAN_BY_RARITY.common;
+      const maxAge = Math.round((LIFESPAN_BY_RARITY[f.species?.rarity || 'common'] || LIFESPAN_BY_RARITY.common) * (researchFx.lifespanMult || 1));
       if (f.age > maxAge) {
         const elderAge = f.age - maxAge;
         dmg += ELDER_HEALTH_DECAY * Math.min(3, 1 + elderAge / maxAge); // accelerates over time
@@ -487,6 +503,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
   // Tank happiness
   const adults = updatedTankFish.filter(f => f.stage !== 'egg');
   let happiness = 100;
+  let compatPenalty = 0;
   if (adults.length > 0) {
     const avgHealth = adults.reduce((s, f) => s + (f.health || 100), 0) / adults.length;
     const avgHunger = adults.reduce((s, f) => s + (f.hunger || 0),   0) / adults.length;
@@ -494,6 +511,32 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
     // Fish Whisperer: +10% happiness per level
     const whispererBonus = (upgradeLevels.whisperer || 0) * 0.10;
     happiness = Math.min(100, Math.round(happiness * (1 + whispererBonus)));
+    // Compatibility stress — mixed water/temp/aggression reduces happiness
+    const compats = adults.map(f => _getCompat(f));
+    const waters = new Set(compats.map(c => c.water));
+    const temps = new Set(compats.map(c => c.temp));
+    const hasAggr = compats.some(c => c.temperament === 'aggressive');
+    const hasPeace = compats.some(c => c.temperament === 'peaceful');
+    if (waters.size > 1) compatPenalty += 25;
+    if (temps.size > 1) compatPenalty += 10;
+    if (hasAggr && hasPeace) compatPenalty += 15;
+    // Schooling stress — species that need groups are lonely if too few
+    const speciesCounts = new Map();
+    for (const f of adults) {
+      const key = f.species?.key || f.species?.name || 'unknown';
+      speciesCounts.set(key, (speciesCounts.get(key) || 0) + 1);
+    }
+    for (const f of adults) {
+      const c = _getCompat(f);
+      if (c.schoolSize) {
+        const key = f.species?.key || f.species?.name || 'unknown';
+        if ((speciesCounts.get(key) || 0) < c.schoolSize) {
+          compatPenalty += 8; // lonely schooling fish
+          break; // one penalty per tank
+        }
+      }
+    }
+    happiness = Math.max(0, happiness - compatPenalty);
   }
 
   const updatedTank = {
@@ -672,13 +715,21 @@ export function processTick(state) {
   if (!Number.isFinite(state.player.coins)) state.player.coins = 0;
   if (!Number.isFinite(state.player.xp)) state.player.xp = 0;
   if (!state.shop) state.shop = { listedFish: [], fishPrices: {}, slots: 4, upgrades: {}, lastCustomerAt: 0, reputation: 0 };
-  if (!state.breedingTank) state.breedingTank = { slots: [null, null], eggReady: false, breedingStartedAt: null };
+  if (!state.breedingTank) state.breedingTank = { slots: [null, null], eggReady: false, breedingStartedAt: null, breedingDurationMs: 300000, storedGenomeA: null, storedGenomeB: null, storedTankId: null };
   if (!state.wantedPosters) state.wantedPosters = [];
   if (!state.memorials) state.memorials = [];
   try {
   let next = { ...state };
   const messages = [];
-  const now = Date.now();
+  const realNow = Date.now();
+  const realDelta = Math.max(0, Math.min(10000, realNow - (state.lastTickAt || realNow))); // clamp 0-10s
+  const speed = state.gameSpeed || 1;
+  const gameDelta = realDelta * speed;
+  const now = (state.gameClock || realNow) + gameDelta;
+  next.gameClock = now;
+  next.lastTickAt = realNow;
+  const diff = getDifficultyMults(state);
+  const researchFx = getResearchEffects(state);
 
   // Process each tank independently.
   // Pre-group fish by tankId once (O(n)) so each processOneTank call only
@@ -707,7 +758,7 @@ export function processTick(state) {
 
   for (const tank of next.tanks) {
     const tankFishList = fishByTank.get(tank.id) || [];
-    const { updatedTank, updatedTankFish } = processOneTank(tank, tankFishList, messages, now, hatcheryLevel, next.player?.boosts, upgradeLevels);
+    const { updatedTank, updatedTankFish } = processOneTank(tank, tankFishList, messages, now, hatcheryLevel, next.player?.boosts, upgradeLevels, diff, researchFx);
     updatedTanks.push(updatedTank);
     allUpdatedFish.push(...updatedTankFish);
   }
@@ -720,6 +771,13 @@ export function processTick(state) {
 
   next = { ...next, tanks: updatedTanks, fish: allUpdatedFish };
 
+  // Track eggs hatched this tick (eggs in old state that are now juveniles)
+  const oldEggs = new Set(state.fish.filter(f => f.stage === 'egg').map(f => f.id));
+  const newlyHatched = allUpdatedFish.filter(f => f.stage === 'juvenile' && oldEggs.has(f.id)).length;
+  if (newlyHatched > 0) {
+    next = { ...next, player: { ...next.player, stats: { ...next.player.stats, eggsHatched: (next.player.stats?.eggsHatched || 0) + newlyHatched } } };
+  }
+
   // Remove dead fish from all tanks — record autopsy data
   const deadFish = next.fish.filter(f => f.stage !== 'egg' && f.health <= 0);
   if (deadFish.length > 0) {
@@ -727,7 +785,7 @@ export function processTick(state) {
     // Build tank lookup once for autopsy records
     const tankById = new Map();
     for (const t of next.tanks) tankById.set(t.id, t);
-    const now2 = Date.now();
+    const now2 = now; // game clock for autopsy timestamps
     const newAutopsies = deadFish.map(f => {
       const tank = tankById.get(f.tankId);
       // Determine cause of death
@@ -745,8 +803,13 @@ export function processTick(state) {
       } else if ((tank?.temperature ?? 74) < 65 || (tank?.temperature ?? 74) > 85) {
         cause = 'Temperature Shock';
         detail = 'Tank temperature was out of safe range.';
+      } else if (f._elderLogged) {
+        const maxAge = LIFESPAN_BY_RARITY[f.species?.rarity || 'common'] || LIFESPAN_BY_RARITY.common;
+        const ageDays = Math.floor((f.age || 0) / 3600);
+        cause = 'Old Age';
+        detail = `Lived a full life of ${ageDays} game-hours.`;
       } else {
-        cause = 'Old Age / Unknown';
+        cause = 'Unknown';
         detail = 'Fish died without a clear stressor.';
       }
       return {
@@ -774,8 +837,8 @@ export function processTick(state) {
         id: f.id, name: f.nickname || f.species?.name || 'Unknown',
         species: f.species?.name, rarity: f.species?.rarity,
         personality: f.personality, generation: f.generation || 1,
-        livedDays: Math.round((Date.now() - (f.bornAt || Date.now())) / 86400000 * 10) / 10,
-        descendants: desc2, diedAt: Date.now(),
+        livedDays: Math.round((now - (f.bornAt || now)) / 86400000 * 10) / 10,
+        descendants: desc2, diedAt: now,
       });
     }
     next = {
@@ -793,6 +856,10 @@ export function processTick(state) {
         ...next.breedingTank,
         slots: next.breedingTank.slots.map(s => deadIds.has(s) ? null : s),
       },
+      extraBays: (next.extraBays || []).map(bay => ({
+        ...bay,
+        slots: (bay.slots || []).map(s => deadIds.has(s) ? null : s),
+      })),
       player: {
         ...next.player,
         autopsies: [...(next.player.autopsies || []), ...newAutopsies].slice(0, 50),
@@ -814,6 +881,8 @@ export function processTick(state) {
     }
     // Index-based lookup avoids O(n²) .find() per death message
     deadFish.forEach((f, i) => messages.push(`${f.species?.name || 'A fish'} has died. (Cause: ${newAutopsies[i]?.cause || 'Unknown'})`));
+    // Track deaths for campaign objectives
+    next = { ...next, player: { ...next.player, stats: { ...next.player.stats, fishDied: (next.player.stats?.fishDied || 0) + deadFish.length } } };
   }
 
   // Breeding tank timer — process all bays
@@ -825,10 +894,10 @@ export function processTick(state) {
       ? { ...bay, storedGenomeA: genomeA, storedGenomeB: genomeB } : bay;
     const oneGenomeMissing = !updated.storedGenomeA || !updated.storedGenomeB;
     if (oneGenomeMissing) {
-      messages.push('💔 Breeding cancelled — a parent was lost.');
+      messages.push('Breeding cancelled — a parent was lost.');
       return { ...updated, breedingStartedAt: null, slots: [null, null], storedGenomeA: null, storedGenomeB: null };
     }
-    if (now - updated.breedingStartedAt >= updated.breedingDurationMs) {
+    if (now - updated.breedingStartedAt >= (updated.breedingDurationMs || 300000)) {
       messages.push('A breeding egg is ready to collect!');
       return { ...updated, eggReady: true };
     }
@@ -847,6 +916,98 @@ export function processTick(state) {
   }
 
   // Batch all messages into one state update — avoids N full state spreads
+
+  // ── Staff processing ────────────────────────────────────
+  if (next.staff && next.staff.length > 0) {
+    // Shallow-copy each staff member to avoid mutating previous state
+    next = { ...next, staff: next.staff.map(s => ({ ...s })) };
+
+    const staffFishByTank = new Map();
+    for (const f of next.fish) {
+      if (!staffFishByTank.has(f.tankId)) staffFishByTank.set(f.tankId, []);
+      staffFishByTank.get(f.tankId).push(f);
+    }
+
+    for (const member of next.staff) {
+      if (!member.assignedTankId) continue;
+      const tank = next.tanks.find(t => t.id === member.assignedTankId);
+      if (!tank) continue;
+      const tankFishList = staffFishByTank.get(member.assignedTankId) || [];
+      const roleDef = STAFF_ROLES[member.role];
+      if (!roleDef) continue;
+      const lvl = Math.min(member.level, (roleDef.maxLevel || 5) - 1);
+
+      if (member.role === 'feeder') {
+        member.feedTick = (member.feedTick || 0) + 1;
+        const interval = roleDef.effect.feedInterval[lvl] || 40;
+        const threshold = roleDef.effect.hungerThreshold[lvl] || 50;
+        if (member.feedTick >= interval) {
+          member.feedTick = 0;
+          const hungryFish = tankFishList.filter(f => f.stage !== 'egg' && (f.hunger || 0) > threshold);
+          if (hungryFish.length > 0 && (tank.supplies?.food || 0) > 0) {
+            // Feed the hungriest fish
+            const target = hungryFish.sort((a, b) => (b.hunger || 0) - (a.hunger || 0))[0];
+            target.hunger = Math.max(0, (target.hunger || 0) - 40);
+            tank.supplies.food -= 1;
+            member.xp = (member.xp || 0) + 1;
+          }
+        }
+      }
+
+      if (member.role === 'cleaner') {
+        const threshold = roleDef.effect.wqThreshold[lvl] || 65;
+        const restore = roleDef.effect.wqRestorePerTick[lvl] || 0.005;
+        if (tank.waterQuality < threshold) {
+          tank.waterQuality = Math.min(100, tank.waterQuality + restore);
+          member.xp = (member.xp || 0) + 1;
+        }
+      }
+
+      if (member.role === 'vet') {
+        const cureChance = roleDef.effect.cureChancePerTick[lvl] || 0.001;
+        const diagTicks = roleDef.effect.diagnoseTicks[lvl] || 100;
+        for (const f of tankFishList) {
+          if (!f.disease) continue;
+          // Auto-diagnose
+          if (!f.diagnosed && f.diseaseSince) {
+            const diseaseDuration = (now - f.diseaseSince) / 1000;
+            if (diseaseDuration > diagTicks) {
+              f.diagnosed = true;
+              messages.push(`${member.name} diagnosed ${f.species?.name || 'a fish'} with ${f.disease}.`);
+              member.xp = (member.xp || 0) + 3;
+            }
+          }
+          // Auto-cure (diagnosed only)
+          if (f.diagnosed && Math.random() < cureChance) {
+            if (!f.immunities) f.immunities = [];
+            f.immunities.push(f.disease);
+            const diseaseName = f.disease;
+            f.disease = null;
+            f.diseaseSince = null;
+            f.diagnosed = false;
+            f.diseaseStage = null;
+            messages.push(`${member.name} cured ${f.species?.name || 'a fish'} of ${diseaseName}!`);
+            member.xp = (member.xp || 0) + 5;
+            break; // one cure per tick
+          }
+        }
+      }
+    }
+  }
+
+  // ── Staff daily wages ───────────────────────────────────
+  if (next.staff && next.staff.length > 0) {
+    const gameDay = Math.floor((now - (next.player?.firstPlayedAt || now)) / 86_400_000);
+    if (gameDay > (next.lastWageDay || 0)) {
+      let totalWages = 0;
+      for (const s of next.staff) totalWages += getStaffWage(s);
+      if (totalWages > 0) {
+        next = { ...next, player: { ...next.player, coins: Math.max(0, next.player.coins - totalWages) }, lastWageDay: gameDay };
+        messages.push(`Staff wages: -${totalWages} coins.`);
+      }
+    }
+  }
+
   // Passive income: once per minute, happy tanks with adult fish earn visitor tips
   const passiveTick = (next.passiveTick || 0) + 1;
   if (passiveTick >= PASSIVE_INCOME_INTERVAL) {
@@ -864,7 +1025,7 @@ export function processTick(state) {
       const placed = tank.decorations?.placed?.length || 0;
       const decorMult = 1 + Math.min(10, placed) * PASSIVE_DECOR_BONUS;
       const fameMult  = 1 + (upgradeLevels.fame || 0) * 0.15;
-      tip += Math.floor((tank.happiness / 100) * decorMult * PASSIVE_INCOME_BASE * fameMult);
+      tip += Math.floor((tank.happiness / 100) * decorMult * PASSIVE_INCOME_BASE * fameMult * (researchFx.passiveIncome || 1));
     }
     if (tip > 0) {
       const incomeBoost = (next.player?.boosts?.passiveIncome || 0) > now ? 2.0 : 1.0;
@@ -875,6 +1036,33 @@ export function processTick(state) {
       next = updateChallengeProgress(next, 'earn_coins', { amount: boostedTip });
     }
     next = { ...next, passiveTick: 0 };
+
+    // ── Amenity income (Gift Shop + Café) ──────────────────
+    if (next.giftShop?.unlocked) {
+      const rarities = new Set(next.fish.map(f => f.species?.rarity).filter(Boolean));
+      const diversityBonus = rarities.size; // 1-5 based on rarity tiers present
+      const shopLevel = next.giftShop.level || 0;
+      const shopIncome = Math.floor((3 + shopLevel * 2) * diversityBonus);
+      if (shopIncome > 0) {
+        next = { ...next,
+          player: { ...next.player, coins: next.player.coins + shopIncome, totalCoinsEarned: (next.player.totalCoinsEarned || 0) + shopIncome },
+          giftShop: { ...next.giftShop, totalEarned: (next.giftShop.totalEarned || 0) + shopIncome },
+        };
+      }
+    }
+    if (next.cafe?.unlocked) {
+      const avgHappiness = next.tanks.length > 0
+        ? next.tanks.reduce((s, t) => s + (t.happiness || 0), 0) / next.tanks.length
+        : 50;
+      const cafeLevel = next.cafe.level || 0;
+      const cafeIncome = Math.floor((2 + cafeLevel * 2) * (avgHappiness / 50));
+      if (cafeIncome > 0) {
+        next = { ...next,
+          player: { ...next.player, coins: next.player.coins + cafeIncome, totalCoinsEarned: (next.player.totalCoinsEarned || 0) + cafeIncome },
+          cafe: { ...next.cafe, totalEarned: (next.cafe.totalEarned || 0) + cafeIncome },
+        };
+      }
+    }
 
     // Auto-Medic: per-minute chance to cure sick fish
     const autoMedicLevel = upgradeLevels.autoMedic || 0;
@@ -913,7 +1101,7 @@ export function processTick(state) {
   const level = Math.floor((next.player?.xp || 0) / 500) + 1;
   const maxPosters = Math.min(3, 1 + Math.floor(level / 8));
   if (activePosters.length < maxPosters) {
-    const newPoster = _generateWantedPoster(level, next.wantedPosters);
+    const newPoster = _generateWantedPoster(level, next.wantedPosters, now);
     if (newPoster) next.wantedPosters = [...next.wantedPosters, newPoster];
   }
 
@@ -956,11 +1144,11 @@ export function processTick(state) {
             nightWatchEarned: true,
             achievements: [
               ...(next.player.achievements || []),
-              { id: 'survived_night', unlockedAt: Date.now(), reward: NIGHT_REWARD },
+              { id: 'survived_night', unlockedAt: now, reward: NIGHT_REWARD },
             ],
           },
         };
-        messages.push('🌙 Achievement unlocked: Night Watch! All fish survived the night. +500');
+        messages.push('Achievement unlocked: Night Watch! All fish survived the night. +500');
       }
     }
   }
@@ -973,6 +1161,30 @@ export function processTick(state) {
       typeof m === 'string' ? { time: Date.now(), message: m } : { time: Date.now(), ...m }
     );
     next = { ...next, log: [...newEntries, ...next.log].slice(0, 60) };
+
+    // Push important messages to notification center
+    const notifs = [...(next.notifications || [])];
+    const NOTIF_PATTERNS = [
+      { test: /died|has died/, type: 'critical' },
+      { test: /old age|reaching old age/, type: 'warning' },
+      { test: /contracted|looks unwell/, type: 'critical' },
+      { test: /inspection|fine|fined/, type: 'warning' },
+      { test: /review.*5\/5|World-Class/, type: 'success' },
+      { test: /newspaper|TV station|Magazine|National|World-renowned/, type: 'success' },
+      { test: /cured.*of/, type: 'success' },
+      { test: /Tourist bus|Celebrity/, type: 'info' },
+    ];
+    for (const entry of newEntries) {
+      const msg = entry.message || '';
+      for (const p of NOTIF_PATTERNS) {
+        if (p.test.test(msg)) {
+          notifs.unshift({ id: Date.now() + Math.random(), message: msg, type: p.type, at: Date.now() });
+          break;
+        }
+      }
+    }
+    if (notifs.length > 20) notifs.length = 20;
+    next = { ...next, notifications: notifs };
   }
 
   // ── Special Orders: refresh daily ──────────────────────────
@@ -994,6 +1206,43 @@ export function processTick(state) {
     next = { ...next, reviews, lastReviewAt: now };
     if (review.stars >= 4) messages.push(`New review: "${review.headline}" — ${review.stars}/5 stars!`);
     if (review.stars <= 2) messages.push(`Bad review: "${review.headline}" — only ${review.stars}/5 stars.`);
+    // Reputation bonus from good reviews
+    const repGain = review.stars >= 4 ? 3 : review.stars >= 3 ? 1 : 0;
+    if (repGain > 0) {
+      next = { ...next, shop: { ...next.shop, reputation: Math.min(999, (next.shop.reputation || 0) + repGain) } };
+    }
+  }
+
+  // ── Reputation milestones ─────────────────────────────────
+  const rep = next.shop?.reputation || 0;
+  const repMilestones = next.player?.repMilestones || {};
+  const REP_THRESHOLDS = [
+    { rep: 10,  id: 'local_feature',  msg: 'Local newspaper featured your aquarium! +50 coins, +5 reputation.',  coins: 50,  repBonus: 5,  unlockSupplier: 'tropical' },
+    { rep: 25,  id: 'tv_coverage',    msg: 'TV station covered your aquarium! +150 coins, new suppliers unlocked!',  coins: 150, repBonus: 10, unlockSupplier: 'exotic' },
+    { rep: 50,  id: 'magazine_award', msg: 'Aquarium Magazine award! +300 coins, deep sea suppliers unlocked!',  coins: 300, repBonus: 15, unlockSupplier: 'deep_sea' },
+    { rep: 100, id: 'national_fame',  msg: 'National recognition! +500 coins, premier suppliers unlocked!',  coins: 500, repBonus: 20, unlockSupplier: 'premier' },
+    { rep: 200, id: 'world_renowned', msg: 'World-renowned aquarium! +1000 coins, legendary collectors visit.',  coins: 1000, repBonus: 25 },
+  ];
+  for (const m of REP_THRESHOLDS) {
+    if (rep >= m.rep && !repMilestones[m.id]) {
+      next = {
+        ...next,
+        player: {
+          ...next.player,
+          coins: next.player.coins + m.coins,
+          totalCoinsEarned: (next.player.totalCoinsEarned || 0) + m.coins,
+          repMilestones: { ...repMilestones, [m.id]: true },
+        },
+        shop: { ...next.shop, reputation: Math.min(999, (next.shop.reputation || 0) + m.repBonus) },
+      };
+      // Unlock new supplier if milestone grants one
+      if (m.unlockSupplier) {
+        const unlocked = [...(next.suppliers?.unlocked || ['basic'])];
+        if (!unlocked.includes(m.unlockSupplier)) unlocked.push(m.unlockSupplier);
+        next = { ...next, suppliers: { ...next.suppliers, unlocked } };
+      }
+      messages.push(m.msg);
+    }
   }
 
   // ── Loan enforcement: penalty for overdue loans ───────────
@@ -1070,8 +1319,65 @@ export function processTick(state) {
   if (next.memorials && next.memorials.length > 50) next.memorials.length = 50;
   if (next.wantedPosters && next.wantedPosters.length > 20) next.wantedPosters.length = 20;
 
+  // ── Contextual tips (fire once per event) ─────────────────
+  const _tips = next.player?.tutorialFlags || {};
+  function _tip(id, cond, msg) {
+    if (_tips[id]) return;
+    if (!cond) return;
+    next = { ...next, player: { ...next.player, tutorialFlags: { ...next.player.tutorialFlags, [id]: true } } };
+    messages.push({ message: msg, severity: 'tip' });
+  }
+  _tip('tip_disease', next.fish.some(f => f.disease && !f.diagnosed),
+    'TIP: A fish looks unwell! Go to its inspector and use Medicine or Diagnose to identify the disease.');
+  _tip('tip_wq_low', next.tanks.some(t => t.waterQuality < 35),
+    'TIP: Water quality is critical! Use Treat Water on the tank, or hire a Technician to maintain it.');
+  _tip('tip_tank_full', next.tanks.every(t => {
+    const cnt = next.fish.filter(f => f.tankId === t.id).length;
+    return cnt >= (t.capacity || 12);
+  }) && next.fish.length >= 6,
+    'TIP: All tanks are full! Sell some fish or unlock a new tank from the Market.');
+  _tip('tip_first_rare', next.fish.some(f => f.species?.rarity === 'rare') && !_tips.tip_first_rare,
+    'TIP: You discovered a Rare fish! Rare fish sell for 6x the base price. Keep breeding for Epic and Legendary!');
+  _tip('tip_elder', next.fish.some(f => f._elderLogged),
+    'TIP: A fish is reaching old age. Breed replacements before it passes — check the Age bar in its inspector.');
+  _tip('tip_first_egg', (next.player?.stats?.eggsCollected || 0) === 1,
+    'TIP: Egg collected! It will hatch into a juvenile, then grow to adult. Speed controls (. key) can fast-forward.');
+  _tip('tip_wanted', (next.wantedPosters || []).some(p => !p.fulfilled),
+    'TIP: The Wanted Board has bounties! Check Market for fish requests with bonus coin rewards.');
+  _tip('tip_staff_idle', (next.staff || []).some(s => !s.assignedTankId),
+    'TIP: You have unassigned staff! Go to Office → Staff and assign them to a tank.');
+
+  // ── Stats history snapshot (every 5 game-minutes) ────────
+  const SNAPSHOT_INTERVAL_MS = 300_000; // 5 game-minutes
+  if (now - (next.lastSnapshotAt || 0) >= SNAPSHOT_INTERVAL_MS) {
+    const snapshot = {
+      t: now,
+      coins: next.player.coins,
+      earned: next.player.totalCoinsEarned || 0,
+      fish: next.fish.length,
+      species: (next.player.fishdex || []).length,
+      tanks: next.tanks.length,
+      staff: (next.staff || []).length,
+    };
+    const history = [...(next.statsHistory || []), snapshot];
+    // Keep last 200 snapshots (~16+ game-hours)
+    if (history.length > 200) history.splice(0, history.length - 200);
+    next = { ...next, statsHistory: history, lastSnapshotAt: now };
+  }
+
+  // ── Campaign objective checking ─────────────────────────
+  if (next.campaign?.mode === 'campaign' && next.campaign.activeLevelId && !next.campaign.levelCompleted) {
+    const level = _getCampaignLevel(next.campaign.activeLevelId);
+    if (level) {
+      const allMet = level.objectives.every(o => _checkObj(o, next));
+      if (allMet) {
+        next = { ...next, campaign: { ...next.campaign, levelCompleted: true }, _pendingVictory: level.id };
+      }
+    }
+  }
+
   _tickCrashCount = 0; // Reset on success
-  return { ...next, lastTickAt: now };
+  return next;
   } catch (err) {
     _tickCrashCount = (_tickCrashCount || 0) + 1;
     if (_tickCrashCount <= 3) {
@@ -1092,7 +1398,8 @@ export function getCustomerInterval(state) {
   const repBonus = Math.min(0.5, (state.shop.reputation || 0) / 200);
   const adLevel  = state.shop.upgrades?.reputation?.level || 0;
   const adBonus  = adLevel * 0.15;
-  return Math.round(CUSTOMER_BASE_INTERVAL_MS * (1 - Math.min(0.75, repBonus + adBonus)));
+  const rFx = getResearchEffects(state);
+  return Math.round(CUSTOMER_BASE_INTERVAL_MS * (1 - Math.min(0.75, repBonus + adBonus)) * (rFx.customerSpeed || 1));
 }
 
 function pickCustomerType(state) {
@@ -1148,7 +1455,11 @@ function processCustomerVisit(state, messages) {
     const tankBonus = getTankBonuses(fishTank?.type).salePriceMult || 1;
     const happiness = fishTank?.happiness ?? 100;
     const happBonus = 1 + (happiness / 100) * 0.2;
-    const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * happBonus * tankBonus * lightingBonus * getMarketMultiplier(f, state.market));
+    // Veteran bonus: older fish are more valuable (experienced, trained)
+    const maxAge = LIFESPAN_BY_RARITY[f.species?.rarity || 'common'] || LIFESPAN_BY_RARITY.common;
+    const ageFraction = Math.min(1, (f.age || 0) / maxAge);
+    const vetBonus = ageFraction > 0.5 ? 1 + (ageFraction - 0.5) * 0.4 : 1; // up to +20% at max age
+    const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * happBonus * tankBonus * lightingBonus * vetBonus * getMarketMultiplier(f, state.market));
     const askPrice  = state.shop.fishPrices?.[id] ?? autoPrice;
     const budget    = Math.round(askPrice * customer.budgetMult);
     if (budget >= Math.round(askPrice * 0.65)) listedFish.push(f);
@@ -1226,11 +1537,12 @@ function processCustomerVisit(state, messages) {
         customerId: customer.id,
         greeting,
       },
-      shop: { ...state.shop, lastCustomerAt: Date.now() },
+      shop: { ...state.shop, lastCustomerAt: now },
     };
   }
 
-  const salePriceBoost = (state.player?.boosts?.salePrice || 0) > Date.now() ? 1.25 : 1.0;
+  const salePriceBoost = (state.player?.boosts?.salePrice || 0) > now ? 1.25 : 1.0;
+  const researchSaleBonus = getResearchEffects(state).saleBonus || 1;
   const streakMult = getStreakMultiplier(state.player?.dailyStreak || 0);
 
   // Urgent offer multiplier
@@ -1247,7 +1559,7 @@ function processCustomerVisit(state, messages) {
   const jackpot = checkJackpot(totalSales);
   const jackpotMult = jackpot ? jackpot.multiplier : 1;
 
-  const earnedCoins = Math.max(1, Math.round(finalPrice * salePriceBoost * streakMult * urgentMult * jackpotMult));
+  const earnedCoins = Math.max(1, Math.round(finalPrice * salePriceBoost * researchSaleBonus * streakMult * urgentMult * jackpotMult));
   if (jackpot) messages.push(`${jackpot.label} ${jackpotMult}× payout on this sale! ${earnedCoins}`);
   if (urgentMult > 1) messages.push(`Urgent buyer paid ${urgentMult}× premium!`);
   const repGain     = Math.ceil((fish.species?.rarityScore ?? 5) / 10) + (askPrice > autoPrice ? 1 : 0);
@@ -1272,7 +1584,7 @@ function processCustomerVisit(state, messages) {
       ...state.shop,
       listedFish: state.shop.listedFish.filter(id => id !== fish.id),
       fishPrices,
-      lastCustomerAt: Date.now(),
+      lastCustomerAt: now,
       reputation: Math.min(999, (state.shop.reputation || 0) + repGain),
       salesHistory: [
         {
@@ -1335,7 +1647,7 @@ function generateOfflineEvent(state, secondsAway) {
   // Visitor fish: rare stranger appears in your tank (30% of events)
   if (eventRoll < 0.30) {
     const targetRarity = Math.random() < 0.6 ? 'uncommon' : 'rare';
-    const visitor = createFish({ stage: 'adult', tankId, targetRarity });
+    const visitor = createFish({ stage: 'adult', tankId, targetRarity, now });
     return {
       type: 'visitor',
       emoji: '',
@@ -1385,7 +1697,7 @@ function generateOfflineEvent(state, secondsAway) {
 }
 
 export function applyOfflineProgress(state) {
-  const now             = Date.now();
+  const now             = (state.gameClock || Date.now()) + secondsElapsed * 1000;
   const elapsed         = now - (state.lastTickAt || now);
   const tankSitterLevel = state.shop?.upgrades?.tankSitter?.level || 0;
   const maxOfflineSecs  = BASE_OFFLINE_SECONDS + tankSitterLevel * TANK_SITTER_BONUS_SECONDS;
@@ -1412,7 +1724,7 @@ export function applyOfflineProgress(state) {
   // nested objects in place or you'll corrupt the original state.
   const updatedFish = next.fish.map(fish => {
     let f   = { ...fish };
-    f.age   = (f.age || 0) + secondsElapsed;
+    f.age   = Math.max(0, Math.floor((now - (f.bornAt || now)) / 1000));
     const tank = next.tanks.find(t => t.id === f.tankId);
     const bonuses = getTankBonuses(tank?.type);
 
@@ -1422,7 +1734,7 @@ export function applyOfflineProgress(state) {
       if (f.hunger >= 90) f.health = Math.max(0, f.health - HEALTH_HUNGER_DMG * secondsElapsed * 0.5);
       // Apply disease damage offline — diseased fish should still deteriorate while away
       if (f.disease) {
-        const stage = getDiseaseStage(f.diseaseSince);
+        const stage = getDiseaseStage(f.diseaseSince, now);
         const dmg = getDiseaseDamage(f.disease, stage);
         if (dmg > 0) f.health = Math.max(0, f.health - dmg * secondsElapsed * 0.5);
       }
@@ -1535,10 +1847,18 @@ export function applyOfflineProgress(state) {
     if (earned > 0) { coinsEarned += earned; fishSold++; }
   }
 
-  // Breeding tank
+  // Breeding tank — check all bays
   const bt = next.breedingTank;
-  if (bt.breedingStartedAt && !bt.eggReady && now - bt.breedingStartedAt >= bt.breedingDurationMs) {
+  if (bt.breedingStartedAt && !bt.eggReady && now - bt.breedingStartedAt >= (bt.breedingDurationMs || 300000)) {
     next = { ...next, breedingTank: { ...bt, eggReady: true } };
+  }
+  if (next.extraBays?.length > 0) {
+    next = { ...next, extraBays: next.extraBays.map(bay => {
+      if (bay.breedingStartedAt && !bay.eggReady && now - bay.breedingStartedAt >= (bay.breedingDurationMs || 300000)) {
+        return { ...bay, eggReady: true };
+      }
+      return bay;
+    })};
   }
 
   // Generate a discovery event
@@ -1591,6 +1911,9 @@ export function applyOfflineProgress(state) {
   } else {
     next = addLog(next, `Back after ${timeLabel}. Your tanks are peaceful.`);
   }
+
+  // Advance game clock to cover offline period
+  next = { ...next, gameClock: now, lastTickAt: Date.now() };
 
   return next;
 }

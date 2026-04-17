@@ -3,8 +3,10 @@ import FishSprite from './FishSprite.jsx';
 import Chromacode from './Chromacode.jsx';
 import { RARITY, GENES, getCarrierTraits, checkLegendaryCombo } from '../data/genetics.js';
 import { purityTier, getHiddenAllele, GENE_ORDER } from '../data/geneAnalysis.js';
-import { DISEASES, getMarketMultiplier, getDiseaseStage, CURE_SUCCESS_RATE } from '../systems/gameTick.js';
+import { DISEASES, getMarketMultiplier, getDiseaseStage, CURE_SUCCESS_RATE, LIFESPAN_BY_RARITY } from '../systems/gameTick.js';
+import { IconFeed, IconMedicine, IconDiagnose, IconVitamins, IconSell, IconListed, IconHeart, IconDNA } from './GameIcons.jsx';
 import { useGameStore } from '../store/gameStore.js';
+import { getCompat } from '../data/compatibility.js';
 
 function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, foodStock = 0, tanks = [], onMoveFish, isFirstRun, onNavigate }) {
   const prevFishId = useRef(null);
@@ -32,9 +34,9 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
           <p className="fish-panel-empty-sub">Click any fish in the tank</p>
           {isFirstRun && (
             <div className="fish-panel-onboarding">
-              <p className="fish-panel-onboarding-title">🎮 How to play</p>
+              <p className="fish-panel-onboarding-title">How to play</p>
               <p className="fish-panel-onboarding-step">Feed fish to keep them healthy</p>
-              <p className="fish-panel-onboarding-step">📈 Juveniles grow into adults over time</p>
+              <p className="fish-panel-onboarding-step">Juveniles grow into adults over time</p>
               <p className="fish-panel-onboarding-step">Sell adults in the Shop to earn coins</p>
               <p className="fish-panel-onboarding-step">Use coins to upgrade your aquarium</p>
               {onNavigate && (
@@ -55,7 +57,9 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
 
   if (!fish.species) return <div className="fish-panel"><p>Fish data missing</p></div>;
   const rarity = RARITY[fish.species?.rarity] || { label: 'Unknown', color: '#888', priceMultiplier: 1 };
+  const fishCompat = getCompat(fish);
   const market = useGameStore(s => s.market);
+  const gameClock = useGameStore(s => s.gameClock);
   // Progressive disclosure — hide advanced sections until player has context
   const hasBredBefore = useGameStore(s => (s.player?.stats?.eggsCollected || 0) > 0);
   const hasMutationSeen = useGameStore(s => (s.player?.fishdex || []).some(e => e.phenotype?.mutation && e.phenotype.mutation !== 'None'));
@@ -127,7 +131,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
           <h2 className="fp-name">
             {fish.nickname ? <span className="fp-nickname">{fish.nickname}</span> : null}
             <span className={fish.nickname ? 'fp-species-sub' : ''}>{fish.species?.name || 'Unknown'}</span>
-            <button className="fp-rename-btn" title="Rename this fish"
+            <button className="fp-rename-btn" 
               onClick={() => {
                 const name = prompt('Name this fish:', fish.nickname || '');
                 if (name !== null) {
@@ -136,7 +140,10 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
               }}>Rename</button>
           </h2>
           <div className="fp-meta-row">
-            <span className="fp-meta-chip">⏱ {ageLabel}</span>
+            <span className="fp-meta-chip">{ageLabel}</span>
+            {fishCompat && <span className={`fp-meta-chip fp-compat-chip fp-compat--${fishCompat.water}`}>{fishCompat.water === 'salt' ? 'Saltwater' : 'Freshwater'}</span>}
+            {fishCompat && <span className={`fp-meta-chip fp-compat-chip fp-compat--${fishCompat.temperament}`}>{fishCompat.temperament}</span>}
+            {fishCompat?.schoolSize && <span className="fp-meta-chip fp-compat-chip fp-compat--school">school {fishCompat.schoolSize}+</span>}
           </div>
         </div>
       </div>
@@ -148,7 +155,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
         <span className="fp-value-label">sale value</span>
         {marketDelta !== 0 && (
           <span className={`fp-value-delta ${marketDelta > 0 ? 'fp-value-delta--up' : ''}`}>
-            {marketDelta > 0 ? '📈' : '📉'} {marketDelta > 0 ? '+' : ''}{marketDelta}% market
+            {marketDelta > 0 ? '+' : '-'} {marketDelta > 0 ? '+' : ''}{marketDelta}% market
           </span>
         )}
         {showDelta && (
@@ -159,14 +166,14 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
       </div>
 
       {disease && (() => {
-        const stage = getDiseaseStage(fish.diseaseSince);
+        const stage = getDiseaseStage(fish.diseaseSince, gameClock);
         const isIncubating = stage === 'incubating';
         const hasDiagnosis = fish.diagnosed || !isIncubating;
         const symptomText = disease.symptoms?.[stage] || '';
         const cureName = disease.treatmentName;
         return (
           <div className={`fp-disease fp-disease--${stage}`}>
-            <div className="fp-disease-icon">{hasDiagnosis ? disease.emoji : '❓'}</div>
+            <div className="fp-disease-icon">{hasDiagnosis ? disease.emoji : '?'}</div>
             <div className="fp-disease-body">
               <div className="fp-disease-name">
                 {hasDiagnosis ? `${disease.name} — ${stage}` : 'Unknown Illness — Incubating'}
@@ -202,39 +209,50 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
       {/* ── Step 7: Grouped stats with section headers ── */}
       <div className="fp-section">
         <div className="fp-section-header">
-          <span className="fp-section-icon">HP</span>
+          <span className="fp-section-icon"><IconHeart size={12} /></span>
           <span className="fp-section-title">Health</span>
         </div>
         <div className="fp-section-body">
-          <RichStatBar label="Health" value={healthPct} color={healthColor} icon="❤" />
+          <RichStatBar label="Health" value={healthPct} color={healthColor} icon="HP" />
           <RichStatBar label="Satiety" value={satietyPct} color={satietyColor} icon="" />
+          {fish.stage === 'adult' && (() => {
+            const ageSeconds = fish.age || 0;
+            const maxAge = LIFESPAN_BY_RARITY[fish.species?.rarity || 'common'] || LIFESPAN_BY_RARITY.common;
+            const agePct = Math.min(100, Math.round((ageSeconds / maxAge) * 100));
+            const ageHours = Math.floor(ageSeconds / 3600);
+            const ageMins = Math.floor((ageSeconds % 3600) / 60);
+            const ageLabel = ageHours > 0 ? `${ageHours}h ${ageMins}m` : `${ageMins}m`;
+            const isElder = ageSeconds > maxAge;
+            const ageColor = isElder ? '#c44040' : agePct > 75 ? '#c49040' : '#5aaa70';
+            return <RichStatBar label={isElder ? 'Elder' : 'Age'} value={agePct} color={ageColor} icon={ageLabel} />;
+          })()}
         </div>
       </div>
 
       <div className="fp-actions">
-        <ActionBtn icon="" label={`Feed (${foodStock})`} onClick={() => onFeed(fish.id)}
+        <ActionBtn icon={<IconFeed />} label={`Feed (${foodStock})`} onClick={() => onFeed(fish.id)}
           disabled={fish.hunger < 20} variant="feed" highlight={bestAction === 'feed'}
           disabledTitle="Fish is full" />
-        <ActionBtn icon=""
+        <ActionBtn icon={<IconMedicine />}
           label={disease ? `${disease.treatmentName} (${medicineStock})` : `Treat (${medicineStock})`}
           onClick={() => onMedicine(fish.id)}
           disabled={!needsMedicine || medicineStock <= 0}
           disabledTitle={medicineStock <= 0 ? 'No medicine in stock' : 'Fish is healthy — no treatment needed'}
           variant="medicine" pulse={needsMedicine && medicineStock > 0} highlight={bestAction === 'medicine'} />
-        {disease && !fish.diagnosed && getDiseaseStage(fish.diseaseSince) === 'incubating' && (() => {
+        {disease && !fish.diagnosed && getDiseaseStage(fish.diseaseSince, gameClock) === 'incubating' && (() => {
           const diagKits = fish.tankId ? (tanks.find(t => t.id === fish.tankId)?.supplies?.diagnosticKit || 0) : 0;
           return (
-            <ActionBtn icon="" label={`Diagnose (${diagKits})`}
+            <ActionBtn icon={<IconDiagnose />} label={`Diagnose (${diagKits})`}
               onClick={() => useGameStore.getState().diagnoseFish(fish.id)}
               disabled={diagKits <= 0}
               disabledTitle="No diagnostic kits — buy from Shop → Supplies"
               variant="medicine" />
           );
         })()}
-        {!disease && !(fish.vitaminUntil && fish.vitaminUntil > Date.now()) && (() => {
+        {!disease && !(fish.vitaminUntil && fish.vitaminUntil > (gameClock || Date.now())) && (() => {
           const vitCount = fish.tankId ? (tanks.find(t => t.id === fish.tankId)?.supplies?.vitamins || 0) : 0;
           return (
-            <ActionBtn icon="" label={`Vitamins (${vitCount})`}
+            <ActionBtn icon={<IconVitamins />} label={`Vitamins (${vitCount})`}
               onClick={() => useGameStore.getState().giveVitamins(fish.id)}
               disabled={vitCount <= 0 || fish.stage !== 'adult'}
               disabledTitle={vitCount <= 0 ? 'No vitamins — buy from Shop → Supplies' : 'Not available'}
@@ -242,9 +260,9 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
           );
         })()}
         {isListed ? (
-          <ActionBtn icon="" label="Listed" onClick={() => onSell(fish.id)} variant="listed" />
+          <ActionBtn icon={<IconListed />} label="Listed" onClick={() => onSell(fish.id)} variant="listed" />
         ) : (
-          <ActionBtn icon="" label={`Sell · ${salePrice}`}
+          <ActionBtn icon={<IconSell />} label={`Sell · ${salePrice}`}
             onClick={() => onSell(fish.id)} disabled={fish.stage !== 'adult'} variant="sell" highlight={bestAction === 'sell'}
             disabledTitle={`Can't sell yet — fish is still a ${fish.stage}`} />
         )}
@@ -257,7 +275,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
         return (
         <div className="fp-section fp-section--genetics">
           <button className="fp-section-header fp-section-header--toggle" onClick={() => setShowGenetics(v => !v)}>
-            <span className="fp-section-icon">DNA</span>
+            <span className="fp-section-icon"><IconDNA size={12} /></span>
             <span className="fp-section-title">Genetics</span>
             {legendary && <span className="fp-legendary-badge">{legendary.emoji} {legendary.name}</span>}
             <span className="fp-toggle-arrow">{showGenetics ? '▲' : '▼'}</span>
@@ -289,7 +307,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
                         <span className={`fp-dna-dot ${d2 > d1 ? 'fp-dna-dot--dominant' : 'fp-dna-dot--recessive'}`}
                               title={`${allele2.name} (${a2})`}>{a2}</span>
                       </span>
-                      {isHetero && <span className="fp-dna-hetero" title="Heterozygous">⚡</span>}
+                      {isHetero && <span className="fp-dna-hetero" >⚡</span>}
                     </div>
                   );
                 })}

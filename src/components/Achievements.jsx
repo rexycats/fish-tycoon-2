@@ -27,7 +27,7 @@ function AchievementCard({ def, unlock, onNavigate }) {
       {/* Progress bar — 100% when earned, thin bottom stripe */}
       <div className="ach-progress" style={{ width: earned ? '100%' : '0%' }} />
 
-      <div className="ach-emoji">{isSecret ? '❓' : def.emoji}</div>
+      <div className="ach-emoji">{isSecret ? '?' : def.emoji}</div>
       <div className="ach-info">
         <div className="ach-label">{isSecret ? '???' : def.label}</div>
         <div className="ach-desc">{isSecret ? 'Keep playing to discover this achievement!' : def.desc}</div>
@@ -54,8 +54,8 @@ function AchievementCard({ def, unlock, onNavigate }) {
               )
             )}
             {isLegend && (
-              <span className="ach-legend-badge" title="Unlocks the Legend Fish species in the Fishdex">
-                🐉 Legend Fish
+              <span className="ach-legend-badge" aria-label="Unlocks the Legend Fish species in the Fishdex">
+                Legend Fish
               </span>
             )}
           </div>
@@ -93,7 +93,7 @@ function Achievements({ achievements, player, onNavigate }) {
     { label: 'Species Discovered',      value: `${(player.fishdex || []).length}` },
     { label: 'Eggs Collected',          value: `${player.stats?.eggsCollected || 0}` },
     { label: 'Fish Treated',            value: `${player.stats?.medicineUsed || 0}` },
-    { label: 'Water Treatments',        value: `🧪 ${player.stats?.waterTreated || 0}` },
+    { label: 'Water Treatments',        value: `${player.stats?.waterTreated || 0}` },
     ...(unlockedDecorCount > 0 ? [{ label: 'Decorations Unlocked', value: `${unlockedDecorCount}` }] : []),
   ];
 

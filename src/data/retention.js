@@ -68,7 +68,7 @@ const URGENT_OFFERS = [
   },
   {
     id: 'rare_hunter',
-    name: '🔍 Rare Hunter',
+    name: 'Rare Hunter',
     desc: 'Seeking any Rare fish — pays 3× market!',
     duration: 480_000, // 8 minutes
     multiplier: 3,

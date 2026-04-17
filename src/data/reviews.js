@@ -11,7 +11,7 @@ const REVIEW_HEADLINES = {
 };
 
 const CRITIC_NAMES = [
-  '🗞️ The Daily Reef', '📰 Ocean Times', '🎙️ AquaCritic', '📝 FishWeekly',
+  'The Daily Reef', 'Ocean Times', 'AquaCritic', 'FishWeekly',
   'Marine Gazette', 'Coral Radio',
 ];
 

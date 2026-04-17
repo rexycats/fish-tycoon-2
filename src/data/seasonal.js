@@ -6,7 +6,7 @@
 const EVENTS = [
   {
     id: 'winter_wonderland',
-    name: '❄️ Winter Wonderland',
+    name: 'Winter Wonderland',
     startMonth: 12, startDay: 15, endMonth: 1, endDay: 5,
     bonuses: { passiveIncome: 1.5, breedingSpeed: 0.8 },
     specialFish: { name: 'Frost Tetra', rarity: 'rare', targetRarity: 'rare' },
@@ -15,7 +15,7 @@ const EVENTS = [
   },
   {
     id: 'spring_bloom',
-    name: '🌸 Spring Bloom',
+    name: 'Spring Bloom',
     startMonth: 3, startDay: 20, endMonth: 4, endDay: 20,
     bonuses: { breedingSpeed: 0.6, mutationRate: 1.5 },
     specialFish: { name: 'Cherry Blossom Koi', rarity: 'rare', targetRarity: 'rare' },
@@ -24,7 +24,7 @@ const EVENTS = [
   },
   {
     id: 'summer_splash',
-    name: '☀️ Summer Splash',
+    name: 'Summer Splash',
     startMonth: 6, startDay: 21, endMonth: 8, endDay: 31,
     bonuses: { passiveIncome: 1.3, customerSpeed: 1.4 },
     specialFish: { name: 'Sunbeam Angelfish', rarity: 'epic', targetRarity: 'epic' },
@@ -33,7 +33,7 @@ const EVENTS = [
   },
   {
     id: 'halloween',
-    name: '🎃 Spooky Season',
+    name: 'Spooky Season',
     startMonth: 10, startDay: 20, endMonth: 11, endDay: 2,
     bonuses: { rarityLuck: 1.5, passiveIncome: 1.2 },
     specialFish: { name: 'Ghost Jellyfish', rarity: 'epic', targetRarity: 'epic' },
@@ -42,7 +42,7 @@ const EVENTS = [
   },
   {
     id: 'lunar_new_year',
-    name: '🧧 Lunar New Year',
+    name: 'Lunar New Year',
     startMonth: 1, startDay: 20, endMonth: 2, endDay: 10,
     bonuses: { passiveIncome: 2.0, coinMult: 1.5 },
     specialFish: { name: 'Golden Dragon Koi', rarity: 'epic', targetRarity: 'epic' },

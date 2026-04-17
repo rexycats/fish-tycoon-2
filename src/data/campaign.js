@@ -1,277 +1,251 @@
 // ============================================================
-// FISH TYCOON 2 — CAMPAIGN MILESTONES
-// Structured progression goals from beginner to legendary
+// FISH TYCOON 2 — CAMPAIGN LEVELS
 // ============================================================
 
-export const MILESTONES = [
-  // ── Chapter 1: Getting Started ────────────────────────
+export const CAMPAIGN_LEVELS = [
   {
-    id: 'ch1_first_sale',
-    chapter: 1, chapterName: '🐚 Getting Started',
-    title: 'First Sale',
-    desc: 'Sell your first fish to a customer',
-    check: (s) => (s.player?.stats?.fishSold || 0) >= 1,
-    reward: { coins: 50 },
-    icon: '🪙',
-  },
-  {
-    id: 'ch1_five_fish',
-    chapter: 1, chapterName: '🐚 Getting Started',
-    title: 'Small Collection',
-    desc: 'Have 5 fish in your tanks at once',
-    check: (s) => (s.fish || []).filter(f => f.stage !== 'egg').length >= 5,
-    reward: { coins: 100 },
-    icon: '🐟',
-  },
-  {
-    id: 'ch1_first_breed',
-    chapter: 1, chapterName: '🐚 Getting Started',
-    title: 'First Offspring',
-    desc: 'Breed your first egg',
-    check: (s) => (s.player?.stats?.eggsCollected || 0) >= 1,
-    reward: { coins: 75 },
-    icon: '🥚',
-  },
-  {
-    id: 'ch1_earn_500',
-    chapter: 1, chapterName: '🐚 Getting Started',
-    title: 'Pocket Change',
-    desc: 'Earn 500 coins total',
-    check: (s) => (s.player?.totalCoinsEarned || 0) >= 500,
-    reward: { coins: 100 },
-    icon: '💰',
-  },
+    id: 'level_1',
+    name: 'Your First Tank',
+    description: 'Learn the basics of fish keeping.',
+    briefing: "Welcome to your new aquarium! You've got a single tank, a small budget, and big dreams.\n\nStart by purchasing some fish from the Market, keep them fed and healthy, then list them for sale. Customers will visit automatically — the better your fish, the more they'll pay.",
+    unlocked: true,
 
-  // ── Chapter 2: Growing Business ───────────────────────
-  {
-    id: 'ch2_uncommon',
-    chapter: 2, chapterName: '🌊 Growing Business',
-    title: 'Uncommon Find',
-    desc: 'Own an uncommon or rarer fish',
-    check: (s) => (s.fish || []).some(f => ['uncommon','rare','epic','legendary'].includes(f.species?.rarity)),
-    reward: { coins: 150 },
-    icon: '✨',
-  },
-  {
-    id: 'ch2_tank2',
-    chapter: 2, chapterName: '🌊 Growing Business',
-    title: 'Expansion',
-    desc: 'Unlock your second tank',
-    check: (s) => (s.tanks || []).length >= 2,
-    reward: { coins: 200 },
-    icon: '🏗️',
-  },
-  {
-    id: 'ch2_10_sales',
-    chapter: 2, chapterName: '🌊 Growing Business',
-    title: 'Salesperson',
-    desc: 'Sell 10 fish total',
-    check: (s) => (s.player?.stats?.fishSold || 0) >= 10,
-    reward: { coins: 200 },
-    icon: '📈',
-  },
-  {
-    id: 'ch2_cure',
-    chapter: 2, chapterName: '🌊 Growing Business',
-    title: 'Fish Doctor',
-    desc: 'Successfully cure a sick fish',
-    check: (s) => (s.player?.stats?.medicineUsed || 0) >= 1,
-    reward: { coins: 100 },
-    icon: '💊',
-  },
-  {
-    id: 'ch2_earn_2500',
-    chapter: 2, chapterName: '🌊 Growing Business',
-    title: 'Comfortable Income',
-    desc: 'Earn 2,500 coins total',
-    check: (s) => (s.player?.totalCoinsEarned || 0) >= 2500,
-    reward: { coins: 250 },
-    icon: '💰',
-  },
-
-  // ── Chapter 3: Aspiring Aquarist ──────────────────────
-  {
-    id: 'ch3_rare',
-    chapter: 3, chapterName: '🐠 Aspiring Aquarist',
-    title: 'Rare Specimen',
-    desc: 'Own a rare fish',
-    check: (s) => (s.fish || []).some(f => ['rare','epic','legendary'].includes(f.species?.rarity)),
-    reward: { coins: 300 },
-    icon: '🌟',
-  },
-  {
-    id: 'ch3_3_species',
-    chapter: 3, chapterName: '🐠 Aspiring Aquarist',
-    title: 'Diverse Collection',
-    desc: 'Own 3 different real species at once',
-    check: (s) => {
-      const species = new Set((s.fish || []).filter(f => f.species?.visualType === 'species').map(f => f.species?.key));
-      return species.size >= 3;
+    startingState: {
+      coins: 200,
+      fish: [],
+      maxBays: 0,
     },
-    reward: { coins: 250 },
-    icon: '🐙',
-  },
-  {
-    id: 'ch3_research',
-    chapter: 3, chapterName: '🐠 Aspiring Aquarist',
-    title: 'Scholar',
-    desc: 'Complete any research tier',
-    check: (s) => Object.values(s.player?.research || {}).some(v => v >= 1),
-    reward: { coins: 200 },
-    icon: '🔬',
-  },
-  {
-    id: 'ch3_10_discoveries',
-    chapter: 3, chapterName: '🐠 Aspiring Aquarist',
-    title: 'Explorer',
-    desc: 'Discover 10 unique phenotypes',
-    check: (s) => (s.discoveries || []).length >= 10,
-    reward: { coins: 300 },
-    icon: '📖',
-  },
-  {
-    id: 'ch3_3star_review',
-    chapter: 3, chapterName: '🐠 Aspiring Aquarist',
-    title: 'Decent Reviews',
-    desc: 'Get a 3-star or better aquarium review',
-    check: (s) => (s.reviews || []).some(r => r.stars >= 3),
-    reward: { coins: 200 },
-    icon: '⭐',
+    constraints: {
+      breedingDisabled: true,
+      maxTanks: 1,
+      tankCapacity: 8,
+    },
+
+    objectives: [
+      { id: 'buy_fish',  label: 'Buy your first fish',     type: 'stat', key: 'fishBought',      target: 1 },
+      { id: 'feed_fish', label: 'Feed a fish',             type: 'stat', key: 'fishFed',          target: 1 },
+      { id: 'list_fish', label: 'List a fish for sale',    type: 'stat', key: 'fishListed',       target: 1 },
+      { id: 'sell_5',    label: 'Sell 5 fish',             type: 'stat', key: 'fishSold',          target: 5 },
+      { id: 'earn_500',  label: 'Earn 500 coins',          type: 'player_field', key: 'totalCoinsEarned',  target: 500 },
+    ],
+
+    stars: {
+      1: {},
+      2: { stat: 'totalCoinsEarned', target: 800 },
+      3: { stat: 'totalCoinsEarned', target: 1200 },
+    },
+
+    rewards: { unlocks: ['level_2'], bonusCoins: 100 },
   },
 
-  // ── Chapter 4: Expert Breeder ─────────────────────────
   {
-    id: 'ch4_epic',
-    chapter: 4, chapterName: '⭐ Expert Breeder',
-    title: 'Epic Discovery',
-    desc: 'Own an epic fish',
-    check: (s) => (s.fish || []).some(f => ['epic','legendary'].includes(f.species?.rarity)),
-    reward: { coins: 500 },
-    icon: '💎',
-  },
-  {
-    id: 'ch4_tank3',
-    chapter: 4, chapterName: '⭐ Expert Breeder',
-    title: 'Aquarium Empire',
-    desc: 'Unlock 3 tanks',
-    check: (s) => (s.tanks || []).length >= 3,
-    reward: { coins: 400 },
-    icon: '🏛️',
-  },
-  {
-    id: 'ch4_50_sales',
-    chapter: 4, chapterName: '⭐ Expert Breeder',
-    title: 'Merchant',
-    desc: 'Sell 50 fish total',
-    check: (s) => (s.player?.stats?.fishSold || 0) >= 50,
-    reward: { coins: 500 },
-    icon: '🤝',
-  },
-  {
-    id: 'ch4_earn_10000',
-    chapter: 4, chapterName: '⭐ Expert Breeder',
-    title: 'Wealthy',
-    desc: 'Earn 10,000 coins total',
-    check: (s) => (s.player?.totalCoinsEarned || 0) >= 10000,
-    reward: { coins: 500 },
-    icon: '🏆',
-  },
-  {
-    id: 'ch4_50_discoveries',
-    chapter: 4, chapterName: '⭐ Expert Breeder',
-    title: 'Naturalist',
-    desc: 'Discover 50 unique phenotypes',
-    check: (s) => (s.discoveries || []).length >= 50,
-    reward: { coins: 500 },
-    icon: '🔍',
+    id: 'level_2',
+    name: 'Breeding Basics',
+    description: 'Combine traits to discover new species.',
+    briefing: "You have two adult fish with different genetics. Go to the Breeding Lab, place them in the parent slots, and wait for eggs.\n\nEach offspring inherits a mix of traits from both parents — breed enough and you'll discover entirely new species. Use speed controls to fast-forward the breeding timer!",
+    unlocked: false,
+
+    startingState: {
+      coins: 300,
+      starterFishCount: 2,
+      starterFishStage: 'adult',
+      maxBays: 1,
+    },
+    constraints: {
+      maxTanks: 1,
+      tankCapacity: 10,
+    },
+
+    objectives: [
+      { id: 'start_breed', label: 'Start a breeding pair',    type: 'stat', key: 'breedingsStarted', target: 1 },
+      { id: 'collect_egg', label: 'Collect a breeding egg',   type: 'stat', key: 'eggsCollected',     target: 1 },
+      { id: 'hatch_egg',   label: 'Hatch an egg',             type: 'stat', key: 'eggsHatched',       target: 1 },
+      { id: 'discover_3',  label: 'Discover 3 new species',   type: 'fishdex', target: 5 },
+      { id: 'own_8',       label: 'Own 8 fish at once',       type: 'fishCount', target: 8 },
+    ],
+
+    stars: {
+      1: {},
+      2: { type: 'fishdex', target: 7 },
+      3: { type: 'fishdex', target: 10 },
+    },
+
+    rewards: { unlocks: ['level_3'], bonusCoins: 150 },
   },
 
-  // ── Chapter 5: Master Aquarist ────────────────────────
   {
-    id: 'ch5_legendary',
-    chapter: 5, chapterName: '👑 Master Aquarist',
-    title: 'Legendary Fish',
-    desc: 'Own a legendary fish',
-    check: (s) => (s.fish || []).some(f => f.species?.rarity === 'legendary'),
-    reward: { coins: 1000 },
-    icon: '🏆',
+    id: 'level_3',
+    name: 'The Collector',
+    description: 'Build a diverse collection through strategic breeding.',
+    briefing: "Your aquarium is growing! You now have two tanks and access to more species. Focus on breeding diverse combinations to expand your Fishdex.\n\nThe Wanted Board in the Market has special bounties — fulfill them for bonus coins. You'll need to breed strategically to find rare specimens.",
+    unlocked: false,
+
+    startingState: {
+      coins: 500,
+      starterFishCount: 3,
+      starterFishStage: 'adult',
+      maxBays: 1,
+      tankCount: 2,
+    },
+    constraints: {
+      maxTanks: 2,
+      tankCapacity: 10,
+    },
+
+    objectives: [
+      { id: 'discover_15', label: 'Discover 15 species',       type: 'fishdex',  target: 15 },
+      { id: 'rare_fish',   label: 'Own a Rare+ fish',          type: 'hasRarity', rarity: ['rare', 'epic', 'legendary'] },
+      { id: 'earn_2000',   label: 'Earn 2000 coins',           type: 'player_field', key: 'totalCoinsEarned', target: 2000 },
+      { id: 'level_3',     label: 'Reach Level 3',             type: 'playerLevel', target: 3 },
+      { id: 'wanted',      label: 'Complete a bounty',         type: 'stat', key: 'wantedFulfilled', target: 1 },
+    ],
+
+    stars: {
+      1: {},
+      2: { type: 'fishdex', target: 20 },
+      3: { stat: 'totalCoinsEarned', target: 4000 },
+    },
+
+    rewards: { unlocks: ['level_4'], bonusCoins: 200 },
   },
+
   {
-    id: 'ch5_5star',
-    chapter: 5, chapterName: '👑 Master Aquarist',
-    title: 'World-Class Aquarium',
-    desc: 'Get a 5-star review',
-    check: (s) => (s.reviews || []).some(r => r.stars >= 5),
-    reward: { coins: 1000 },
-    icon: '⭐',
+    id: 'level_4',
+    name: 'Market Pressure',
+    description: 'Repay your debt before time runs out.',
+    briefing: "You've taken a loan to expand your operation. Sell fish fast to repay 3000 coins before the loan collectors come knocking.\n\nPrice your fish strategically — too high and customers walk away, too low and you won't make enough.",
+    unlocked: false,
+
+    startingState: {
+      coins: 100,
+      starterFishCount: 4,
+      starterFishStage: 'adult',
+      maxBays: 1,
+      tankCount: 2,
+    },
+    constraints: {
+      maxTanks: 2,
+      tankCapacity: 12,
+    },
+
+    objectives: [
+      { id: 'earn_3000',   label: 'Earn 3000 coins',           type: 'player_field', key: 'totalCoinsEarned', target: 3000 },
+      { id: 'sell_15',     label: 'Sell 15 fish',              type: 'stat', key: 'fishSold', target: 15 },
+      { id: 'no_death',    label: 'Keep all fish alive',       type: 'stat_max', key: 'fishDied', target: 0 },
+    ],
+
+    stars: {
+      1: {},
+      2: { stat: 'totalCoinsEarned', target: 5000 },
+      3: { stat: 'fishSold', target: 25 },
+    },
+
+    rewards: { unlocks: ['level_5'], bonusCoins: 250 },
   },
+
   {
-    id: 'ch5_all_magic',
-    chapter: 5, chapterName: '👑 Master Aquarist',
-    title: 'Magic Collector',
-    desc: 'Find all 7 magic fish',
-    check: (s) => (s.player?.magicFishFound || []).length >= 7,
-    reward: { coins: 2000 },
-    icon: '🔮',
-  },
-  {
-    id: 'ch5_prestige',
-    chapter: 5, chapterName: '👑 Master Aquarist',
-    title: 'Prestige',
-    desc: 'Prestige for the first time',
-    check: (s) => (s.player?.prestigeLevel || 0) >= 1,
-    reward: { coins: 1000 },
-    icon: '🌟',
-  },
-  {
-    id: 'ch5_100_discoveries',
-    chapter: 5, chapterName: '👑 Master Aquarist',
-    title: 'Master Cataloguer',
-    desc: 'Discover 100 unique phenotypes',
-    check: (s) => (s.discoveries || []).length >= 100,
-    reward: { coins: 1500 },
-    icon: '📚',
-  },
-  {
-    id: 'ch5_earn_50000',
-    chapter: 5, chapterName: '👑 Master Aquarist',
-    title: 'Tycoon',
-    desc: 'Earn 50,000 coins total',
-    check: (s) => (s.player?.totalCoinsEarned || 0) >= 50000,
-    reward: { coins: 2000 },
-    icon: '💎',
+    id: 'level_5',
+    name: 'Rare Finds',
+    description: 'Breed your way to an Epic specimen.',
+    briefing: "The collectors want rare fish. You have access to breeding bays and a good gene pool. Cross-breed strategically — check the offspring prediction panel to see which traits combine for higher rarity.\n\nYour goal: breed at least one Epic-rarity fish.",
+    unlocked: false,
+
+    startingState: {
+      coins: 600,
+      starterFishCount: 4,
+      starterFishStage: 'adult',
+      maxBays: 2,
+      tankCount: 2,
+    },
+    constraints: {
+      maxTanks: 3,
+      tankCapacity: 12,
+    },
+
+    objectives: [
+      { id: 'epic_fish',    label: 'Own an Epic fish',          type: 'hasRarity', rarity: ['epic', 'legendary'] },
+      { id: 'discover_25',  label: 'Discover 25 species',       type: 'fishdex', target: 25 },
+      { id: 'breed_10',     label: 'Collect 10 eggs',           type: 'stat', key: 'eggsCollected', target: 10 },
+      { id: 'earn_5000',    label: 'Earn 5000 coins',           type: 'player_field', key: 'totalCoinsEarned', target: 5000 },
+    ],
+
+    stars: {
+      1: {},
+      2: { type: 'hasRarity', rarity: ['legendary'] },
+      3: { type: 'fishdex', target: 35 },
+    },
+
+    rewards: { unlocks: [], bonusCoins: 500 },
   },
 ];
 
-export function getCompletedMilestones(state) {
-  const completed = state.player?.completedMilestones || [];
-  return MILESTONES.filter(m => completed.includes(m.id));
+export function getLevelById(id) {
+  return CAMPAIGN_LEVELS.find(l => l.id === id) || null;
 }
 
-export function getNextMilestones(state) {
-  const completed = state.player?.completedMilestones || [];
-  return MILESTONES.filter(m => !completed.includes(m.id));
-}
-
-export function checkMilestones(state) {
-  const completed = state.player?.completedMilestones || [];
-  const newlyCompleted = [];
-  for (const m of MILESTONES) {
-    if (completed.includes(m.id)) continue;
-    try {
-      if (m.check(state)) newlyCompleted.push(m);
-    } catch {}
+// Check a single objective against game state
+export function checkObjective(obj, state) {
+  switch (obj.type) {
+    case 'stat':
+      return (state.player?.stats?.[obj.key] || 0) >= obj.target;
+    case 'player_field':
+      return (state.player?.[obj.key] || 0) >= obj.target;
+    case 'stat_max':
+      return (state.player?.stats?.[obj.key] || 0) <= obj.target;
+    case 'fishdex':
+      return (state.player?.fishdex || []).length >= obj.target;
+    case 'fishCount':
+      return (state.fish || []).length >= obj.target;
+    case 'playerLevel':
+      return (state.player?.level || 1) >= obj.target;
+    case 'hasRarity': {
+      const rarities = obj.rarity || [];
+      return (state.fish || []).some(f => rarities.includes(f.species?.rarity));
+    }
+    default:
+      return false;
   }
-  return newlyCompleted;
 }
 
-export function getChapterProgress(state) {
-  const completed = new Set(state.player?.completedMilestones || []);
-  const chapters = {};
-  for (const m of MILESTONES) {
-    if (!chapters[m.chapter]) chapters[m.chapter] = { name: m.chapterName, total: 0, done: 0 };
-    chapters[m.chapter].total++;
-    if (completed.has(m.id)) chapters[m.chapter].done++;
+// Get progress value for display
+export function getObjectiveProgress(obj, state) {
+  switch (obj.type) {
+    case 'stat':
+      return { current: state.player?.stats?.[obj.key] || 0, target: obj.target };
+    case 'player_field':
+      return { current: state.player?.[obj.key] || 0, target: obj.target };
+    case 'stat_max':
+      return { current: state.player?.stats?.[obj.key] || 0, target: obj.target };
+    case 'fishdex':
+      return { current: (state.player?.fishdex || []).length, target: obj.target };
+    case 'fishCount':
+      return { current: (state.fish || []).length, target: obj.target };
+    case 'playerLevel':
+      return { current: state.player?.level || 1, target: obj.target };
+    case 'hasRarity': {
+      const has = (state.fish || []).some(f => (obj.rarity || []).includes(f.species?.rarity));
+      return { current: has ? 1 : 0, target: 1 };
+    }
+    default:
+      return { current: 0, target: 1 };
   }
-  return chapters;
+}
+
+// Check star ratings
+export function getStarRating(level, state) {
+  const allDone = level.objectives.every(o => checkObjective(o, state));
+  if (!allDone) return 0;
+  let stars = 1;
+  if (level.stars[2]) {
+    const s2 = level.stars[2];
+    if (s2.stat && (state.player?.stats?.[s2.stat] || 0) >= s2.target) stars = 2;
+    if (s2.type === 'fishdex' && (state.player?.fishdex || []).length >= s2.target) stars = 2;
+  }
+  if (level.stars[3] && stars >= 2) {
+    const s3 = level.stars[3];
+    if (s3.stat && (state.player?.stats?.[s3.stat] || 0) >= s3.target) stars = 3;
+    if (s3.type === 'fishdex' && (state.player?.fishdex || []).length >= s3.target) stars = 3;
+    if (s3.type === 'hasRarity' && (state.fish || []).some(f => (s3.rarity || []).includes(f.species?.rarity))) stars = 3;
+  }
+  return stars;
 }

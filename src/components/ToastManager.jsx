@@ -29,7 +29,7 @@ function Toast({ id, message, type, emoji, onDismiss }) {
 /* ── Toast Manager ────────────────────────────────────────── */
 let _addToast = null;
 
-export function fireToast(message, type = 'info', emoji = '💬') {
+export function fireToast(message, type = 'info', emoji = '') {
   if (_addToast) _addToast({ message, type, emoji });
 }
 

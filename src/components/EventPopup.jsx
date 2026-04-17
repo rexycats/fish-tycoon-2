@@ -117,7 +117,7 @@ export function HagglePopup() {
                 Accept {haggle.offer}
               </button>
               <button className="btn btn-sm haggle-counter" onClick={handleCounter}>
-                💬 Counter-offer
+                Counter-offer
               </button>
               <button className="btn btn-sm haggle-decline" onClick={handleDecline}>
                 No deal
@@ -135,7 +135,7 @@ export function HagglePopup() {
             </div>
             <div className="haggle-actions">
               <button className="btn btn-sm haggle-accept" onClick={handleCounter}>
-                📤 Send offer
+                Send offer
               </button>
               <button className="btn btn-sm haggle-decline" onClick={handleDecline}>
                 Walk away

@@ -32,8 +32,8 @@ export default function AscensionTree() {
           <span className="asc-level-num">Ascension {level}</span>
         </div>
         <div className="asc-currencies">
-          <span className="asc-ap" title="Ascension Points">{ap} AP</span>
-          <span className="asc-coral" title="Coral Fragments">{coral}</span>
+          <span className="asc-ap" aria-label="Ascension Points">{ap} AP</span>
+          <span className="asc-coral" aria-label="Coral Fragments">{coral}</span>
         </div>
       </div>
 

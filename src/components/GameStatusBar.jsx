@@ -1,7 +1,8 @@
 // ============================================================
-// GAME STATUS BAR — Bottom bar: day, clock, level, fish, log, pause, coins, autosave
+// GAME STATUS BAR — Bottom bar: day, clock, level, fish, speed, pause, coins
 // ============================================================
 import React, { useState, useEffect } from 'react';
+import Tip from './GameTooltip.jsx';
 import { useGameStore } from '../store/gameStore.js';
 
 export default function GameStatusBar({ paused, onTogglePause, showLog, onToggleLog }) {
@@ -9,22 +10,21 @@ export default function GameStatusBar({ paused, onTogglePause, showLog, onToggle
   const coins = useGameStore(s => s.player?.coins || 0);
   const level = useGameStore(s => s.player?.level || 1);
   const saveFlash = useGameStore(s => s._saveFlash);
+  const gameSpeed = useGameStore(s => s.gameSpeed || 1);
+  const setGameSpeed = useGameStore(s => s.setGameSpeed);
+  const gameClock = useGameStore(s => s.gameClock || Date.now());
+
+  // Day counter based on game clock
   const day = useGameStore(s => {
-    const created = s.player?.createdAt;
+    const created = s.player?.createdAt || s.player?.firstPlayedAt;
+    const gc = s.gameClock || Date.now();
     if (!created) return 1;
-    return Math.max(1, Math.floor((Date.now() - created) / 86_400_000) + 1);
+    return Math.max(1, Math.floor((gc - created) / 86_400_000) + 1);
   });
 
-  const [clock, setClock] = useState('');
-  useEffect(() => {
-    const tick = () => {
-      const now = new Date();
-      setClock(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-    };
-    tick();
-    const id = setInterval(tick, 10000);
-    return () => clearInterval(id);
-  }, []);
+  // Game clock display
+  const gameDate = new Date(gameClock);
+  const clock = gameDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   // Autosave indicator
   const [showSaved, setShowSaved] = useState(false);
@@ -55,16 +55,29 @@ export default function GameStatusBar({ paused, onTogglePause, showLog, onToggle
       <button
         className={`speed-btn ${showLog ? 'speed-btn--active' : ''}`}
         onClick={onToggleLog}
-        title="Toggle Log [L]"
-      >LOG</button>
+      ><Tip text="Toggle Log [L]"><span>LOG</span></Tip></button>
+
+      <span className="status-separator" />
+
+      <div className="speed-controls">
+        {[1, 2, 3].map(s => (
+          <button
+            key={s}
+            className={`speed-btn speed-btn--speed ${gameSpeed === s ? 'speed-btn--active' : ''}`}
+            onClick={() => setGameSpeed(s)}
+            aria-label={`${s}x speed`}
+          >
+            {'▸'.repeat(s)}
+          </button>
+        ))}
+      </div>
 
       <span className="status-separator" />
 
       <button
         className={`speed-btn ${paused ? 'speed-btn--active' : ''}`}
         onClick={onTogglePause}
-        title="Pause [Space]"
-      >{paused ? 'II' : '\u25B8'}</button>
+      ><Tip text="Pause [Space]"><span>{paused ? 'II' : '\u25B8'}</span></Tip></button>
 
       <span className="status-separator" />
       <span className="status-item status-item--coins">{coins.toLocaleString()}</span>

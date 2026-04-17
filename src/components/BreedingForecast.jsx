@@ -78,7 +78,7 @@ export default function BreedingForecast({ fishA, fishB }) {
         <div className="breed-forecast-carriers">
           {carriers.map((c, i) => (
             <div key={i} className="breed-carrier-hint">
-              💡 Both parents carry recessive <strong>{c.alleleName}</strong> ({c.geneName})!
+              Both parents carry recessive <strong>{c.alleleName}</strong> ({c.geneName})!
               <span className="breed-carrier-chance">{c.chance}% chance of expression</span>
             </div>
           ))}

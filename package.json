@@ -1,7 +1,7 @@
 {
   "name": "fish-tycoon-2",
   "private": true,
-  "version": "0.9.0",
+  "version": "0.10.0",
   "type": "module",
   "main": "electron/main.js",
   "scripts": {
@@ -19,6 +19,7 @@
     "immer": "^11.1.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "recharts": "^3.8.1",
     "zustand": "^5.0.12"
   },
   "devDependencies": {

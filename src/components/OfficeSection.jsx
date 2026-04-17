@@ -7,6 +7,8 @@ import GoalsPanel from './GoalsPanel.jsx';
 import FishShowPanel from './FishShowPanel.jsx';
 import DecorationPanel from './DecorationPanel.jsx';
 import FishAutopsyPanel from './FishAutopsy.jsx';
+import StaffPanel from './StaffPanel.jsx';
+import ResearchPanel from './ResearchPanel.jsx';
 import TabErrorBoundary from './TabErrorBoundary.jsx';
 import { useGameStore } from '../store/gameStore.js';
 
@@ -15,6 +17,8 @@ const MemoFishAutopsy = memo(FishAutopsyPanel);
 
 const VIEWS = [
   { id: 'contracts', label: 'Contracts' },
+  { id: 'staff',     label: 'Staff' },
+  { id: 'research',  label: 'Research' },
   { id: 'decor',     label: 'Decor' },
   { id: 'autopsy',   label: 'Autopsy' },
 ];
@@ -84,6 +88,12 @@ export default function OfficeSection() {
             onBuyTheme={handleBuyTheme}
             onApplyTheme={handleApplyTheme}
           />
+        )}
+        {view === 'staff' && (
+          <StaffPanel />
+        )}
+        {view === 'research' && (
+          <ResearchPanel />
         )}
         {view === 'autopsy' && (
           <MemoFishAutopsy autopsies={player.autopsies || []} />

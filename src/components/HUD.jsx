@@ -1,10 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Tip from './GameTooltip.jsx';
+import { IconWater, IconTemp, IconFish, IconFood, IconLoan } from './GameIcons.jsx';
 import { useGameStore } from '../store/gameStore.js';
 import { getLevelFromXp, getLevelTitle } from '../data/levels.js';
+import { getTankCompatSummary } from '../data/compatibility.js';
+function _getTankCompatIssues(fish) {
+  if (fish.length < 2) return [];
+  return getTankCompatSummary(fish).issues;
+}
 import { upgradeCost } from '../data/constants.js';
 import { getCustomerInterval } from '../systems/gameTick.js';
 import { TANK_UNLOCK } from '../data/gameState.js';
+import { getNextTankSize } from '../data/tankSizes.js';
 
 /* ── Income rate tracker ───────────────────────────────────── */
 function IncomeRate() {
@@ -51,7 +58,7 @@ function NextGoalTeaser() {
     goals.push({
       label: TANK_UNLOCK[tankCount].label,
       cost: TANK_UNLOCK[tankCount].cost,
-      icon: '🏠',
+      icon: '',
     });
   }
 
@@ -101,7 +108,7 @@ function CustomerCountdown() {
     function update() {
       const state = useGameStore.getState();
       const interval = getCustomerInterval(state);
-      const elapsed = Date.now() - (state.shop.lastCustomerAt || Date.now());
+      const elapsed = (state.gameClock || Date.now()) - (state.shop.lastCustomerAt || (state.gameClock || Date.now()));
       const remaining = Math.max(0, Math.ceil((interval - elapsed) / 1000));
       setSecsLeft(remaining);
     }
@@ -113,7 +120,7 @@ function CustomerCountdown() {
   if (secsLeft === null || listed <= 0) return null;
 
   return (
-    <span className="hud2-customer-timer" title="Time until next customer arrives">
+    <span className="hud2-customer-timer" aria-label="Time until next customer arrives">
       <span className="hud2-customer-icon"></span>
       <span className="hud2-customer-val">
         {secsLeft > 0 ? `${secsLeft}s` : 'arriving...'}
@@ -290,6 +297,11 @@ export default function HUD({
   const tempBad = temp < 68 || temp > 82;
   const wqBad   = wq < 60;
 
+  // Tank compatibility
+  const tankFish = fish ? fish.filter(f => f.tankId === tank.id && f.stage !== 'egg') : [];
+  const compatIssues = _getTankCompatIssues(tankFish);
+  const hasCompatIssues = compatIssues.length > 0;
+
   return (
     <header className="hud2">
       <UrgentOfferBanner />
@@ -335,12 +347,29 @@ export default function HUD({
       <div className="hud2-row hud2-row--bottom">
         <div className="hud2-pills">
           {player.activeLoan?.active && (
-            <StatPill icon="$" value="LOAN" label="Active loan — repay before deadline!" color="#ff6060" alert={true} />
+            <StatPill icon={<IconLoan size={11} />} value="LOAN" label="Active loan — repay before deadline!" color="#ff6060" alert={true} />
           )}
-          <StatPill icon="WQ" value={`${wq}%`}  label="Water quality" color={wqCol}  alert={wqBad} />
-          <StatPill icon="T°" value={`${Math.round(temp)}°`} label="Temperature" color={tempCol} alert={tempBad} />
-          <StatPill icon="#" value={`${fishCnt}/${tank.capacity ?? 12}`} label="Fish capacity" />
-          <StatPill icon="F" value={food < 1 ? 'Empty' : `${food} feeds`} label={`Food supply (${food} remaining)`} alert={food < 3} />
+          <StatPill icon={<IconWater size={11} />} value={`${wq}%`}  label="Water quality" color={wqCol}  alert={wqBad} />
+          <StatPill icon={<IconTemp size={11} />} value={`${Math.round(temp)}°`} label="Temperature" color={tempCol} alert={tempBad} />
+          <StatPill icon={<IconFish size={11} />} value={`${fishCnt}/${tank.capacity ?? 12}`} label={`Fish capacity (${tank.size || 'medium'})`} />
+          {(() => {
+            const nextSize = getNextTankSize(tank);
+            if (!nextSize) return null;
+            return (
+              <button
+                className="hud2-tank-upgrade"
+                onClick={() => useGameStore.getState().upgradeTankSize(tank.id)}
+                disabled={coins < nextSize.cost}
+                title={`Upgrade to ${nextSize.label} (${nextSize.capacity} fish) — ${nextSize.cost} coins`}
+              >
+                {nextSize.label} ({nextSize.cost})
+              </button>
+            );
+          })()}
+          <StatPill icon={<IconFood size={11} />} value={food < 1 ? 'Empty' : `${food} feeds`} label={`Food supply (${food} remaining)`} alert={food < 3} />
+          {hasCompatIssues && (
+            <StatPill icon="!" value="COMPAT" label={compatIssues.join(', ')} color="#c44040" alert={true} />
+          )}
         </div>
 
         <div className="hud2-spacer" />
@@ -408,15 +437,9 @@ const BOOST_INFO = {
 
 function ActiveBoosts() {
   const boosts = useGameStore(s => s.player?.boosts || {});
-  const [, tick] = useState(0);
+  const gameClock = useGameStore(s => s.gameClock || Date.now());
 
-  const active = Object.entries(boosts).filter(([, exp]) => exp > Date.now());
-
-  useEffect(() => {
-    if (active.length === 0) return;
-    const id = setInterval(() => tick(t => t + 1), 10_000);
-    return () => clearInterval(id);
-  }, [active.length]);
+  const active = Object.entries(boosts).filter(([, exp]) => exp > gameClock);
 
   if (active.length === 0) return null;
 
@@ -424,7 +447,7 @@ function ActiveBoosts() {
     <div className="hud2-boosts">
       {active.map(([key, exp]) => {
         const info = BOOST_INFO[key] || { emoji: '', label: key };
-        const mins = Math.max(0, Math.ceil((exp - Date.now()) / 60_000));
+        const mins = Math.max(0, Math.ceil((exp - gameClock) / 60_000));
         return (
           <span key={key} className="hud2-boost-pill">
             {info.emoji} {info.label} <span className="hud2-boost-time">{mins}m</span>

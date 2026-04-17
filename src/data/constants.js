@@ -10,14 +10,14 @@ export const BREEDING_SPEED_FACTOR = 0.8; // per upgrade level
 
 // ── Personality emoji map ───────────────────────────────
 export const PERSONALITY_EMOJI = {
-  playful:    '🎭',
+  playful:    '',
   shy:        '🫣',
-  curious:    '🔍',
-  lazy:       '😴',
-  aggressive: '😤',
+  curious:    '',
+  lazy:       '',
+  aggressive: '',
   social:     '',
   gluttonous: '🍽️',
-  hardy:      '💪',
+  hardy:      '',
 };
 
 // ── Fish sizing ─────────────────────────────────────────

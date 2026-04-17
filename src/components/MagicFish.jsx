@@ -108,7 +108,7 @@ function MagicFishCard({ mf, found }) {
             </>
           ) : (
             <>
-              <div className="magic-card-hint">🔍 {mf.hint}</div>
+              <div className="magic-card-hint">{mf.hint}</div>
               <div className="magic-card-reward-preview">Discovery reward: 🪙{mf.reward.toLocaleString()}</div>
               <div className="magic-partial-traits">
                 {Object.entries(mf.phenotype).slice(0, 2).map(([k, v]) => (

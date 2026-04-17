@@ -456,6 +456,7 @@ export const RARITY = {
   legendary: { label: 'Legendary', color: '#a06080', priceMultiplier: 40.0 },
 };
 
+
 export const GROWTH_STAGES = {
   egg:      { label: 'Egg',      durationMs: 60_000 * 2 },
   juvenile: { label: 'Juvenile', durationMs: 60_000 * 5 },
@@ -781,7 +782,7 @@ const PERSONALITIES = [
   { id: 'gluttonous',label: 'Gluttonous', desc: 'Gets hungry faster',       weight: 1.5 },
   { id: 'hardy',     label: 'Hardy',     desc: 'Resists disease better',     weight: 1.5 },
 ];
-export function createFish({ genome = null, stage = 'adult', parentIds = [], tankId = 'tank_0', targetRarity = null, generation = 1 } = {}) {
+export function createFish({ genome = null, stage = 'adult', parentIds = [], tankId = 'tank_0', targetRarity = null, generation = 1, now: _now = null } = {}) {
   let resolvedGenome = genome || randomGenome();
   let phenotype = computePhenotype(resolvedGenome);
   let species = getSpeciesFromPhenotype(phenotype, resolvedGenome);
@@ -793,7 +794,7 @@ export function createFish({ genome = null, stage = 'adult', parentIds = [], tan
       species = getSpeciesFromPhenotype(phenotype, resolvedGenome);
     }
   }
-  const now = Date.now();
+  const now = _now || Date.now();
 
   // ── Colour variant selection ──────────────────────────────
   // If the species defines colorVariants, pick one at random.

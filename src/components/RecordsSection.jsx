@@ -8,6 +8,7 @@ import Achievements from './Achievements.jsx';
 import MagicFishPanel from './MagicFish.jsx';
 import StatsPanel from './StatsPanel.jsx';
 import GeneJournal from './GeneJournal.jsx';
+import ReviewsPanel from './ReviewsPanel.jsx';
 import TabErrorBoundary from './TabErrorBoundary.jsx';
 import { useGameStore } from '../store/gameStore.js';
 
@@ -18,8 +19,9 @@ const MemoMagicFish = memo(MagicFishPanel);
 const VIEWS = [
   { id: 'fishdex',  label: 'Fishdex' },
   { id: 'achieve',  label: 'Achievements' },
-  { id: 'magic',    label: 'Magic Fish' },
+  { id: 'reviews',  label: 'Reviews' },
   { id: 'stats',    label: 'Statistics' },
+  { id: 'magic',    label: 'Magic Fish' },
 ];
 
 export default function RecordsSection({ onNavigate, generatingLoreFor, aiError, onGenerateLore }) {
@@ -60,6 +62,7 @@ export default function RecordsSection({ onNavigate, generatingLoreFor, aiError,
         {view === 'magic' && (
           <MemoMagicFish magicFishFound={player.magicFishFound || []} />
         )}
+        {view === 'reviews' && <ReviewsPanel />}
         {view === 'stats' && <StatsPanel />}
       </div>
     </div>

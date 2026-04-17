@@ -3,7 +3,7 @@
 // ============================================================
 
 const JUDGE_NAMES = [
-  '👨‍⚖️ Judge Coral', '👩‍⚖️ Madame Reef', '🧑‍⚖️ Professor Tide',
+  'Judge Coral', 'Madame Reef', 'Professor Tide',
   'Old Salt', 'Dr. Scales', 'Sir Bubbles',
 ];
 

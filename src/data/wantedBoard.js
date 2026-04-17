@@ -16,7 +16,7 @@ const BUYER_NAMES = [
 /**
  * Generate a wanted poster. Difficulty scales with player level.
  */
-export function generateWantedPoster(level = 1, existing = []) {
+export function generateWantedPoster(level = 1, existing = [], now = Date.now()) {
   const existingIds = new Set(existing.map(p => p.id));
   const difficulty = Math.min(4, Math.floor(level / 5) + 1);
   const traits = {};
@@ -54,8 +54,8 @@ export function generateWantedPoster(level = 1, existing = []) {
     reward,
     buyer,
     description: desc,
-    createdAt: Date.now(),
-    expiresAt: Date.now() + 1000 * 60 * 60 * 4, // 4 hours
+    createdAt: now,
+    expiresAt: now + 1000 * 60 * 60 * 4, // 4 hours
     fulfilled: false,
   };
 }

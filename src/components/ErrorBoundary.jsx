@@ -41,7 +41,7 @@ export default class ErrorBoundary extends React.Component {
               cursor: 'pointer', fontFamily: 'Fredoka, sans-serif', fontWeight: 600,
             }}
           >
-            🔄 Refresh
+            Refresh
           </button>
           <details style={{ marginTop: '2rem', opacity: 0.3, fontSize: '0.7rem', maxWidth: 500 }}>
             <summary>Technical details</summary>

@@ -20,7 +20,7 @@ const RANDOM_EVENTS = [
       ...state,
       player: {
         ...state.player,
-        boosts: { ...state.player.boosts, passiveIncome: Date.now() + 120_000 },
+        boosts: { ...state.player.boosts, passiveIncome: _now + 120_000 },
       },
     }),
     message: 'Celebrity visit! Passive income doubled for 2 minutes!',
@@ -55,7 +55,7 @@ const RANDOM_EVENTS = [
       ...state,
       player: {
         ...state.player,
-        boosts: { ...state.player.boosts, salePrice: Date.now() + 120_000 },
+        boosts: { ...state.player.boosts, salePrice: _now + 120_000 },
       },
     }),
     message: 'Gold Rush! A collector is buying — sale prices +50% for 2 minutes!',
@@ -79,7 +79,7 @@ const RANDOM_EVENTS = [
       return {
         ...state,
         fish: state.fish.map(f =>
-          infected.has(f.id) ? { ...f, disease, diseaseSince: Date.now() } : f
+          infected.has(f.id) ? { ...f, disease, diseaseSince: _now } : f
         ),
       };
     },
@@ -96,7 +96,7 @@ const RANDOM_EVENTS = [
       ...state,
       player: {
         ...state.player,
-        boosts: { ...state.player.boosts, mutationBoost: Date.now() + 300_000 },
+        boosts: { ...state.player.boosts, mutationBoost: _now + 300_000 },
       },
     }),
     message: 'Lucky Current! Mutation chance tripled for the next 5 minutes!',
@@ -153,7 +153,7 @@ const RANDOM_EVENTS = [
       ...state,
       player: {
         ...state.player,
-        boosts: { ...state.player.boosts, growSpeed: Date.now() + 180_000 },
+        boosts: { ...state.player.boosts, growSpeed: _now + 180_000 },
       },
     }),
     message: 'Growth Spurt! Eggs and juveniles grow 2× faster for 3 minutes!',
@@ -195,6 +195,102 @@ const RANDOM_EVENTS = [
     }),
     message: 'Rare Sighting! Your aquarium is trending — +15 reputation!',
   },
+  {
+    id: 'health_inspection',
+    name: 'Health Inspection!',
+    desc: 'Inspectors are checking your tanks. If any water quality is below 50, you get fined!',
+    emoji: '',
+    weight: 8,
+    minRep: 10,
+    effect: (state) => {
+      const lowTanks = state.tanks.filter(t => t.waterQuality < 50);
+      if (lowTanks.length > 0) {
+        const fine = lowTanks.length * 50;
+        return { ...state, player: { ...state.player, coins: Math.max(0, state.player.coins - fine) } };
+      }
+      return { ...state, shop: { ...state.shop, reputation: (state.shop.reputation || 0) + 5 } };
+    },
+    message: (state) => {
+      const lowTanks = state.tanks.filter(t => t.waterQuality < 50);
+      return lowTanks.length > 0
+        ? `Health inspection failed! Fined ${lowTanks.length * 50} coins for dirty tanks.`
+        : 'Health inspection passed! +5 reputation.';
+    },
+  },
+  {
+    id: 'supply_delivery',
+    name: 'Supply Delivery!',
+    desc: 'A generous supplier dropped off free supplies.',
+    emoji: '',
+    weight: 8,
+    minRep: 0,
+    effect: (state) => {
+      const tanks = state.tanks.map(t => ({
+        ...t,
+        supplies: { ...t.supplies, food: (t.supplies?.food || 0) + 5, medicine: (t.supplies?.medicine || 0) + 2 },
+      }));
+      return { ...state, tanks };
+    },
+    message: 'Free supply delivery! +5 food and +2 medicine per tank.',
+  },
+  {
+    id: 'collector_rush',
+    name: 'Collector Rush!',
+    desc: 'Word spread about your rare fish. Customers arrive twice as fast for 3 minutes!',
+    emoji: '',
+    weight: 6,
+    minRep: 15,
+    effect: (state) => {
+      const _now = state.gameClock || Date.now();
+      return { ...state, player: { ...state.player, boosts: { ...state.player.boosts, customerRush: _now + 180_000 } } };
+    },
+    message: 'Collector rush! Double customer speed for 3 minutes!',
+  },
+  {
+    id: 'algae_bloom',
+    name: 'Algae Bloom!',
+    desc: 'An algae bloom hits your tanks. Water quality drops significantly.',
+    emoji: '',
+    weight: 7,
+    minRep: 0,
+    effect: (state) => {
+      const tanks = state.tanks.map(t => ({
+        ...t,
+        waterQuality: Math.max(15, t.waterQuality - 25),
+      }));
+      return { ...state, tanks };
+    },
+    message: 'Algae bloom! Water quality dropped -25 in all tanks. Treat your water!',
+  },
+  {
+    id: 'breeding_season',
+    name: 'Breeding Season!',
+    desc: 'Spring currents enhance genetics. Breeding speed doubled for 5 minutes!',
+    emoji: '',
+    weight: 5,
+    minRep: 5,
+    effect: (state) => {
+      const _now = state.gameClock || Date.now();
+      return { ...state, player: { ...state.player, boosts: { ...state.player.boosts, breedSpeed: _now + 300_000 } } };
+    },
+    message: 'Breeding season! Breeding speed doubled for 5 minutes!',
+  },
+  {
+    id: 'tourist_bus',
+    name: 'Tourist Bus!',
+    desc: 'A tour bus stopped at your aquarium. Massive tip incoming!',
+    emoji: '',
+    weight: 6,
+    minRep: 8,
+    effect: (state) => {
+      const bonus = 50 + Math.floor((state.shop?.reputation || 0) * 2);
+      return {
+        ...state,
+        player: { ...state.player, coins: state.player.coins + bonus, totalCoinsEarned: (state.player.totalCoinsEarned || 0) + bonus },
+      };
+    },
+    message: (state) => `Tourist bus arrived! +${50 + Math.floor((state.shop?.reputation || 0) * 2)} coins in tips!`,
+  },
 ];
 
 /**
@@ -202,7 +298,8 @@ const RANDOM_EVENTS = [
  * Returns the updated state with event applied, or unchanged state.
  */
 export function processRandomEvent(state, messages) {
-  const now = Date.now();
+  const _now = state.gameClock || Date.now();
+  const now = _now;
   const lastEvent = state.lastRandomEvent || 0;
   const elapsed = (now - lastEvent) / 1000;
 

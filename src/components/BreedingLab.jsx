@@ -5,6 +5,7 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import BreedingForecast from './BreedingForecast.jsx';
 import { predictOffspringPhenotypes, RARITY, GENES, expressGene } from '../data/genetics.js';
+import { useGameStore } from '../store/gameStore.js';
 
 // ── Per-gene Punnett square probabilities ──────────────────
 function computeTraitOdds(genomeA, genomeB) {
@@ -160,7 +161,7 @@ function BreedFishRow({ fish, inSlot, onSelect, onDragStart }) {
       }}
       onClick={() => onSelect(fish.id)}
     >
-      <div className="bfr-drag-handle" title="Drag to a parent slot">⠿</div>
+      <div className="bfr-drag-handle" >⠿</div>
       <div className="bfr-dot" style={{ background: rarityColor }} />
       <div className="bfr-name">{fish.species?.name || 'Unknown'}</div>
       <div className="bfr-rarity" style={{ color: rarityColor }}>{fish.species?.rarity || 'common'}</div>
@@ -200,24 +201,22 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
     fishA.species?.visualType !== 'species' &&
     fishB.species?.visualType !== 'species';
 
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    if (!bay.breedingStartedAt || bay.eggReady) return;
-    const id = setInterval(() => setTick(t => t + 1), 1000);
-    return () => clearInterval(id);
-  }, [bay.breedingStartedAt, bay.eggReady]);
+  // gameClock subscription above handles re-renders for progress bar
 
   const predictions = useMemo(() => {
     if (!canPredict) return [];
     return predictOffspringPhenotypes(fishA.genome, fishB.genome);
   }, [fishA?.id, fishB?.id, canPredict]);
 
+  const gameClock = useGameStore(s => s.gameClock);
+
   let progress = 0;
   let timeRemainingLabel = null;
   if (bay.breedingStartedAt && !bay.eggReady) {
-    const elapsed = Date.now() - bay.breedingStartedAt;
-    progress = Math.min(100, (elapsed / bay.breedingDurationMs) * 100);
-    const msLeft = Math.max(0, bay.breedingDurationMs - elapsed);
+    const elapsed = (gameClock || Date.now()) - bay.breedingStartedAt;
+    const duration = bay.breedingDurationMs || 300000;
+    progress = Math.min(100, (elapsed / duration) * 100);
+    const msLeft = Math.max(0, duration - elapsed);
     const secsLeft = Math.ceil(msLeft / 1000);
     timeRemainingLabel = secsLeft < 60
       ? `${secsLeft}s left`
@@ -259,17 +258,17 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
       <div className="breed-top">
         {/* Parent slots */}
         <div className={`breed-parents${bay.breedingStartedAt && !bay.eggReady ? ' breed-parents--breeding' : ''} ${hasThirdSlot ? 'breed-parents--trio' : ''}`}>
-          <BreedSlot fish={fishA} slot={1} onRemove={() => onSelectForBreeding(fishA?.id)} onDrop={handleSlotDrop} />
+          <BreedSlot fish={fishA} slot={1} onRemove={() => onSelectForBreeding(fishA?.id, activeBay)} onDrop={handleSlotDrop} />
           <div className="breed-heart">×</div>
-          <BreedSlot fish={fishB} slot={2} onRemove={() => onSelectForBreeding(fishB?.id)} onDrop={handleSlotDrop} />
+          <BreedSlot fish={fishB} slot={2} onRemove={() => onSelectForBreeding(fishB?.id, activeBay)} onDrop={handleSlotDrop} />
           {hasThirdSlot && (
             <>
-              <div className="breed-heart breed-heart--donor" title="Genetic Donor influence">+</div>
+              <div className="breed-heart breed-heart--donor" >+</div>
               <BreedSlot
                 fish={fishC}
                 slot={3}
                 isDonor={true}
-                onRemove={() => onSelectForBreeding(fishC?.id)}
+                onRemove={() => onSelectForBreeding(fishC?.id, activeBay)}
                 onDrop={handleSlotDrop}
               />
             </>
@@ -280,12 +279,32 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
         <div className="breed-status">
           {bay.eggReady ? (() => {
             const clutch = bay.clutchSize || 1;
-            const eggEmoji = `×${clutch}`;
-            const clutchLabel = clutch === 3 ? 'Collect Triplets!' : clutch === 2 ? 'Collect Twins!' : 'Collect Egg!';
+            const clutchLabel = clutch === 3 ? 'Collect Triplets' : clutch === 2 ? 'Collect Twins' : 'Collect Egg';
             return (
-              <button className={`btn btn-collect pulse ${clutch > 1 ? 'btn-collect--multi' : ''}`} onClick={onCollectEgg}>
-                {eggEmoji} {clutchLabel}
-              </button>
+              <div className="breed-egg-display">
+                <div className="breed-egg-sprites">
+                  {Array.from({ length: clutch }, (_, i) => (
+                    <svg key={i} className="breed-egg-svg" width="28" height="34" viewBox="0 0 28 34"
+                      style={{ animationDelay: `${i * 0.2}s` }}>
+                      <defs>
+                        <radialGradient id={`eggGrad${i}`} cx="40%" cy="35%">
+                          <stop offset="0%" stopColor="rgba(240,230,210,0.95)" />
+                          <stop offset="60%" stopColor="rgba(210,195,170,0.9)" />
+                          <stop offset="100%" stopColor="rgba(180,160,130,0.85)" />
+                        </radialGradient>
+                      </defs>
+                      <ellipse cx="14" cy="18" rx="10" ry="13" fill={`url(#eggGrad${i})`}
+                        stroke="rgba(160,140,110,0.4)" strokeWidth="1" />
+                      <ellipse cx="12" cy="14" rx="4" ry="5" fill="rgba(255,255,255,0.15)" />
+                      {clutch > 1 && <ellipse cx="14" cy="20" rx="6" ry="2"
+                        fill="none" stroke="rgba(140,120,90,0.2)" strokeWidth="0.5" />}
+                    </svg>
+                  ))}
+                </div>
+                <button className={`btn btn-collect ${clutch > 1 ? 'btn-collect--multi' : ''}`} onClick={() => onCollectEgg(activeBay)}>
+                  {clutchLabel}
+                </button>
+              </div>
             );
           })() : bay.breedingStartedAt ? (
             <div className="breed-progress-wrap">
@@ -300,7 +319,7 @@ function BreedingLab({ fish, breedingTank, extraBays = [], maxBays = 1, onSelect
               <div className="breed-progress-bar">
                 <div className="breed-progress-fill" style={{ width: `${progress}%` }} />
               </div>
-              <button className="btn btn-sm btn-danger" style={{ marginTop: '8px' }} onClick={onCancelBreeding}>
+              <button className="btn btn-sm btn-danger" style={{ marginTop: '8px' }} onClick={() => onCancelBreeding(activeBay)}>
                 ✕ Cancel Breeding
               </button>
             </div>

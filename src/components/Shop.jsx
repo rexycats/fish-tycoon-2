@@ -1,4 +1,6 @@
 import { upgradeCost } from '../data/constants.js';
+import { SUPPLIERS, getUnlockedSuppliers, getActiveSupplier } from '../data/suppliers.js';
+import { useGameStore } from '../store/gameStore.js';
 // ============================================================
 // FISH TYCOON 2 — SHOP (Phase 7: Customer Walking Animation)
 // ============================================================
@@ -11,27 +13,52 @@ const RC = { common: '#5aaa70', uncommon: '#5a9aaa', rare: '#8a70a8', epic: '#b0
 // ── Storefront customer SVG ────────────────────────────────
 function CustomerFigure({ emoji, name, fishName, coins, rarity }) {
   const rc = RC[rarity] || '#5aaa70';
+  // Vary customer appearance by name hash
+  const hash = name ? name.split('').reduce((a, c) => a + c.charCodeAt(0), 0) : 0;
+  const hairColors = ['#3a2820', '#5a3830', '#2a2028', '#8a7040', '#c0a060', '#4a3020'];
+  const shirtColors = ['#3a5a80', '#5a3a60', '#3a6050', '#6a4a30', '#4a4a5a', '#605040'];
+  const skinTones = ['#f0c090', '#d4a878', '#c49068', '#e8b888', '#b88060', '#f0d0a8'];
+  const hairColor = hairColors[hash % hairColors.length];
+  const shirtColor = shirtColors[(hash * 3 + 1) % shirtColors.length];
+  const skinColor = skinTones[(hash * 7 + 2) % skinTones.length];
+  const hasHat = hash % 5 === 0;
+  const hasGlasses = hash % 4 === 0;
   return (
     <div className="customer-walk">
       <div className="customer-figure">
-        <div className="customer-emoji-bubble">{emoji}</div>
-        <svg width="32" height="52" viewBox="0 0 32 52" className="customer-body-svg">
-          {/* Head */}
-          <circle cx="16" cy="10" r="9" fill="#f0c090"/>
-          {/* Body */}
-          <rect x="8" y="20" width="16" height="20" rx="3" fill="#4070c0"/>
+        <svg width="32" height="56" viewBox="0 0 32 56" className="customer-body-svg">
+          {/* Shadow */}
+          <ellipse cx="16" cy="54" rx="10" ry="2" fill="rgba(0,0,0,0.15)" />
           {/* Legs */}
-          <rect x="8"  y="38" width="7" height="14" rx="2" fill="#304880" className="leg-l"/>
-          <rect x="17" y="38" width="7" height="14" rx="2" fill="#304880" className="leg-r"/>
+          <rect x="9" y="38" width="6" height="14" rx="2" fill={shirtColor} opacity="0.7" className="leg-l"/>
+          <rect x="17" y="38" width="6" height="14" rx="2" fill={shirtColor} opacity="0.7" className="leg-r"/>
+          {/* Body */}
+          <rect x="7" y="20" width="18" height="20" rx="3" fill={shirtColor}/>
+          <rect x="7" y="20" width="18" height="6" rx="2" fill={shirtColor} opacity="0.8"/>
           {/* Arms */}
-          <rect x="0"  y="22" width="9" height="5" rx="2" fill="#4070c0"/>
-          <rect x="23" y="22" width="9" height="5" rx="2" fill="#4070c0"/>
+          <rect x="0" y="22" width="8" height="5" rx="2" fill={shirtColor} className="arm-l"/>
+          <rect x="24" y="22" width="8" height="5" rx="2" fill={shirtColor} className="arm-r"/>
+          {/* Head */}
+          <circle cx="16" cy="12" r="9" fill={skinColor}/>
+          {/* Hair */}
+          <ellipse cx="16" cy="7" rx="9" ry="5" fill={hairColor}/>
+          {/* Eyes */}
+          <circle cx="13" cy="12" r="1.2" fill="#1a1a1a"/>
+          <circle cx="19" cy="12" r="1.2" fill="#1a1a1a"/>
+          {hasGlasses && <circle cx="13" cy="12" r="2.5" fill="none" stroke="#3a3a3a" strokeWidth="0.8"/>}
+          {hasGlasses && <circle cx="19" cy="12" r="2.5" fill="none" stroke="#3a3a3a" strokeWidth="0.8"/>}
+          {hasGlasses && <line x1="15.5" y1="12" x2="16.5" y2="12" stroke="#3a3a3a" strokeWidth="0.6"/>}
+          {/* Mouth */}
+          <path d="M14,15 Q16,16.5 18,15" fill="none" stroke="#8a6050" strokeWidth="0.8"/>
+          {/* Hat */}
+          {hasHat && <rect x="8" y="2" width="16" height="3" rx="1" fill={hairColor}/>}
+          {hasHat && <rect x="5" y="5" width="22" height="2" rx="1" fill={hairColor}/>}
         </svg>
       </div>
       <div className="customer-speech">
         <div className="customer-name">{name}</div>
         <div className="customer-bought">Bought <span style={{ color: rc }}>{fishName}</span></div>
-        <div className="customer-paid">+🪙{coins}</div>
+        <div className="customer-paid">+{coins}</div>
       </div>
     </div>
   );
@@ -382,7 +409,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                 const autoPrice = Math.round((f.species?.basePrice ?? 10) * (f.health / 100) * happBonus1 * tankBonus1 * lightingBonus * marketMult);
                 const askPrice  = shop.fishPrices?.[f.id] ?? autoPrice;
                 const rc        = RC[f.species?.rarity] || '#888';
-                const ratio     = askPrice / autoPrice;
+                const ratio     = autoPrice > 0 ? askPrice / autoPrice : 1;
                 const priceTag  = ratio > 1.4 ? { label: 'Very Pricey', cls: 'price-tag-high' }
                                 : ratio > 1.15 ? { label: 'Above Market', cls: 'price-tag-above' }
                                 : ratio < 0.7  ? { label: 'Bargain', cls: 'price-tag-low' }
@@ -409,7 +436,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                         <button
                           className="price-adj-btn"
                           onClick={() => debouncedSetPrice(f.id, Math.max(1, Math.round(askPrice - Math.max(1, Math.round(askPrice * 0.05)))))}
-                          title="Lower price by 5%">−</button>
+                          aria-label="Lower price">−</button>
                         <div className="listing-price-input-wrap">
                           <span className="price-coin">🪙</span>
                           {/* Bug 10: was a fully controlled input — parseInt('') = NaN caused
@@ -426,7 +453,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                         <button
                           className="price-adj-btn"
                           onClick={() => debouncedSetPrice(f.id, Math.round(askPrice + Math.max(1, Math.round(askPrice * 0.05))))}
-                          title="Raise price by 5%">+</button>
+                          aria-label="Raise price">+</button>
                       </div>
                       <div className="listing-price-meta">
                         <span className="listing-auto-price">Market: 🪙{autoPrice}</span>
@@ -435,7 +462,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                       <button
                         className="btn-reset-price"
                         onClick={() => onSetPrice(f.id, autoPrice)}
-                        title="Reset to market price">Reset to market</button>
+                        aria-label="Reset price">Reset to market</button>
                     </div>
 
                     <button className="btn btn-sm btn-warn" onClick={() => onToggleSell(f.id)}>Delist</button>
@@ -477,7 +504,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                     const commonUnlisted = availableFish.filter(f => f.species?.rarity === 'common');
                     setSelectedToList(new Set(commonUnlisted.map(f => f.id)));
                   }}
-                  title="Select all common fish"
+                  aria-label="Select all common"
                 >
                   Select Commons
                 </button>
@@ -571,46 +598,75 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
         </div>
       )}
 
-      {shopTab === 'fish' && (
+      {shopTab === 'fish' && (() => {
+        const reputation = game?.shop?.reputation || 0;
+        const unlockedSuppliers = getUnlockedSuppliers(reputation);
+        const activeSupplier = getActiveSupplier(game);
+        const pool = new Set(activeSupplier.speciesPool);
+        const switchSupplier = useGameStore.getState().switchSupplier;
+        return (
         <div className="supplies-panel">
-          <p className="upgrade-hint">Purchase fish to stock your tanks. Each fish is added directly to your active tank.</p>
-          <div className="supplies-grid">
-            <SupplyCard name="Common Fish"   emoji="" stock="∞" cost={50}  amount={1} coins={player.coins} desc="A random common fish — good for building up stock"            onBuy={() => onBuyFish(50,  'common')}   />
-            <SupplyCard name="Uncommon Fish" emoji="" stock="∞" cost={150} amount={1} coins={player.coins} desc="A random uncommon fish with better genetics and higher value"   onBuy={() => onBuyFish(150, 'uncommon')} />
-            <SupplyCard name="Rare Fish"     emoji="" stock="∞" cost={400} amount={1} coins={player.coins} desc="A rare fish — unusual traits, higher sale price"                onBuy={() => onBuyFish(400, 'rare')}     />
+          {/* Supplier selector */}
+          <div className="supplier-selector">
+            <div className="supplier-title">SUPPLIER</div>
+            <div className="supplier-tabs">
+              {unlockedSuppliers.map(s => (
+                <button
+                  key={s.id}
+                  className={`supplier-tab ${activeSupplier.id === s.id ? 'supplier-tab--active' : ''}`}
+                  onClick={() => switchSupplier(s.id)}
+                >
+                  <span className="supplier-tab-name">{s.name}</span>
+                  {s.priceMult > 1 && <span className="supplier-tab-mult">x{s.priceMult}</span>}
+                </button>
+              ))}
+              {SUPPLIERS.filter(s => !unlockedSuppliers.includes(s)).slice(0, 1).map(s => (
+                <div key={s.id} className="supplier-tab supplier-tab--locked">
+                  {s.name} — Rep {s.unlockRep}
+                </div>
+              ))}
+            </div>
+            <div className="supplier-desc">{activeSupplier.desc}</div>
           </div>
-          <div className="section-title mt">Real Species</div>
-          <p className="upgrade-hint">Iconic fish with fixed markings and species-specific behaviour in the tank.</p>
+
+          <p className="upgrade-hint">Purchase fish to stock your tanks. Prices vary by supplier.</p>
           <div className="supplies-grid">
-            <SupplyCard name="Clownfish"  emoji="" stock="∞" cost={200} amount={1} coins={player.coins} desc="Amphiprion ocellaris — vivid orange with 3 white bars. Darts near the bottom." onBuy={() => onBuyFish(200, null, 'clownfish')} />
-            <SupplyCard name="Blue Tang"  emoji="" stock="∞" cost={350} amount={1} coins={player.coins} desc="Paracanthurus hepatus — royal blue with bold black stripe and yellow tail. Sweeps the full tank." onBuy={() => onBuyFish(350, null, 'bluetang')} />
-            <SupplyCard name="Betta"      emoji="" stock="∞" cost={420} amount={1} coins={player.coins} desc="Betta splendens — flowing crimson veil fins with teal iridescent sheen. A regal, solitary drifter." onBuy={() => onBuyFish(420, null, 'betta')} />
-            <SupplyCard name="Angelfish"  emoji="" stock="∞" cost={240} amount={1} coins={player.coins} desc="Pterophyllum scalare — silver with 3 black bars and trailing dorsal filaments. A stately vertical swimmer." onBuy={() => onBuyFish(240, null, 'angelfish')} />
-            <SupplyCard name="Goldfish"   emoji="" stock="∞" cost={120} amount={1} coins={player.coins} desc="Carassius auratus — fancy twin veil tail, lazy bottom-dweller. May spawn in kohaku, calico or black moor variants." onBuy={() => onBuyFish(120, null, 'goldfish')} />
-            <SupplyCard name="Mandarin Dragonet" emoji="" stock="∞" cost={1500} amount={1} coins={player.coins} desc="Synchiropus splendidus — psychedelic blue-orange maze pattern. The rarest and most striking fish in the ocean." onBuy={() => onBuyFish(1500, null, 'mandarin_dragonet')} />
-            <SupplyCard name="Neon Tetra"   emoji="" stock="∞" cost={60}   amount={1} coins={player.coins} desc="Paracheirodon innesi — tiny torpedo with an electric blue neon stripe. Best in groups." onBuy={() => onBuyFish(60, null, 'neon_tetra')} />
-            <SupplyCard name="Discus"       emoji="" stock="∞" cost={500}  amount={1} coins={player.coins} desc="Symphysodon discus — the King of the Aquarium. A stunning disc-shaped cichlid with vivid striping." onBuy={() => onBuyFish(500, null, 'discus')} />
-            <SupplyCard name="Lionfish"     emoji="" stock="∞" cost={600}  amount={1} coins={player.coins} desc="Pterois volitans — dramatic venomous beauty with radiating fan-like fin spines. Handle with care." onBuy={() => onBuyFish(600, null, 'lionfish')} />
-            <SupplyCard name="Seahorse"     emoji="" stock="∞" cost={1000} amount={1} coins={player.coins} desc="Hippocampus kuda — an upright swimmer with a curled prehensile tail. Males carry the young." onBuy={() => onBuyFish(1000, null, 'seahorse')} />
-            <SupplyCard name="Pufferfish"   emoji="" stock="∞" cost={200}  amount={1} coins={player.coins} desc="Tetraodon nigroviridis — round, spiky, and full of personality. Blinks its eyes!" onBuy={() => onBuyFish(200, null, 'pufferfish')} />
-            <SupplyCard name="Moon Jellyfish" emoji="" stock="∞" cost={450} amount={1} coins={player.coins} desc="Aurelia aurita — translucent pulsing bell with trailing tentacles. 500 million years of evolution." onBuy={() => onBuyFish(450, null, 'jellyfish')} />
-            <SupplyCard name="Koi"          emoji="" stock="∞" cost={250}  amount={1} coins={player.coins} desc="Cyprinus rubrofuscus — elegant pond royalty with vivid patches. Tancho, Showa, and Ogon variants." onBuy={() => onBuyFish(250, null, 'koi')} />
-            <SupplyCard name="Moorish Idol" emoji="" stock="∞" cost={550}  amount={1} coins={player.coins} desc="Zanclus cornutus — dramatic black-white-yellow stripes with a trailing dorsal filament." onBuy={() => onBuyFish(550, null, 'moorish_idol')} />
-            <SupplyCard name="Triggerfish"  emoji="" stock="∞" cost={220}  amount={1} coins={player.coins} desc="Balistoides conspicillum — angular body, locking dorsal spine, vibrant blue patterns." onBuy={() => onBuyFish(220, null, 'triggerfish')} />
-            <SupplyCard name="Electric Eel" emoji="" stock="∞" cost={1100} amount={1} coins={player.coins} desc="Electrophorus electricus — generates 860V. Animated electric glow spots pulse along its body." onBuy={() => onBuyFish(1100, null, 'electric_eel')} />
-            <SupplyCard name="Axolotl"      emoji="" stock="∞" cost={400}  amount={1} coins={player.coins} desc="Ambystoma mexicanum — the smiling salamander with feathery gills. Can regenerate limbs!" onBuy={() => onBuyFish(400, null, 'axolotl')} />
-            <SupplyCard name="Yellow Tang"   emoji="" stock="∞" cost={300}  amount={1} coins={player.coins} desc="Zebrasoma flavescens — a living splash of sunshine. Solid yellow with a retractable tail scalpel." onBuy={() => onBuyFish(300, null, 'yellow_tang')} />
-            <SupplyCard name="Arowana"       emoji="" stock="∞" cost={2500} amount={1} coins={player.coins} desc="Scleropages formosus — the dragon fish. Symbol of luck and prosperity. Premium collector's fish." onBuy={() => onBuyFish(2500, null, 'arowana')} />
-            <SupplyCard name="Cherry Shrimp" emoji="" stock="∞" cost={35}   amount={1} coins={player.coins} desc="Neocaridina davidi — tiny red cleanup crew. Grazes algae, breeds fast, sits on plants." onBuy={() => onBuyFish(35, null, 'cherry_shrimp')} />
-            <SupplyCard name="Oscar"         emoji="" stock="∞" cost={200}  amount={1} coins={player.coins} desc="Astronotus ocellatus — big, bold, full of personality. The puppy dog of fishkeeping." onBuy={() => onBuyFish(200, null, 'oscar')} />
-            <SupplyCard name="Guppy"         emoji="" stock="∞" cost={30}   amount={1} coins={player.coins} desc="Poecilia reticulata — the million fish. Cheap, colorful fan tail, breeds prolifically." onBuy={() => onBuyFish(30, null, 'guppy')} />
-            <SupplyCard name="Cuttlefish"    emoji="" stock="∞" cost={750}  amount={1} coins={player.coins} desc="Sepia officinalis — master of disguise. Changes color in milliseconds. Three hearts, W-shaped eyes." onBuy={() => onBuyFish(750, null, 'cuttlefish')} />
-            <SupplyCard name="Corydoras"     emoji="" stock="∞" cost={45}   amount={1} coins={player.coins} desc="Corydoras paleatus — armored catfish janitor. Scoots along the sand vacuuming up scraps." onBuy={() => onBuyFish(45, null, 'corydoras')} />
-            <SupplyCard name="Hammerhead"    emoji="" stock="∞" cost={1800} amount={1} coins={player.coins} desc="Sphyrna lewini — 360° binocular vision. A prestige predator that commands respect." onBuy={() => onBuyFish(1800, null, 'hammerhead')} />
-            <SupplyCard name="Nautilus"      emoji="" stock="∞" cost={600}  amount={1} coins={player.coins} desc="Nautilus pompilius — 500-million-year-old living fossil. Spiral shell, 90 tentacles, no suckers." onBuy={() => onBuyFish(600, null, 'nautilus')} />
+            <SupplyCard name="Common Fish"   emoji="" stock="∞" cost={Math.round(50 * activeSupplier.priceMult)}  amount={1} coins={player.coins} desc="A random common fish"            onBuy={() => onBuyFish(Math.round(50 * activeSupplier.priceMult),  'common')}   />
+            <SupplyCard name="Uncommon Fish" emoji="" stock="∞" cost={Math.round(150 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="A random uncommon fish with better genetics"   onBuy={() => onBuyFish(Math.round(150 * activeSupplier.priceMult), 'uncommon')} />
+            <SupplyCard name="Rare Fish"     emoji="" stock="∞" cost={Math.round(400 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="A rare fish — unusual traits, higher sale price"                onBuy={() => onBuyFish(Math.round(400 * activeSupplier.priceMult), 'rare')}     />
+          </div>
+          <div className="section-title mt">Species from {activeSupplier.name}</div>
+          <p className="upgrade-hint">Iconic fish with fixed markings. Only species stocked by your current supplier are shown.</p>
+          <div className="supplies-grid">
+            {pool.has('clownfish') && <SupplyCard name="Clownfish"  emoji="" stock="∞" cost={Math.round(200 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Amphiprion ocellaris — vivid orange with 3 white bars." onBuy={() => onBuyFish(Math.round(200 * activeSupplier.priceMult), null, 'clownfish')} />}
+            {pool.has('bluetang') && <SupplyCard name="Blue Tang"  emoji="" stock="∞" cost={Math.round(350 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Paracanthurus hepatus — royal blue with bold black stripe." onBuy={() => onBuyFish(Math.round(350 * activeSupplier.priceMult), null, 'bluetang')} />}
+            {pool.has('betta') && <SupplyCard name="Betta"      emoji="" stock="∞" cost={Math.round(420 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Betta splendens — flowing crimson veil fins." onBuy={() => onBuyFish(Math.round(420 * activeSupplier.priceMult), null, 'betta')} />}
+            {pool.has('angelfish') && <SupplyCard name="Angelfish"  emoji="" stock="∞" cost={Math.round(240 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Pterophyllum scalare — silver with 3 black bars." onBuy={() => onBuyFish(Math.round(240 * activeSupplier.priceMult), null, 'angelfish')} />}
+            {pool.has('goldfish') && <SupplyCard name="Goldfish"   emoji="" stock="∞" cost={Math.round(120 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Carassius auratus — fancy twin veil tail, lazy bottom-dweller." onBuy={() => onBuyFish(Math.round(120 * activeSupplier.priceMult), null, 'goldfish')} />}
+            {pool.has('mandarin_dragonet') && <SupplyCard name="Mandarin Dragonet" emoji="" stock="∞" cost={Math.round(1500 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Synchiropus splendidus — psychedelic blue-orange maze." onBuy={() => onBuyFish(Math.round(1500 * activeSupplier.priceMult), null, 'mandarin_dragonet')} />}
+            {pool.has('neon_tetra') && <SupplyCard name="Neon Tetra" emoji="" stock="∞" cost={Math.round(60 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Paracheirodon innesi — electric blue neon stripe. Best in groups." onBuy={() => onBuyFish(Math.round(60 * activeSupplier.priceMult), null, 'neon_tetra')} />}
+            {pool.has('discus') && <SupplyCard name="Discus" emoji="" stock="∞" cost={Math.round(500 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Symphysodon discus — King of the Aquarium." onBuy={() => onBuyFish(Math.round(500 * activeSupplier.priceMult), null, 'discus')} />}
+            {pool.has('lionfish') && <SupplyCard name="Lionfish" emoji="" stock="∞" cost={Math.round(600 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Pterois volitans — dramatic venomous beauty." onBuy={() => onBuyFish(Math.round(600 * activeSupplier.priceMult), null, 'lionfish')} />}
+            {pool.has('seahorse') && <SupplyCard name="Seahorse" emoji="" stock="∞" cost={Math.round(1000 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Hippocampus kuda — upright swimmer with curled tail." onBuy={() => onBuyFish(Math.round(1000 * activeSupplier.priceMult), null, 'seahorse')} />}
+            {pool.has('pufferfish') && <SupplyCard name="Pufferfish" emoji="" stock="∞" cost={Math.round(200 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Tetraodon nigroviridis — round, spiky, full of personality." onBuy={() => onBuyFish(Math.round(200 * activeSupplier.priceMult), null, 'pufferfish')} />}
+            {pool.has('jellyfish') && <SupplyCard name="Moon Jellyfish" emoji="" stock="∞" cost={Math.round(450 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Aurelia aurita — translucent pulsing bell." onBuy={() => onBuyFish(Math.round(450 * activeSupplier.priceMult), null, 'jellyfish')} />}
+            {pool.has('koi') && <SupplyCard name="Koi" emoji="" stock="∞" cost={Math.round(250 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Cyprinus rubrofuscus — elegant pond royalty." onBuy={() => onBuyFish(Math.round(250 * activeSupplier.priceMult), null, 'koi')} />}
+            {pool.has('moorish_idol') && <SupplyCard name="Moorish Idol" emoji="" stock="∞" cost={Math.round(550 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Zanclus cornutus — dramatic black-white-yellow stripes." onBuy={() => onBuyFish(Math.round(550 * activeSupplier.priceMult), null, 'moorish_idol')} />}
+            {pool.has('triggerfish') && <SupplyCard name="Triggerfish" emoji="" stock="∞" cost={Math.round(220 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Balistoides conspicillum — angular body, locking dorsal spine." onBuy={() => onBuyFish(Math.round(220 * activeSupplier.priceMult), null, 'triggerfish')} />}
+            {pool.has('electric_eel') && <SupplyCard name="Electric Eel" emoji="" stock="∞" cost={Math.round(1100 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Electrophorus electricus — generates 860V." onBuy={() => onBuyFish(Math.round(1100 * activeSupplier.priceMult), null, 'electric_eel')} />}
+            {pool.has('axolotl') && <SupplyCard name="Axolotl" emoji="" stock="∞" cost={Math.round(350 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Ambystoma mexicanum — the smiling salamander." onBuy={() => onBuyFish(Math.round(350 * activeSupplier.priceMult), null, 'axolotl')} />}
+            {pool.has('cherry_shrimp') && <SupplyCard name="Cherry Shrimp" emoji="" stock="∞" cost={Math.round(40 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Neocaridina davidi — tiny red algae cleaner." onBuy={() => onBuyFish(Math.round(40 * activeSupplier.priceMult), null, 'cherry_shrimp')} />}
+            {pool.has('corydoras') && <SupplyCard name="Corydoras" emoji="" stock="∞" cost={Math.round(80 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Corydoras paleatus — armored bottom-feeder." onBuy={() => onBuyFish(Math.round(80 * activeSupplier.priceMult), null, 'corydoras')} />}
+            {pool.has('oscar') && <SupplyCard name="Oscar" emoji="" stock="∞" cost={Math.round(300 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Astronotus ocellatus — intelligent, aggressive predator." onBuy={() => onBuyFish(Math.round(300 * activeSupplier.priceMult), null, 'oscar')} />}
+            {pool.has('arowana') && <SupplyCard name="Arowana" emoji="" stock="∞" cost={Math.round(2000 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Osteoglossum bicirrhosum — the dragon fish of luck." onBuy={() => onBuyFish(Math.round(2000 * activeSupplier.priceMult), null, 'arowana')} />}
+            {pool.has('nautilus') && <SupplyCard name="Nautilus" emoji="" stock="∞" cost={Math.round(800 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Nautilus pompilius — a living fossil." onBuy={() => onBuyFish(Math.round(800 * activeSupplier.priceMult), null, 'nautilus')} />}
+            {pool.has('cuttlefish') && <SupplyCard name="Cuttlefish" emoji="" stock="∞" cost={Math.round(900 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Sepia officinalis — master of camouflage." onBuy={() => onBuyFish(Math.round(900 * activeSupplier.priceMult), null, 'cuttlefish')} />}
+            {pool.has('hammerhead') && <SupplyCard name="Hammerhead" emoji="" stock="∞" cost={Math.round(3000 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Sphyrna lewini — apex predator with panoramic vision." onBuy={() => onBuyFish(Math.round(3000 * activeSupplier.priceMult), null, 'hammerhead')} />}
+            {pool.has('yellow_tang') && <SupplyCard name="Yellow Tang" emoji="" stock="∞" cost={Math.round(280 * activeSupplier.priceMult)} amount={1} coins={player.coins} desc="Zebrasoma flavescens — brilliant yellow reef cruiser." onBuy={() => onBuyFish(Math.round(280 * activeSupplier.priceMult), null, 'yellow_tang')} />}
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {shopTab === 'supplies' && (
         <div className="supplies-panel">

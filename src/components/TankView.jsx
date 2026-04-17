@@ -37,21 +37,22 @@ const DEPTH_LAYERS = [
   { scale: 1.22, opacity: 1.00, z: 13, blur: 0   },
 ];
 
-function getDayPhase() {
-  const h = new Date().getHours() + new Date().getMinutes() / 60;
-  if (h >= 5  && h < 7)  return { phase: 'dawn',    label: '🌅 Dawn'    };
-  if (h >= 7  && h < 17) return { phase: 'day',     label: '☀️ Day'     };
-  if (h >= 17 && h < 20) return { phase: 'dusk',    label: '🌇 Dusk'    };
-  if (h >= 20 && h < 22) return { phase: 'evening', label: '🌆 Evening'  };
-  return                         { phase: 'night',   label: '🌙 Night'   };
+function getDayPhase(gc) {
+  const d = gc ? new Date(gc) : new Date();
+  const h = d.getHours() + d.getMinutes() / 60;
+  if (h >= 5  && h < 7)  return { phase: 'dawn',    label: 'DAWN'    };
+  if (h >= 7  && h < 17) return { phase: 'day',     label: 'DAY'     };
+  if (h >= 17 && h < 20) return { phase: 'dusk',    label: 'DUSK'    };
+  if (h >= 20 && h < 22) return { phase: 'evening', label: 'EVE'  };
+  return                         { phase: 'night',   label: 'NIGHT'   };
 }
 
 const DAY_PHASE_STYLES = {
-  dawn:    { overlay: 'rgba(255,150, 60,0.18)', rayOpacity: 0.55, starCount: 0  },
-  day:     { overlay: 'rgba(180,230,255,0.06)', rayOpacity: 0.90, starCount: 0  },
-  dusk:    { overlay: 'rgba(220, 80, 20,0.22)', rayOpacity: 0.45, starCount: 0  },
-  evening: { overlay: 'rgba( 60, 20,100,0.20)', rayOpacity: 0.30, starCount: 5  },
-  night:   { overlay: 'rgba( 15, 15, 60,0.18)', rayOpacity: 0.25, starCount: 12 },
+  dawn:    { overlay: 'linear-gradient(180deg, rgba(255,140,50,0.25) 0%, rgba(255,100,30,0.08) 100%)', rayOpacity: 0.6, starCount: 0  },
+  day:     { overlay: 'rgba(160,210,240,0.04)', rayOpacity: 0.95, starCount: 0  },
+  dusk:    { overlay: 'linear-gradient(180deg, rgba(200,60,20,0.28) 0%, rgba(120,30,60,0.15) 100%)', rayOpacity: 0.35, starCount: 0  },
+  evening: { overlay: 'linear-gradient(180deg, rgba(30,15,60,0.35) 0%, rgba(10,10,40,0.20) 100%)', rayOpacity: 0.15, starCount: 5  },
+  night:   { overlay: 'linear-gradient(180deg, rgba(5,5,30,0.45) 0%, rgba(0,0,15,0.30) 100%)', rayOpacity: 0.08, starCount: 12 },
 };
 
 const STARS = Array.from({ length: 12 }, (_, i) => ({
@@ -125,23 +126,49 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   // Convenience alias for reading positions in render (ref value, not state)
   const positions = posRef.current;
 
-  const [dayPhase, setDayPhase] = useState(getDayPhase);
+  const [dayPhase, setDayPhase] = useState(() => getDayPhase(gameClock));
   const [hoveredFishId, setHoveredFishId] = useState(null);
   const [ripples, setRipples] = useState([]);      // click ripple effects
   const [feedSplash, setFeedSplash] = useState(0);  // feed particle trigger
   const [sparkles, setSparkles] = useState([]);     // sale sparkle effects
   const [justClickedId, setJustClickedId] = useState(null); // fish click wiggle
   const [clickBubbles, setClickBubbles] = useState([]);      // click bubble burst
+  const [swimBubbles, setSwimBubbles] = useState([]);        // exhale bubble trails
   const [coinShowers, setCoinShowers] = useState([]);         // sale coin shower
   const [speechBubbles, setSpeechBubbles] = useState([]);     // sale speech bubbles
   const cursorRef = useRef({ x: -100, y: -100 });   // cursor position in % coords
   const tankElRef = useRef(null);
   const tickRef = useRef(0);
 
+  // ── Swim bubble trails ─────────────────────────────────
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const positions = posRef.current;
+      const alive = fish.filter(f => f.stage !== 'egg');
+      if (alive.length === 0) return;
+      // Pick a random fish to emit a bubble
+      const f = alive[Math.floor(Math.random() * alive.length)];
+      const pos = positions[f.id];
+      if (!pos || pos.isIdle) return;
+      const bx = pos.flipped ? pos.x - 2 : pos.x + 2;
+      const by = pos.y - 1;
+      const bid = `sb-${Date.now()}-${Math.random()}`;
+      setSwimBubbles(prev => [...prev.slice(-12), {
+        id: bid, x: bx, y: by,
+        size: 2 + Math.random() * 3,
+        drift: (Math.random() - 0.5) * 3,
+      }]);
+      setTimeout(() => setSwimBubbles(prev => prev.filter(b => b.id !== bid)), 2000);
+    }, 300);
+    return () => clearInterval(interval);
+  }, [fish]);
+
   // ── Micro-events (pearl finds, nuzzles, etc.) ────────
   const [microEvents, setMicroEvents] = useState([]);
   const lastMicroRef = useRef(0);
   const claimMicroEvent = useGameStore(s => s.claimMicroEvent);
+  const weather = useGameStore(s => s.weather);
+  const gameClock = useGameStore(s => s.gameClock);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -169,21 +196,30 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   };
 
   useEffect(() => {
-    const t = setInterval(() => setDayPhase(getDayPhase()), 60_000);
-    return () => clearInterval(t);
-  }, []);
+    setDayPhase(getDayPhase(gameClock));
+  }, [gameClock]);
 
   // ── Cursor tracking (convert pixel → % of tank) ────────
   const handleTankMouseMove = (e) => {
     const rect = tankElRef.current?.getBoundingClientRect();
     if (!rect) return;
-    cursorRef.current = {
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100,
-    };
+    const px = ((e.clientX - rect.left) / rect.width) * 100;
+    const py = ((e.clientY - rect.top) / rect.height) * 100;
+    cursorRef.current = { x: px, y: py };
+    // Set parallax CSS vars for background layers
+    const el = tankElRef.current;
+    if (el) {
+      el.style.setProperty('--parallax-x', `${(px - 50) * 0.03}px`);
+      el.style.setProperty('--parallax-y', `${(py - 50) * 0.02}px`);
+    }
   };
   const handleTankMouseLeave = () => {
     cursorRef.current = { x: -100, y: -100 };
+    const el = tankElRef.current;
+    if (el) {
+      el.style.setProperty('--parallax-x', '0px');
+      el.style.setProperty('--parallax-y', '0px');
+    }
   };
 
   // ── Click ripple ───────────────────────────────────────
@@ -206,6 +242,17 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
     }
     prevFoodRef.current = food;
   }, [tank?.supplies?.food]);
+
+  // ── Water treatment effect (listen for WQ jumps) ───────
+  const [treatmentFlash, setTreatmentFlash] = useState(0);
+  const prevWqRef = useRef(wq);
+  useEffect(() => {
+    if (wq > prevWqRef.current + 5) {
+      setTreatmentFlash(Date.now());
+      setTimeout(() => setTreatmentFlash(0), 2500);
+    }
+    prevWqRef.current = wq;
+  }, [wq]);
 
   // ── Sale sparkle trigger (listen for fish removal) ──────
   const SALE_PHRASES = ['Thanks!', 'Perfect!', 'Love it!', 'Beautiful!', 'Amazing!', 'So pretty!'];
@@ -259,6 +306,18 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           if (idleTimer <= 0) {
             isIdle = Math.random() < idleProb;
             idleTimer = 80 + Math.floor(Math.random() * 260);
+            // Assign idle behavior type
+            if (isIdle) {
+              if (y > 75 && Math.random() < 0.4) {
+                p.idleBehavior = 'nibble'; // nibble at sand
+              } else if (y < 25 && Math.random() < 0.3) {
+                p.idleBehavior = 'surface'; // explore surface
+              } else if (Math.random() < 0.2) {
+                p.idleBehavior = 'explore'; // slow drift toward a plant
+              } else {
+                p.idleBehavior = 'rest';
+              }
+            }
           }
 
           if (!isIdle) {
@@ -275,8 +334,27 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
               y += vy;
             }
           } else {
-            y += Math.sin(phase + t * BOB_FREQ * 0.35) * bobAmp * 0.45;
-            tilt = tilt * 0.94;
+            const idleBehavior = p.idleBehavior || 'rest';
+            if (idleBehavior === 'nibble') {
+              // Tilt nose down, tiny bobs near sand
+              y += Math.sin(phase + t * BOB_FREQ * 0.5) * bobAmp * 0.2;
+              tilt = tilt + (15 - tilt) * 0.03; // nose down
+              if (y < 82) y += 0.03; // drift toward sand
+            } else if (idleBehavior === 'surface') {
+              // Drift up toward surface
+              y += Math.sin(phase + t * BOB_FREQ * 0.4) * bobAmp * 0.3;
+              tilt = tilt + (-8 - tilt) * 0.02; // nose slightly up
+              if (y > 12) y -= 0.02;
+            } else if (idleBehavior === 'explore') {
+              // Slow horizontal drift
+              x += Math.sin(phase + t * 0.001) * 0.015;
+              y += Math.sin(phase + t * BOB_FREQ * 0.3) * bobAmp * 0.3;
+              tilt = tilt * 0.96;
+            } else {
+              // Rest: gentle bob
+              y += Math.sin(phase + t * BOB_FREQ * 0.35) * bobAmp * 0.45;
+              tilt = tilt * 0.94;
+            }
           }
 
           // ── Personality + cursor interaction ─────────────────
@@ -402,12 +480,15 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
     const cls = ['fish-container', `depth-layer-${depthLayer}`];
     if (isSelected) cls.push('selected');
     if (f.disease) cls.push('fish-diseased');
-    if (pos.isIdle) cls.push('fish-idle');
+    if (pos.isIdle) {
+      cls.push('fish-idle-active');
+      if (pos.idleBehavior) cls.push(`fish-idle--${pos.idleBehavior}`);
+    }
     if (f.hunger > 70) cls.push('fish-hungry');
     if ((f.health || 100) < 30) cls.push('fish-critical');
     if (f.stage === 'egg') {
       cls.push('fish-egg');
-      if (Date.now() - (f.bornAt || 0) > EGG_HATCH_ANIM_MS) cls.push('egg-hatching');
+      if (gameClock - (f.bornAt || 0) > EGG_HATCH_ANIM_MS) cls.push('egg-hatching');
     }
     if (f.species?.rarity === 'legendary') cls.push('fish-legendary');
     else if (f.species?.rarity === 'epic') cls.push('fish-epic');
@@ -442,9 +523,9 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
         const foodLow    = (tank?.supplies?.food ?? 10) < 3;
         const wqLow      = (waterQuality ?? 100) < 40;
         if (sickFish.length > 0)   alerts.push({ key: 'sick',   icon: '', label: `${sickFish.length} sick`, cls: 'alert-pulse--red'   });
-        if (hungryFish.length > 0) alerts.push({ key: 'hungry', icon: '🍽️', label: `${hungryFish.length} hungry`, cls: 'alert-pulse--orange' });
+        if (hungryFish.length > 0) alerts.push({ key: 'hungry', icon: '', label: `${hungryFish.length} hungry`, cls: 'alert-pulse--orange' });
         if (foodLow)               alerts.push({ key: 'food',   icon: '', label: 'Low food',  cls: 'alert-pulse--orange' });
-        if (wqLow)                 alerts.push({ key: 'wq',     icon: '💧', label: 'Bad water', cls: 'alert-pulse--red'   });
+        if (wqLow)                 alerts.push({ key: 'wq',     icon: '', label: 'Bad water', cls: 'alert-pulse--red'   });
         if (alerts.length === 0) return null;
         return (
           <div className="tank-alert-strip">
@@ -842,6 +923,60 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
         ))}
 
         <div className="day-night-overlay" style={{ background: ps.overlay }}/>
+        {(dayPhase.phase === 'night' || dayPhase.phase === 'evening') && (
+          <div className="moonlight-beam" />
+        )}
+        {treatmentFlash > 0 && (
+          <div key={treatmentFlash} className="treatment-effect">
+            {Array.from({ length: 20 }, (_, i) => (
+              <div key={i} className="treatment-bubble" style={{
+                left: `${5 + Math.random() * 90}%`,
+                animationDelay: `${Math.random() * 0.8}s`,
+                animationDuration: `${1.5 + Math.random() * 1}s`,
+                width: 3 + Math.random() * 5,
+                height: 3 + Math.random() * 5,
+              }} />
+            ))}
+          </div>
+        )}
+
+        {/* ── Weather visual effects ───────────────────── */}
+        {weather?.id === 'rainy' && (
+          <div className="weather-rain">
+            {Array.from({ length: 30 }, (_, i) => (
+              <div key={i} className="rain-drop" style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${0.4 + Math.random() * 0.3}s`,
+              }} />
+            ))}
+          </div>
+        )}
+        {weather?.id === 'stormy' && (
+          <div className="weather-storm">
+            {Array.from({ length: 50 }, (_, i) => (
+              <div key={i} className="rain-drop rain-drop--heavy" style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 1.5}s`,
+                animationDuration: `${0.3 + Math.random() * 0.2}s`,
+              }} />
+            ))}
+            <div className="lightning-flash" />
+          </div>
+        )}
+        {weather?.id === 'heatwave' && (
+          <div className="weather-heat" />
+        )}
+        {weather?.id === 'aurora' && (
+          <div className="weather-aurora">
+            <div className="aurora-band aurora-band-1" />
+            <div className="aurora-band aurora-band-2" />
+            <div className="aurora-band aurora-band-3" />
+          </div>
+        )}
+        {weather?.id === 'foggy' && (
+          <div className="weather-fog" />
+        )}
 
         {/* Step 2 & 6: Fish rendered sorted by depth, with tilt + animation */}
         {sortedFish.map(f => {
@@ -867,6 +1002,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
           return (
             <div key={f.id}
               className={fishClasses(f, isSelected, depthLayer, pos) + (justClickedId === f.id ? ' fish-just-clicked' : '')}
+              data-rarity={f.species?.rarity || 'common'}
               style={{
                 left: `${pos.x}%`,
                 top:  `${pos.y}%`,
@@ -904,16 +1040,16 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
               {/* Floating status icons */}
               <div className="fish-status-icons">
                 {f.disease && (
-                  <span className="fish-status-icon fish-status-icon--sick" title="Sick">!</span>
+                  <span className="fish-status-icon fish-status-icon--sick" aria-label="Sick">!</span>
                 )}
                 {!f.disease && f.hunger > 60 && (
-                  <span className="fish-status-icon fish-status-icon--hungry" title="Hungry">H</span>
+                  <span className="fish-status-icon fish-status-icon--hungry" aria-label="Hungry">H</span>
                 )}
                 {listedFishIds.includes(f.id) && (
-                  <span className="fish-status-icon fish-status-icon--listed" title="Listed for sale">$</span>
+                  <span className="fish-status-icon fish-status-icon--listed" aria-label="Listed">$</span>
                 )}
                 {f.bondedWith && fish.some(o => o.id === f.bondedWith) && (
-                  <span className="fish-status-icon fish-status-icon--bonded" title="Bonded pair">♥</span>
+                  <span className="fish-status-icon fish-status-icon--bonded" aria-label="Bonded">♥</span>
                 )}
               </div>
 
@@ -922,7 +1058,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
                 <div className={`fish-tooltip fish-tooltip--${tooltipSide} ${tooltipVert}`}>
                   <div className="fish-tooltip-name">{f.species?.name || 'Unknown'}</div>
                   <div className="fish-tooltip-row">
-                    <span>❤</span>
+                    <span>HP</span>
                     <div className="fish-tooltip-bar">
                       <div className="fish-tooltip-fill" style={{
                         width: `${healthPct}%`,
@@ -1052,6 +1188,36 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
             }} />
           </div>
         ))}
+
+        {/* ── Swim bubble trails ───────────────────────── */}
+        {swimBubbles.map(b => (
+          <div key={b.id} className="swim-bubble" style={{
+            left: `${b.x}%`, top: `${b.y}%`,
+            width: b.size, height: b.size,
+            '--drift': `${b.drift}px`,
+          }} />
+        ))}
+
+        {/* ── Fish ground shadows on substrate ─────────── */}
+        {sortedFish.map(f => {
+          if (f.stage === 'egg') return null;
+          const pos = positions[f.id];
+          if (!pos) return null;
+          const sandY = 94;
+          const dist = sandY - pos.y;
+          const opacity = Math.max(0, Math.min(0.25, 0.3 - dist * 0.004));
+          const spread = 8 + dist * 0.15;
+          if (opacity < 0.03) return null;
+          return (
+            <div key={`shadow-${f.id}`} className="fish-ground-shadow" style={{
+              left: `${pos.x}%`,
+              top: `${sandY}%`,
+              width: spread,
+              height: spread * 0.3,
+              opacity,
+            }} />
+          );
+        })}
 
         {/* Step 4: Glass reflections */}
         <div className="tank-glass-left"/>

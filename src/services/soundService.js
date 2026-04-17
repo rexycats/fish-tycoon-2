@@ -207,6 +207,61 @@ export function startMusic() {
   // Start melodic notes
   scheduleNote(c, dest);
   setTimeout(() => scheduleNote(c, dest), 2000);
+  // Ambient underwater noise — filtered white noise
+  startAmbientNoise(c, dest);
+  // Ambient bubble pops
+  scheduleAmbientBubble(c, dest);
+}
+
+function startAmbientNoise(c, dest) {
+  const bufferSize = c.sampleRate * 2;
+  const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+  const noise = c.createBufferSource();
+  noise.buffer = buffer;
+  noise.loop = true;
+  // Low-pass filter: deep underwater rumble
+  const lp = c.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 200;
+  lp.Q.value = 1;
+  // Slow modulation on cutoff
+  const lfo = c.createOscillator();
+  const lfoGain = c.createGain();
+  lfo.frequency.value = 0.08;
+  lfoGain.gain.value = 80;
+  lfo.connect(lfoGain);
+  lfoGain.connect(lp.frequency);
+  lfo.start();
+  const g = c.createGain();
+  g.gain.value = 0.025;
+  noise.connect(lp);
+  lp.connect(g);
+  g.connect(dest);
+  noise.start();
+  _musicNodes.push({ osc: noise, lfo });
+}
+
+function scheduleAmbientBubble(c, dest) {
+  if (!_musicPlaying) return;
+  const delay = 3 + Math.random() * 8;
+  setTimeout(() => {
+    if (!_musicPlaying) return;
+    // Soft bubble pop
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.connect(g); g.connect(dest);
+    o.type = 'sine';
+    const freq = 400 + Math.random() * 600;
+    o.frequency.setValueAtTime(freq, c.currentTime);
+    o.frequency.exponentialRampToValueAtTime(freq * 0.3, c.currentTime + 0.15);
+    g.gain.setValueAtTime(0.015, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.15);
+    o.start(c.currentTime);
+    o.stop(c.currentTime + 0.15);
+    scheduleAmbientBubble(c, dest);
+  }, delay * 1000);
 }
 
 function stopMusic() {

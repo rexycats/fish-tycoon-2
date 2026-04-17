@@ -102,17 +102,17 @@ export default function LogPanel({ log = [] }) {
           <button
             className={`log-filter-btn ${filter === 'all' ? 'active' : ''}`}
             onClick={() => setFilter('all')}
-            title="Show all messages"
+            aria-label="Show all messages"
           >All</button>
           <button
             className={`log-filter-btn log-filter-btn--warn ${filter === 'warn' ? 'active' : ''}`}
             onClick={() => setFilter('warn')}
-            title="Show important events"
+            aria-label="Show important events"
           >Events</button>
           <button
             className={`log-filter-btn log-filter-btn--critical ${filter === 'critical' ? 'active' : ''}`}
             onClick={() => setFilter('critical')}
-            title="Show critical alerts only"
+            aria-label="Show critical alerts only"
           >Alerts</button>
           {/* Fix 7: entry count */}
           {filter !== 'all' && (

@@ -55,7 +55,7 @@ function FishdexCard({ entry, onClick, isSelected }) {
       <div className="fdex-card fdex-card--legendary fdex-card--legend-locked"
            style={{ '--rarity-color': rarityColor }}>
         <div className="fdex-card-ring" style={{ borderColor: rarityColor }} />
-        <div className="fdex-card-sprite" style={{ fontSize: '2rem', opacity: 0.25 }}>🐉</div>
+        <div className="fdex-card-sprite" style={{ fontSize: '2rem', opacity: 0.25 }}>?</div>
         <div className="fdex-card-name" style={{ color: rarityColor, opacity: 0.5 }}>???</div>
         <div className="fdex-card-rarity" style={{ color: rarityColor, opacity: 0.4 }}>legendary</div>
         <div style={{ fontSize: '10px', color: 'rgba(160,200,255,0.4)', textAlign: 'center', marginTop: 2, lineHeight: 1.4 }}>
@@ -101,16 +101,16 @@ function FishdexCard({ entry, onClick, isSelected }) {
         <div className="fdex-card-price">🪙 {entry.basePrice}</div>
         {entry.firstDiscoveredAt && (
           <div className="fdex-card-date">
-            📅 {new Date(entry.firstDiscoveredAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: '2-digit' })}
+            {new Date(entry.firstDiscoveredAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: '2-digit' })}
           </div>
         )}
         {entry.conservationStatus && (
           <div className="fdex-card-status" title={entry.conservationStatus}>
-            {entry.conservationStatus.startsWith('Least') ? '🟢' :
-             entry.conservationStatus.startsWith('Near') ? '🟡' :
-             entry.conservationStatus.startsWith('Vulnerable') ? '🟠' :
-             entry.conservationStatus.startsWith('Endangered') ? '🔴' :
-             entry.conservationStatus.startsWith('Critically') ? '🆘' : '⚪'}
+            {entry.conservationStatus.startsWith('Least') ? '●' :
+             entry.conservationStatus.startsWith('Near') ? '●' :
+             entry.conservationStatus.startsWith('Vulnerable') ? '●' :
+             entry.conservationStatus.startsWith('Endangered') ? '●' :
+             entry.conservationStatus.startsWith('Critically') ? '🆘' : '●'}
           </div>
         )}
       </div>
@@ -205,7 +205,7 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
           )}
           {entry.funFact && (
             <div className="fdex-funfact">
-              <span className="fdex-funfact-icon">💡</span>
+              <span className="fdex-funfact-icon">i</span>
               <span>{entry.funFact}</span>
             </div>
           )}
@@ -243,10 +243,10 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
             </button>
             {aiError && (
               <div className="ai-error-banner">
-                {aiError === 'no_key'   && '🔑 Add an Anthropic API key (footer → 🤖 AI Key) to enable AI features'}
-                {aiError === 'no_api'   && '🔑 API key rejected — check it\'s correct in the 🤖 AI Key settings'}
+                {aiError === 'no_key'   && 'Add an Anthropic API key (footer → AI Key) to enable AI features'}
+                {aiError === 'no_api'   && 'API key rejected — check it\'s correct in the AI Key settings'}
                 {aiError === 'rate_limit' && '⏳ AI is busy — please wait a moment and try again'}
-                {aiError === 'network' && '📡 Could not reach AI — check your connection and retry'}
+                {aiError === 'network' && 'Could not reach AI — check your connection and retry'}
               </div>
             )}
           </div>
@@ -379,7 +379,7 @@ function Fishdex({ fishdex: _fishdex, onGenerateLore, generatingLoreFor, aiError
       <div className="fdex-filters">
         <input
           className="fdex-search"
-          placeholder="🔍 Search species…"
+          placeholder="Search species…"
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
