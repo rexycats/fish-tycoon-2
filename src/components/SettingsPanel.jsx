@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore.js';
 import { setMasterVolume, setMusicVolume, setSFXVolume, getMasterVolume, getMusicVolume, getSFXVolume } from '../services/soundService.js';
+import ModPanel from './ModPanel.jsx';
 
 export default function SettingsPanel({ onClose }) {
   const [master, setMaster] = useState(getMasterVolume);
@@ -67,6 +68,10 @@ export default function SettingsPanel({ onClose }) {
             <kbd>Tab</kbd> Next section &nbsp;
             <kbd>Esc</kbd> Close
           </div>
+        </div>
+
+        <div className="settings-section">
+          <ModPanel />
         </div>
 
         {typeof window !== 'undefined' && window.electronAPI && (

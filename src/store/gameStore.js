@@ -48,6 +48,7 @@ import {
   playDiscover, setSoundEnabled,
   playSaleScaled, playDiscoverScaled, playCoinScaled, playAscension,
   playClick, playTabSwitch, playDeath, playSick, playLevelUp, playSplash,
+  playEquipInstall, playRepair, playHire, playResearch, playVictory, playHatch,
 } from '../services/soundService.js';
 
 // ── Module-level constants ─────────────────────────────────
@@ -825,6 +826,7 @@ export const useGameStore = create(
           bt.storedGenomeB = null;
           bt.clutchSize = null;
           state.player.stats.eggsCollected = (state.player.stats.eggsCollected || 0) + eggsToCreate;
+          playHatch();
 
           playCoin();
           if (eggsToCreate === 3) {
@@ -1004,6 +1006,7 @@ export const useGameStore = create(
           const prev = state.campaign.completedLevels?.[levelId];
           const bestStars = Math.max(stars, prev?.stars || 0);
           state.campaign.completedLevels[levelId] = { stars: bestStars, completedAt: Date.now() };
+          playVictory();
           // Unlock next levels
           if (level.rewards?.unlocks) {
             for (const uid of level.rewards.unlocks) {
@@ -1039,7 +1042,7 @@ export const useGameStore = create(
           const member = createStaffMember(role);
           if (!state.staff) state.staff = [];
           state.staff.push(member);
-          playCoin();
+          playHire();
           addLogDraft(state, `Hired ${member.name} as ${STAFF_ROLES[role]?.label || role}.`);
         }),
 
@@ -1095,7 +1098,7 @@ export const useGameStore = create(
           }
           state.player.coins -= tier.cost;
           state.player.research[branchId] = level + 1;
-          playCoin();
+          playResearch();
           addLogDraft(state, `Researched: ${tier.label} — ${tier.desc}`);
           fireToast(`${tier.label}: ${tier.desc}`, 'success', '');
 
@@ -1157,7 +1160,7 @@ export const useGameStore = create(
           }
           state.player.coins -= eqType.cost;
           tank.equipment.push(createEquipment(typeId));
-          playCoin();
+          playEquipInstall();
           addLogDraft(state, `Installed ${eqType.label} in ${tank.name}.`);
         }),
 
@@ -1175,7 +1178,7 @@ export const useGameStore = create(
           }
           state.player.coins -= eqType.repairCost;
           eq.broken = false;
-          playCoin();
+          playRepair();
           addLogDraft(state, `Repaired ${eqType.label} in ${tank.name}.`);
         }),
 

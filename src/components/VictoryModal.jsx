@@ -1,11 +1,13 @@
 // ============================================================
 // VICTORY MODAL — Campaign level complete overlay
 // ============================================================
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useGameStore } from '../store/gameStore.js';
 import { getLevelById, getStarRating, CAMPAIGN_LEVELS } from '../data/campaign.js';
+import { playVictory } from '../services/soundService.js';
 
 export default function VictoryModal({ levelId, onContinue }) {
+  useEffect(() => { playVictory(); }, []);
   const level = getLevelById(levelId);
   const state = useGameStore.getState();
   const stars = level ? getStarRating(level, state) : 0;

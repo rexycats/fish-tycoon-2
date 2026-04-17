@@ -505,3 +505,145 @@ export function playAscension() {
     });
   });
 }
+
+export function playEquipInstall() {
+  playSfx((c, dest) => {
+    // Mechanical click + hum
+    const o = c.createOscillator(), g = c.createGain();
+    o.connect(g); g.connect(dest);
+    o.type = 'square';
+    o.frequency.setValueAtTime(180, c.currentTime);
+    o.frequency.linearRampToValueAtTime(120, c.currentTime + 0.15);
+    g.gain.setValueAtTime(0.15, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.2);
+    o.start(); o.stop(c.currentTime + 0.2);
+    // Confirmation tone
+    const o2 = c.createOscillator(), g2 = c.createGain();
+    o2.connect(g2); g2.connect(dest);
+    o2.type = 'sine';
+    o2.frequency.value = 660;
+    g2.gain.setValueAtTime(0, c.currentTime + 0.15);
+    g2.gain.linearRampToValueAtTime(0.1, c.currentTime + 0.18);
+    g2.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.4);
+    o2.start(c.currentTime + 0.15); o2.stop(c.currentTime + 0.4);
+  });
+}
+
+export function playRepair() {
+  playSfx((c, dest) => {
+    [400, 500, 600].forEach((freq, i) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(dest);
+      o.type = 'triangle';
+      o.frequency.value = freq;
+      const t = c.currentTime + i * 0.08;
+      g.gain.setValueAtTime(0.1, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+      o.start(t); o.stop(t + 0.12);
+    });
+  });
+}
+
+export function playHire() {
+  playSfx((c, dest) => {
+    // Warm welcome chord
+    [330, 415, 494].forEach((freq, i) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(dest);
+      o.type = 'sine';
+      o.frequency.value = freq;
+      const t = c.currentTime + i * 0.06;
+      g.gain.setValueAtTime(0.12, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      o.start(t); o.stop(t + 0.3);
+    });
+  });
+}
+
+export function playResearch() {
+  playSfx((c, dest) => {
+    // Ascending discovery sparkle
+    [523, 659, 784, 1047].forEach((freq, i) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(dest);
+      o.type = 'sine';
+      o.frequency.value = freq;
+      const t = c.currentTime + i * 0.1;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.08, t + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      o.start(t); o.stop(t + 0.25);
+    });
+  });
+}
+
+export function playHatch() {
+  playSfx((c, dest) => {
+    // Crack + chime
+    const noise = c.createBufferSource();
+    const buf = c.createBuffer(1, c.sampleRate * 0.1, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (c.sampleRate * 0.02));
+    noise.buffer = buf;
+    const ng = c.createGain();
+    noise.connect(ng); ng.connect(dest);
+    ng.gain.value = 0.15;
+    noise.start();
+    // Chime after crack
+    const o = c.createOscillator(), g = c.createGain();
+    o.connect(g); g.connect(dest);
+    o.type = 'sine';
+    o.frequency.value = 880;
+    const t = c.currentTime + 0.08;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.1, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    o.start(t); o.stop(t + 0.4);
+  });
+}
+
+export function playVictory() {
+  playSfx((c, dest) => {
+    // Triumphant fanfare
+    const notes = [523, 659, 784, 1047, 784, 1047, 1318];
+    notes.forEach((freq, i) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(dest);
+      o.type = i < 4 ? 'sine' : 'triangle';
+      o.frequency.value = freq;
+      const t = c.currentTime + i * 0.12;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.1, t + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      o.start(t); o.stop(t + 0.35);
+    });
+  });
+}
+
+export function playNotif() {
+  playSfx((c, dest) => {
+    const o = c.createOscillator(), g = c.createGain();
+    o.connect(g); g.connect(dest);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(600, c.currentTime);
+    o.frequency.linearRampToValueAtTime(800, c.currentTime + 0.08);
+    g.gain.setValueAtTime(0.08, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.15);
+    o.start(); o.stop(c.currentTime + 0.15);
+  });
+}
+
+export function playAchievement() {
+  playSfx((c, dest) => {
+    [523, 659, 784, 1047].forEach((freq, i) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(dest);
+      o.type = 'triangle';
+      o.frequency.value = freq;
+      const t = c.currentTime + i * 0.08;
+      g.gain.setValueAtTime(0.12, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+      o.start(t); o.stop(t + 0.5);
+    });
+  });
+}

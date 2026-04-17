@@ -3,7 +3,6 @@ import ToastManager from './components/ToastManager.jsx';
 import { MAGIC_FISH } from './data/genetics.js';
 import { TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
 import { getApiKey, setApiKey } from './services/aiService.js';
-import { getActiveEvent } from './data/seasonal.js';
 import { canPrestige } from './data/prestige.js';
 import { startMusic, isMusicPlaying, playTabSwitch as _playTabSwitch, playClick } from './services/soundService.js';
 import TankView       from './components/TankView.jsx';
@@ -141,7 +140,7 @@ export default function App() {
   const togglePause = useGameStore(s => s.togglePause);
   const renameFish = useGameStore(s => s.renameFish);
   const performPrestige = useGameStore(s => s.performPrestige);
-  const seasonalEvent = useMemo(() => getActiveEvent(), []);
+  
 
   // ── Keyboard shortcuts ─────────────────────────────────
   useEffect(() => {
@@ -195,27 +194,6 @@ export default function App() {
     window.addEventListener('contextmenu', suppress);
     return () => { window.removeEventListener('keydown', handler); window.removeEventListener('contextmenu', suppress); };
   }, [selectedFish, activeTank, activeSection, tanks, showSettings, showResetConfirm, showApiSetup, showGameMenu, showLogTray]);
-
-  // ── Gamepad / controller support ───────────────────────
-  const gpSections = ['aquarium', 'market', 'breeding', 'records', 'office'];
-  useGamepad(useCallback((action) => {
-    const gs = useGameStore.getState();
-    switch (action) {
-      case 'start': gs.togglePause(); break;
-      case 'select': setShowLogTray(v => !v); break;
-      case 'rb': setActiveSection(prev => {
-        const idx = gpSections.indexOf(prev);
-        return gpSections[(idx + 1) % gpSections.length];
-      }); break;
-      case 'lb': setActiveSection(prev => {
-        const idx = gpSections.indexOf(prev);
-        return gpSections[(idx - 1 + gpSections.length) % gpSections.length];
-      }); break;
-      case 'rt': gs.setGameSpeed(Math.min(3, (gs.gameSpeed || 1) + 1)); break;
-      case 'lt': gs.setGameSpeed(Math.max(1, (gs.gameSpeed || 1) - 1)); break;
-      case 'b': setShowGameMenu(v => !v); break;
-    }
-  }, []));
 
   // ── Level-up flash ─────────────────────────────────────
   useEffect(() => {
@@ -344,13 +322,29 @@ export default function App() {
 
   // ── Memoized game-like object for components that still expect it ──
   // Prevents new object ref unless actual slice refs change.
+  const suppliers = useGameStore(s => s.suppliers);
   const game = useMemo(
-    () => ({ player, fish, tanks, shop, breedingTank, log, dailyChallenges, offlineSummary, market }),
-    [player, fish, tanks, shop, breedingTank, log, dailyChallenges, offlineSummary, market]
+    () => ({ player, fish, tanks, shop, breedingTank, log, dailyChallenges, offlineSummary, market, suppliers }),
+    [player, fish, tanks, shop, breedingTank, log, dailyChallenges, offlineSummary, market, suppliers]
   );
 
   // ── Loading splash ─────────────────────────────────────────
   const [showSplash, setShowSplash] = useState(true);
+
+  // ── Gamepad / controller support (after all const declarations) ──
+  useGamepad(useCallback((action) => {
+    const gs = useGameStore.getState();
+    const sects = ['aquarium', 'market', 'breeding', 'records', 'office'];
+    switch (action) {
+      case 'start': gs.togglePause(); break;
+      case 'select': setShowLogTray(v => !v); break;
+      case 'rb': setActiveSection(prev => sects[(sects.indexOf(prev) + 1) % sects.length]); break;
+      case 'lb': setActiveSection(prev => sects[(sects.indexOf(prev) - 1 + sects.length) % sects.length]); break;
+      case 'rt': gs.setGameSpeed(Math.min(3, (gs.gameSpeed || 1) + 1)); break;
+      case 'lt': gs.setGameSpeed(Math.max(1, (gs.gameSpeed || 1) - 1)); break;
+      case 'b': setShowGameMenu(v => !v); break;
+    }
+  }, []));
   useEffect(() => {
     if (!showSplash) return;
     const t = setTimeout(() => setShowSplash(false), 1800);
@@ -606,14 +600,6 @@ export default function App() {
 
       </div>{/* /sim-main */}
       </div>{/* /sim-shell */}
-
-      {/* Seasonal event banner */}
-      {seasonalEvent && (
-        <div className="seasonal-banner">
-          <span className="seasonal-name">{seasonalEvent.name}</span>
-          <span className="seasonal-desc">{seasonalEvent.desc}</span>
-        </div>
-      )}
 
       {/* Level-up flash */}
       {levelFlash && <div className="level-up-flash" />}
