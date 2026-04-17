@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo, useEffect, memo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect, memo, lazy, Suspense } from 'react';
 import ToastManager from './components/ToastManager.jsx';
 import { MAGIC_FISH } from './data/genetics.js';
 import { TANK_UNLOCK, TANK_TYPES } from './data/gameState.js';
@@ -29,9 +29,12 @@ import VictoryModal from './components/VictoryModal.jsx';
 import { CAMPAIGN_LEVELS } from './data/campaign.js';
 import AmenitiesPanel from './components/AmenitiesPanel.jsx';
 import NotificationCenter from './components/NotificationCenter.jsx';
+import EquipmentPanel from './components/EquipmentPanel.jsx';
+import Mentor from './components/Mentor.jsx';
+import { useGamepad } from './hooks/useGamepad.js';
 import NavRail, { NAV_TO_TABS } from './components/NavRail.jsx';
-import RecordsSection from './components/RecordsSection.jsx';
-import OfficeSection from './components/OfficeSection.jsx';
+const RecordsSection = lazy(() => import('./components/RecordsSection.jsx'));
+const OfficeSection = lazy(() => import('./components/OfficeSection.jsx'));
 import GameStatusBar from './components/GameStatusBar.jsx';
 import { TUTORIAL_STEPS } from './data/tutorial.js';
 
@@ -70,6 +73,7 @@ export default function App() {
   const log             = useGameStore(s => s.log);
   const dailyChallenges = useGameStore(s => s.dailyChallenges);
   const campaign        = useGameStore(s => s.campaign);
+  const settings        = useGameStore(s => s.settings);
   const showOffline     = useGameStore(s => s.showOffline);
   const offlineSummary  = useGameStore(s => s.offlineSummary);
   const soundOn         = useGameStore(s => s.soundOn);
@@ -128,6 +132,7 @@ export default function App() {
   const [showSettings, setShowSettings]   = useState(false);
   const [showGameMenu, setShowGameMenu]   = useState(false);
   const [showLogTray, setShowLogTray]     = useState(false);
+  const [photoMode, setPhotoMode]         = useState(false);
   const [hatchRevealFish, setHatchRevealFish] = useState(null);
   const [celebration, setCelebration] = useState(null);
   const [discoverySpecies, setDiscoverySpecies] = useState(null);
@@ -163,6 +168,7 @@ export default function App() {
         case 'l': setShowLogTray(v => !v); break;
         case ',': { const gs = useGameStore.getState(); gs.setGameSpeed(Math.max(1, (gs.gameSpeed || 1) - 1)); break; }
         case '.': { const gs = useGameStore.getState(); gs.setGameSpeed(Math.min(3, (gs.gameSpeed || 1) + 1)); break; }
+        case 'p': setPhotoMode(v => !v); break;
         case ' ': e.preventDefault(); togglePause(); break;
         case 'escape':
           if (showSettings || showResetConfirm || showApiSetup) {
@@ -189,6 +195,27 @@ export default function App() {
     window.addEventListener('contextmenu', suppress);
     return () => { window.removeEventListener('keydown', handler); window.removeEventListener('contextmenu', suppress); };
   }, [selectedFish, activeTank, activeSection, tanks, showSettings, showResetConfirm, showApiSetup, showGameMenu, showLogTray]);
+
+  // ── Gamepad / controller support ───────────────────────
+  const gpSections = ['aquarium', 'market', 'breeding', 'records', 'office'];
+  useGamepad(useCallback((action) => {
+    const gs = useGameStore.getState();
+    switch (action) {
+      case 'start': gs.togglePause(); break;
+      case 'select': setShowLogTray(v => !v); break;
+      case 'rb': setActiveSection(prev => {
+        const idx = gpSections.indexOf(prev);
+        return gpSections[(idx + 1) % gpSections.length];
+      }); break;
+      case 'lb': setActiveSection(prev => {
+        const idx = gpSections.indexOf(prev);
+        return gpSections[(idx - 1 + gpSections.length) % gpSections.length];
+      }); break;
+      case 'rt': gs.setGameSpeed(Math.min(3, (gs.gameSpeed || 1) + 1)); break;
+      case 'lt': gs.setGameSpeed(Math.max(1, (gs.gameSpeed || 1) - 1)); break;
+      case 'b': setShowGameMenu(v => !v); break;
+    }
+  }, []));
 
   // ── Level-up flash ─────────────────────────────────────
   useEffect(() => {
@@ -386,7 +413,7 @@ export default function App() {
   }
 
   return (
-    <div className="app">
+    <div className={`app${photoMode ? ' app--photo' : ''}${settings?.largeText ? ' app--text-lg' : ''}${settings?.highContrast ? ' app--high-contrast' : ''}`}>
       <ToastManager />
 
       <div className="coin-delta-portal">
@@ -533,6 +560,7 @@ export default function App() {
             <WantedBoard />
             <CatchOfDayPanel />
             <AmenitiesPanel />
+            {activeTank && <EquipmentPanel tankId={activeTank.id} />}
           </div></TabErrorBoundary>
         )}
 
@@ -696,6 +724,9 @@ export default function App() {
 
       {/* ── Notification center ───────────────────────── */}
       <NotificationCenter />
+
+      {/* ── Mentor hints ──────────────────────────────── */}
+      <Mentor />
 
       {/* ── Campaign victory modal ────────────────────── */}
       {victoryLevelId && (

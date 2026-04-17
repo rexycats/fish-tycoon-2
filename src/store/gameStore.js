@@ -38,6 +38,7 @@ import { checkTankCompat } from '../data/compatibility.js';
 import { createStaffMember, getStaffWage, getTrainCost, getHireCost, getMaxStaff, STAFF_ROLES } from '../data/staff.js';
 import { RESEARCH_BRANCHES, getResearchEffects } from '../data/research.js';
 import { TANK_SIZES, getNextTankSize } from '../data/tankSizes.js';
+import { EQUIPMENT_TYPES, createEquipment } from '../data/equipment.js';
 import { LOAN_TIERS } from '../data/loans.js';
 import { TANK_BACKGROUNDS } from '../data/tankBackgrounds.js';
 import { MILESTONES } from '../data/milestones.js';
@@ -1135,6 +1136,47 @@ export const useGameStore = create(
           tank.capacity = next.capacity + globalBonus;
           playCoin();
           addLogDraft(state, `${tank.name} upgraded to ${next.label} (${tank.capacity} fish)!`);
+        }),
+
+        // ── Equipment ───────────────────────────────────────
+        buyEquipment: (tankId, typeId) => set(state => {
+          const tank = state.tanks.find(t => t.id === tankId);
+          if (!tank) return;
+          const eqType = EQUIPMENT_TYPES[typeId];
+          if (!eqType) return;
+          if (!tank.equipment) tank.equipment = [];
+          const count = tank.equipment.filter(e => e.typeId === typeId).length;
+          if (count >= eqType.maxPerTank) {
+            fireToast(`Max ${eqType.maxPerTank} ${eqType.label}(s) per tank.`, 'alert', '');
+            return;
+          }
+          if (state.player.coins < eqType.cost) {
+            playWarning();
+            addLogDraft(state, 'Not enough coins!');
+            return;
+          }
+          state.player.coins -= eqType.cost;
+          tank.equipment.push(createEquipment(typeId));
+          playCoin();
+          addLogDraft(state, `Installed ${eqType.label} in ${tank.name}.`);
+        }),
+
+        repairEquipment: (tankId, equipmentId) => set(state => {
+          const tank = state.tanks.find(t => t.id === tankId);
+          if (!tank) return;
+          const eq = (tank.equipment || []).find(e => e.id === equipmentId);
+          if (!eq || !eq.broken) return;
+          const eqType = EQUIPMENT_TYPES[eq.typeId];
+          if (!eqType) return;
+          if (state.player.coins < eqType.repairCost) {
+            playWarning();
+            addLogDraft(state, 'Not enough coins to repair!');
+            return;
+          }
+          state.player.coins -= eqType.repairCost;
+          eq.broken = false;
+          playCoin();
+          addLogDraft(state, `Repaired ${eqType.label} in ${tank.name}.`);
         }),
 
         // ── Amenities: Gift Shop + Café ─────────────────────

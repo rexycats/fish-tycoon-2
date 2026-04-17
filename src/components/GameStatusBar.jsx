@@ -35,6 +35,8 @@ export default function GameStatusBar({ paused, onTogglePause, showLog, onToggle
     return () => clearTimeout(t);
   }, [saveFlash]);
 
+  const seasonalEvent = useGameStore(s => s.activeSeasonalEvent);
+
   const alive = fish?.length || 0;
   const sick = fish?.filter(f => f.disease)?.length || 0;
 
@@ -47,6 +49,12 @@ export default function GameStatusBar({ paused, onTogglePause, showLog, onToggle
       <span className="status-item">LV.{level}</span>
       <span className="status-separator" />
       <span className="status-item">{alive} FISH{sick > 0 ? <span className="status-sick"> ({sick} SICK)</span> : ''}</span>
+      {seasonalEvent && (
+        <>
+          <span className="status-separator" />
+          <span className="status-item status-item--seasonal" title={seasonalEvent.desc}>{seasonalEvent.name}</span>
+        </>
+      )}
 
       <span className="status-spacer" />
 

@@ -15,6 +15,8 @@ import { CAMPAIGN_LEVELS, checkObjective as _checkObj } from '../data/campaign.j
 import { getCompat as _getCompat } from '../data/compatibility.js';
 import { STAFF_ROLES, getStaffWage } from '../data/staff.js';
 import { getResearchEffects } from '../data/research.js';
+import { getActiveEvent as getSeasonalEvent } from '../data/seasonal.js';
+import { getEquipmentEffects, EQUIPMENT_TYPES } from '../data/equipment.js';
 const _getCampaignLevel = (id) => CAMPAIGN_LEVELS.find(l => l.id === id) || null;
 
 export const TICK_INTERVAL_MS = 1000;
@@ -382,12 +384,14 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
 
   // Water Purifier: -25% decay per level
   const purifierMult   = 1 - (upgradeLevels.purifier || 0) * 0.25;
-  const wq        = Math.max(0, tank.waterQuality - WATER_DECAY_RATE * (diff.waterDecayMult || 1) * purifierMult);
+  // Equipment effects
+  const eqFx = getEquipmentEffects(tank.equipment);
+  const wq        = Math.max(0, tank.waterQuality - WATER_DECAY_RATE * (diff.waterDecayMult || 1) * purifierMult * eqFx.wqDecayMult);
   const temp      = tank.temperature ?? 74;
   // Climate Control: -30% drift per level
   const tempControlMult = 1 - (upgradeLevels.tempControl || 0) * 0.3;
   const baseDrift  = temp > 74 ? -0.002 : temp < 74 ? 0.002 : 0;
-  const tempDrift  = baseDrift * tempControlMult;
+  const tempDrift  = eqFx.tempStabilize ? 0 : baseDrift * tempControlMult;
   const newTemp   = Math.round((temp + tempDrift) * 1000) / 1000;
   const tempStress = newTemp < 65 || newTemp > 85;
 
@@ -411,7 +415,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
     // Vitamin immunity
     if (fish.vitaminUntil && fish.vitaminUntil > now) return fish;
     // Hardy personality resistance
-    let chance = DISEASE_BASE_CHANCE * (diff.diseaseMult || 1) * (researchFx.diseaseResist || 1);
+    let chance = DISEASE_BASE_CHANCE * (diff.diseaseMult || 1) * (researchFx.diseaseResist || 1) * (eqFx.diseaseResist || 1);
     if (fish.personality === 'hardy') chance *= 0.4;
     if (wq < 30) chance *= DISEASE_WATER_MULT;
     if (tankFish.length / (tank.capacity || 12) > 0.8) chance *= DISEASE_CROWD_MULT;
@@ -444,7 +448,7 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
       if (autoFeedUsed) f.hunger = Math.max(0, (f.hunger || 0) - 35);
       f.hunger = Math.min(100, (f.hunger || 0) + HUNGER_RATE * (diff.hungerMult || 1) * (f.personality === 'gluttonous' ? 1.4 : 1.0));
 
-      const regen = HEALTH_REGEN * (bonuses.healthRegenMult || 1) * regenBoost * (researchFx.healthRegen || 1);
+      const regen = HEALTH_REGEN * (bonuses.healthRegenMult || 1) * regenBoost * (researchFx.healthRegen || 1) * (eqFx.healthRegenMult || 1);
 
       // Additive damage — all active stressors compound, capped at 0.25/tick
       let dmg = 0;
@@ -539,12 +543,25 @@ function processOneTank(tank, tankFish, messages, now, hatcheryLevel = 0, player
     happiness = Math.max(0, happiness - compatPenalty);
   }
 
+  // Equipment breakdown check
+  let updatedEquipment = tank.equipment ? [...tank.equipment] : [];
+  for (let i = 0; i < updatedEquipment.length; i++) {
+    const eq = updatedEquipment[i];
+    if (eq.broken) continue;
+    const eqType = EQUIPMENT_TYPES[eq.typeId];
+    if (eqType && Math.random() < (eqType.breakdownChance || 0)) {
+      updatedEquipment[i] = { ...eq, broken: true };
+      messages.push(`${eqType.label} broke down in ${tank.name}! Repair it to restore its effect.`);
+    }
+  }
+
   const updatedTank = {
     ...tank,
     waterQuality: wq,
     temperature: newTemp,
     happiness,
-    autoFeedTick: (autoFeedUsed || autoFeedTriggered) ? 0 : Math.min(feedTick, AUTO_FEED_INTERVAL),  // reset after interval fires; cap at AUTO_FEED_INTERVAL when out of food
+    equipment: updatedEquipment,
+    autoFeedTick: (autoFeedUsed || autoFeedTriggered) ? 0 : Math.min(feedTick, AUTO_FEED_INTERVAL),
     supplies,
   };
 
@@ -730,6 +747,9 @@ export function processTick(state) {
   next.lastTickAt = realNow;
   const diff = getDifficultyMults(state);
   const researchFx = getResearchEffects(state);
+  const seasonalEvent = getSeasonalEvent();
+  const seasonalBonuses = seasonalEvent?.bonuses || {};
+  next.activeSeasonalEvent = seasonalEvent ? { id: seasonalEvent.id, name: seasonalEvent.name, desc: seasonalEvent.desc } : null;
 
   // Process each tank independently.
   // Pre-group fish by tankId once (O(n)) so each processOneTank call only
@@ -897,7 +917,7 @@ export function processTick(state) {
       messages.push('Breeding cancelled — a parent was lost.');
       return { ...updated, breedingStartedAt: null, slots: [null, null], storedGenomeA: null, storedGenomeB: null };
     }
-    if (now - updated.breedingStartedAt >= (updated.breedingDurationMs || 300000)) {
+    if (now - updated.breedingStartedAt >= (updated.breedingDurationMs || 300000) * (seasonalBonuses.breedingSpeed || 1)) {
       messages.push('A breeding egg is ready to collect!');
       return { ...updated, eggReady: true };
     }
@@ -1028,7 +1048,7 @@ export function processTick(state) {
       tip += Math.floor((tank.happiness / 100) * decorMult * PASSIVE_INCOME_BASE * fameMult * (researchFx.passiveIncome || 1));
     }
     if (tip > 0) {
-      const incomeBoost = (next.player?.boosts?.passiveIncome || 0) > now ? 2.0 : 1.0;
+      const incomeBoost = ((next.player?.boosts?.passiveIncome || 0) > now ? 2.0 : 1.0) * (seasonalBonuses.passiveIncome || 1);
       const serviceMult = 1 + (upgradeLevels.service || 0) * 0.15;
       const boostedTip  = Math.round(tip * incomeBoost * serviceMult);
       next = { ...next, player: { ...next.player, coins: next.player.coins + boostedTip, totalCoinsEarned: (next.player.totalCoinsEarned || 0) + boostedTip } };
@@ -1347,6 +1367,19 @@ export function processTick(state) {
   _tip('tip_staff_idle', (next.staff || []).some(s => !s.assignedTankId),
     'TIP: You have unassigned staff! Go to Office → Staff and assign them to a tank.');
 
+  // ── True Ending check ───────────────────────────────────
+  if (!next.player?.trueEndingReached) {
+    const achievements = next.player?.achievements || [];
+    const magicFish = next.player?.magicFishFound || [];
+    const fishdex = next.player?.fishdex || [];
+    const rep = next.shop?.reputation || 0;
+    const prestige = next.player?.prestigeLevel || 0;
+    if (achievements.length >= 20 && magicFish.length >= 7 && fishdex.length >= 25 && rep >= 100 && prestige >= 1) {
+      next = { ...next, player: { ...next.player, trueEndingReached: true }, _pendingTrueEnding: true };
+      messages.push('You have mastered the aquarium! The ocean bows to your expertise. True Ending achieved!');
+    }
+  }
+
   // ── Stats history snapshot (every 5 game-minutes) ────────
   const SNAPSHOT_INTERVAL_MS = 300_000; // 5 game-minutes
   if (now - (next.lastSnapshotAt || 0) >= SNAPSHOT_INTERVAL_MS) {
@@ -1399,7 +1432,9 @@ export function getCustomerInterval(state) {
   const adLevel  = state.shop.upgrades?.reputation?.level || 0;
   const adBonus  = adLevel * 0.15;
   const rFx = getResearchEffects(state);
-  return Math.round(CUSTOMER_BASE_INTERVAL_MS * (1 - Math.min(0.75, repBonus + adBonus)) * (rFx.customerSpeed || 1));
+  const seasonal = getSeasonalEvent();
+  const seasonalCust = seasonal?.bonuses?.customerSpeed || 1;
+  return Math.round(CUSTOMER_BASE_INTERVAL_MS * (1 - Math.min(0.75, repBonus + adBonus)) * (rFx.customerSpeed || 1) / seasonalCust);
 }
 
 function pickCustomerType(state) {

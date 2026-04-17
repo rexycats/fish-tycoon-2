@@ -64,6 +64,7 @@ export function createDefaultTank(id, type = 'display') {
     waterQuality: 100,
     temperature: 74,
     happiness: 100,
+    equipment: [],
     autoFeed: false,
     autoFeedTick: 0,
     decorations: getDefaultDecorations(),
@@ -491,11 +492,16 @@ function migrateSave(parsed, fromVersion) {
     parsed.cafe = parsed.cafe || { unlocked: false, level: 0, totalEarned: 0 };
   }
 
-  // v12 → v13: Notifications, suppliers, repMilestones
+  // v12 → v13: Notifications, suppliers, repMilestones, equipment
   if (fromVersion < 13) {
     parsed.notifications = parsed.notifications || [];
     parsed.suppliers = parsed.suppliers || { unlocked: ['basic'], activeSupplier: 'basic' };
     if (parsed.player) parsed.player.repMilestones = parsed.player.repMilestones || {};
+    if (parsed.tanks) {
+      for (const t of parsed.tanks) {
+        if (!t.equipment) t.equipment = [];
+      }
+    }
   }
 
   parsed.version = SAVE_VERSION;

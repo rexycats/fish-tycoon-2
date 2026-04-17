@@ -39,6 +39,32 @@ export const SPECIES_COMPAT = {
   // Special
   electric_eel:     { water: 'fresh', temp: 'tropical', temperament: 'aggressive',      minTank: 10 },
   yellow_tang:      { water: 'salt',  temp: 'tropical', temperament: 'semi-aggressive', minTank: 6 },
+
+  // Procedural species
+  rainbow_fish:     { water: 'fresh', temp: 'tropical', temperament: 'peaceful',       minTank: 6 },
+  pleco:            { water: 'fresh', temp: 'tropical', temperament: 'peaceful',       minTank: 6 },
+  clown_loach:      { water: 'fresh', temp: 'tropical', temperament: 'peaceful',       minTank: 8, schoolSize: 3 },
+  flame_tetra:      { water: 'fresh', temp: 'tropical', temperament: 'peaceful',       minTank: 4, schoolSize: 3 },
+  powder_blue_tang: { water: 'salt',  temp: 'tropical', temperament: 'semi-aggressive', minTank: 8 },
+  firemouth_cichlid:{ water: 'fresh', temp: 'tropical', temperament: 'semi-aggressive', minTank: 6 },
+  harlequin_rasbora:{ water: 'fresh', temp: 'tropical', temperament: 'peaceful',       minTank: 4, schoolSize: 3 },
+  royal_gramma:     { water: 'salt',  temp: 'tropical', temperament: 'peaceful',       minTank: 4 },
+  cardinal_tetra:   { water: 'fresh', temp: 'tropical', temperament: 'peaceful',       minTank: 4, schoolSize: 3 },
+  dwarf_gourami:    { water: 'fresh', temp: 'tropical', temperament: 'peaceful',       minTank: 4 },
+  banggai_cardinal: { water: 'salt',  temp: 'tropical', temperament: 'peaceful',       minTank: 6 },
+  leopard_wrasse:   { water: 'salt',  temp: 'tropical', temperament: 'peaceful',       minTank: 6 },
+  garden_eel:       { water: 'salt',  temp: 'tropical', temperament: 'peaceful',       minTank: 6 },
+  flame_angel:      { water: 'salt',  temp: 'tropical', temperament: 'semi-aggressive', minTank: 6 },
+  emerald_crab:     { water: 'salt',  temp: 'tropical', temperament: 'peaceful',       minTank: 4 },
+  regal_tang:       { water: 'salt',  temp: 'tropical', temperament: 'semi-aggressive', minTank: 8 },
+  peacock_mantis:   { water: 'salt',  temp: 'tropical', temperament: 'aggressive',      minTank: 6 },
+  blue_chromis:     { water: 'salt',  temp: 'tropical', temperament: 'peaceful',       minTank: 4, schoolSize: 3 },
+  dragon_goby:      { water: 'fresh', temp: 'tropical', temperament: 'peaceful',       minTank: 6 },
+  spotted_boxfish:  { water: 'salt',  temp: 'tropical', temperament: 'peaceful',       minTank: 6 },
+  sea_apple:        { water: 'salt',  temp: 'tropical', temperament: 'peaceful',       minTank: 6 },
+  wolf_eel:         { water: 'salt',  temp: 'cold',    temperament: 'aggressive',      minTank: 10 },
+  sunburst_anthias: { water: 'salt',  temp: 'tropical', temperament: 'peaceful',       minTank: 6 },
+  frogfish:         { water: 'salt',  temp: 'tropical', temperament: 'aggressive',      minTank: 6 },
 };
 
 // Default for procedural fish (non-species)

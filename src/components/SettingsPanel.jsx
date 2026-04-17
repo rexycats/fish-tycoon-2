@@ -13,6 +13,8 @@ export default function SettingsPanel({ onClose }) {
   const particles  = useGameStore(s => s.settings?.particles ?? true);
   const reducedMotion = useGameStore(s => s.settings?.reducedMotion ?? false);
   const colorblind = useGameStore(s => s.settings?.colorblind ?? false);
+  const largeText = useGameStore(s => s.settings?.largeText ?? false);
+  const highContrast = useGameStore(s => s.settings?.highContrast ?? false);
 
   const updateSetting = (key, val) => {
     useGameStore.setState(state => {
@@ -48,6 +50,8 @@ export default function SettingsPanel({ onClose }) {
         <div className="settings-section">
           <div className="settings-section-title">♿ Accessibility</div>
           <SettingsToggle label="Colorblind Mode" value={colorblind} onChange={v => updateSetting('colorblind', v)} hint="Use patterns + labels instead of color-only indicators" />
+          <SettingsToggle label="Large Text" value={largeText} onChange={v => updateSetting('largeText', v)} hint="Increase text size across the interface" />
+          <SettingsToggle label="High Contrast" value={highContrast} onChange={v => updateSetting('highContrast', v)} hint="Stronger borders and brighter text" />
         </div>
 
         <div className="settings-section">

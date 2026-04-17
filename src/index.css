@@ -16629,3 +16629,261 @@ hr {
 .supplier-tab-name { font-family: var(--font-display); font-weight: 600; }
 .supplier-tab-mult { font-family: var(--font-mono); font-size: 8px; color: var(--gold); }
 .supplier-desc { font-size: 9px; color: var(--text-muted); }
+
+/* ═══════════════════════════════════════════════════════════
+   PHOTO MODE, SEASONAL, END-GAME, ACCESSIBILITY
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Photo Mode ────────────────────────────────────────── */
+.app--photo .nav-rail,
+.app--photo .game-status-bar,
+.app--photo .hud2,
+.app--photo .log-tray,
+.app--photo .objective-bar,
+.app--photo .notif-center,
+.app--photo .inspector,
+.app--photo .fish-panel-slide {
+  display: none !important;
+}
+.app--photo .sim-main {
+  margin-left: 0 !important;
+  margin-bottom: 0 !important;
+}
+.app--photo .tank-view {
+  border-radius: 0 !important;
+  border: none !important;
+}
+.app--photo::after {
+  content: 'PHOTO MODE — Press P to exit';
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: rgba(160,170,180,0.3);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Seasonal event indicator ──────────────────────────── */
+.status-item--seasonal {
+  color: var(--gold) !important;
+  font-size: 8px !important;
+  letter-spacing: 0.06em;
+  background: rgba(212,168,67,0.08);
+  padding: 1px 6px;
+  border-radius: 2px;
+  border: 1px solid rgba(212,168,67,0.15);
+}
+
+/* ── Accessibility: text size classes ──────────────────── */
+.app--text-lg { font-size: 14px; }
+.app--text-lg .fp-section-body,
+.app--text-lg .stat-card-label,
+.app--text-lg .obj-label,
+.app--text-lg .review-details,
+.app--text-lg .staff-card-name { font-size: 12px; }
+
+.app--high-contrast {
+  --panel-bg: #0a0c10;
+  --text-bright: #ffffff;
+  --text-secondary: #d0d4da;
+  --text-muted: #90969e;
+}
+.app--high-contrast .nav-rail-btn,
+.app--high-contrast .speed-btn,
+.app--high-contrast .btn {
+  border-width: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EQUIPMENT PANEL + SEASONAL
+   ═══════════════════════════════════════════════════════════ */
+.equipment-panel {
+  margin-top: 12px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(60,70,80,0.12);
+}
+.equip-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--text-bright);
+  margin-bottom: 10px;
+}
+.equip-installed {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.equip-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  background: rgba(10,14,22,0.5);
+  border: 1px solid rgba(60,70,80,0.2);
+  border-radius: 2px;
+}
+.equip-item--broken {
+  border-left: 3px solid rgba(192,80,80,0.5);
+  opacity: 0.8;
+}
+.equip-item-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 10px;
+  color: var(--text-bright);
+}
+.equip-item-status {
+  font-size: 9px;
+  color: var(--success);
+  font-family: var(--font-mono);
+}
+.equip-repair-btn {
+  font-size: 8px !important;
+  padding: 2px 8px !important;
+  background: rgba(192,80,80,0.08) !important;
+  border-color: rgba(192,80,80,0.3) !important;
+  color: rgba(220,120,120,0.9) !important;
+}
+.equip-shop {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+@media (max-width: 500px) { .equip-shop { grid-template-columns: 1fr; } }
+.equip-buy-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px !important;
+  background: rgba(10,14,22,0.5) !important;
+  border: 1px solid rgba(60,70,80,0.2) !important;
+  text-align: left !important;
+}
+.equip-buy-btn:hover:not(:disabled) { border-color: rgba(74,143,143,0.4) !important; }
+.equip-buy-btn:disabled { opacity: 0.3; }
+.equip-buy-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10px;
+  color: var(--text-bright);
+}
+.equip-buy-desc {
+  font-size: 8px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+.equip-buy-count {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--foam);
+}
+
+/* Seasonal event indicator */
+.status-item--seasonal {
+  color: var(--gold);
+  font-style: italic;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TANK SHAPES — visual variety by size tier
+   ═══════════════════════════════════════════════════════════ */
+.tank-shape--wide .tank-glass-shell {
+  border-radius: 4px 4px 8px 8px;
+  aspect-ratio: 2.2 / 1;
+}
+.tank-shape--panoramic .tank-glass-shell {
+  border-radius: 6px 6px 12px 12px;
+  aspect-ratio: 2.5 / 1;
+  box-shadow: inset 0 0 30px rgba(20,60,100,0.15);
+}
+.tank-shape--cylinder .tank-glass-shell {
+  border-radius: 50% / 8%;
+  box-shadow: inset 0 0 40px rgba(20,60,100,0.2), 0 0 20px rgba(20,40,60,0.15);
+}
+.tank-shape--cylinder .tank-bevel-top,
+.tank-shape--cylinder .tank-bevel-bottom {
+  border-radius: 50%;
+}
+.tank-shape--cylinder .tank-glass-shimmer {
+  border-radius: 50% / 8%;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MENTOR + CONTROLLER + LOCALIZATION
+   ═══════════════════════════════════════════════════════════ */
+.mentor-bubble {
+  position: fixed;
+  bottom: 48px;
+  left: 72px;
+  max-width: 320px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(10,14,22,0.96);
+  border: 1px solid rgba(74,143,143,0.3);
+  border-radius: 3px;
+  padding: 10px 14px;
+  z-index: 220;
+  backdrop-filter: blur(8px);
+  animation: mentorSlideUp 0.4s ease forwards;
+}
+@keyframes mentorSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.mentor-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(74,143,143,0.3), rgba(90,170,170,0.15));
+  border: 1px solid rgba(74,143,143,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--foam);
+  flex-shrink: 0;
+}
+.mentor-content { flex: 1; min-width: 0; }
+.mentor-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--foam);
+  margin-bottom: 3px;
+}
+.mentor-msg {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.mentor-dismiss {
+  background: none;
+  border: 1px solid rgba(60,70,80,0.3);
+  border-radius: 2px;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 9px;
+  padding: 3px 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  align-self: center;
+  transition: border-color 0.1s, color 0.1s;
+}
+.mentor-dismiss:hover {
+  border-color: rgba(74,143,143,0.4);
+  color: var(--foam);
+}
+@media (max-width: 600px) {
+  .mentor-bubble { left: 8px; right: 8px; max-width: none; bottom: 52px; }
+}

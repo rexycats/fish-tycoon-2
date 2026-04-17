@@ -511,8 +511,10 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
     return la - lb;
   }), [fishIds]); // depth layers are set at spawn and don't change
 
+  const tankShape = tank?.size === 'huge' ? 'panoramic' : tank?.size === 'mega' ? 'cylinder' : tank?.size === 'large' ? 'wide' : 'standard';
+
   return (
-    <div className="tank-wrapper">
+    <div className={`tank-wrapper tank-shape--${tankShape}`}>
       <div className="day-phase-badge">{dayPhase.label}</div>
 
       {/* ── Alert indicator strip (item 11) ── */}
