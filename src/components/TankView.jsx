@@ -126,6 +126,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   // Convenience alias for reading positions in render (ref value, not state)
   const positions = posRef.current;
 
+  const gameClock = useGameStore(s => s.gameClock);
   const [dayPhase, setDayPhase] = useState(() => getDayPhase(gameClock));
   const [hoveredFishId, setHoveredFishId] = useState(null);
   const [ripples, setRipples] = useState([]);      // click ripple effects
@@ -168,7 +169,6 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   const lastMicroRef = useRef(0);
   const claimMicroEvent = useGameStore(s => s.claimMicroEvent);
   const weather = useGameStore(s => s.weather);
-  const gameClock = useGameStore(s => s.gameClock);
 
   useEffect(() => {
     const interval = setInterval(() => {
