@@ -30,7 +30,7 @@ import AmenitiesPanel from './components/AmenitiesPanel.jsx';
 import NotificationCenter from './components/NotificationCenter.jsx';
 import EquipmentPanel from './components/EquipmentPanel.jsx';
 import Mentor from './components/Mentor.jsx';
-import { useGamepad } from './hooks/useGamepad.js';
+// import { useGamepad } from './hooks/useGamepad.js';
 import NavRail, { NAV_TO_TABS } from './components/NavRail.jsx';
 const RecordsSection = lazy(() => import('./components/RecordsSection.jsx'));
 const OfficeSection = lazy(() => import('./components/OfficeSection.jsx'));
@@ -331,20 +331,7 @@ export default function App() {
   // ── Loading splash ─────────────────────────────────────────
   const [showSplash, setShowSplash] = useState(true);
 
-  // ── Gamepad / controller support (after all const declarations) ──
-  useGamepad(useCallback((action) => {
-    const gs = useGameStore.getState();
-    const sects = ['aquarium', 'market', 'breeding', 'records', 'office'];
-    switch (action) {
-      case 'start': gs.togglePause(); break;
-      case 'select': setShowLogTray(v => !v); break;
-      case 'rb': setActiveSection(prev => sects[(sects.indexOf(prev) + 1) % sects.length]); break;
-      case 'lb': setActiveSection(prev => sects[(sects.indexOf(prev) - 1 + sects.length) % sects.length]); break;
-      case 'rt': gs.setGameSpeed(Math.min(3, (gs.gameSpeed || 1) + 1)); break;
-      case 'lt': gs.setGameSpeed(Math.max(1, (gs.gameSpeed || 1) - 1)); break;
-      case 'b': setShowGameMenu(v => !v); break;
-    }
-  }, []));
+  // Gamepad support disabled — re-enable after TDZ fix
   useEffect(() => {
     if (!showSplash) return;
     const t = setTimeout(() => setShowSplash(false), 1800);

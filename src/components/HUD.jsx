@@ -12,7 +12,7 @@ import { upgradeCost } from '../data/constants.js';
 import { getCustomerInterval } from '../systems/gameTick.js';
 import { TANK_UNLOCK } from '../data/gameState.js';
 import { getNextTankSize } from '../data/tankSizes.js';
-import { getRoomForTank, ROOMS } from '../data/rooms.js';
+// import { getRoomForTank, ROOMS } from '../data/rooms.js';
 
 /* ── Income rate tracker ───────────────────────────────────── */
 function IncomeRate() {
@@ -297,9 +297,7 @@ export default function HUD({
   const food    = tank.supplies?.food ?? 0;
   const tempBad = temp < 68 || temp > 82;
   const wqBad   = wq < 60;
-  const _roomAssign = useGameStore(s => s.roomAssignments || {});
-  const roomId = _roomAssign[tank.id] || 'lobby';
-  const roomLabel = ROOMS.find(r => r.id === roomId)?.label || 'Main Lobby';
+  // Room display removed for stability
 
   // Tank compatibility
   const tankFish = fish ? fish.filter(f => f.tankId === tank.id && f.stage !== 'egg') : [];
