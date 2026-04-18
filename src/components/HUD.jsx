@@ -361,7 +361,7 @@ export default function HUD({
               <button
                 className="hud2-tank-upgrade"
                 onClick={() => useGameStore.getState().upgradeTankSize(tank.id)}
-                disabled={coins < nextSize.cost}
+                disabled={player.coins < nextSize.cost}
                 title={`Upgrade to ${nextSize.label} (${nextSize.capacity} fish) — ${nextSize.cost} coins`}
               >
                 {nextSize.label} ({nextSize.cost})
