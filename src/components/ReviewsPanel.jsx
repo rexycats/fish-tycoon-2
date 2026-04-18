@@ -1,6 +1,7 @@
 // ============================================================
 // REVIEWS PANEL — Show aquarium reviews from critics
 // ============================================================
+import { IconStar } from './icons/index.js';
 import React from 'react';
 import { useGameStore } from '../store/gameStore.js';
 
@@ -29,7 +30,7 @@ export default function ReviewsPanel() {
           {reviews.map((r, i) => (
             <div key={i} className={`review-card review-card--${r.stars >= 4 ? 'good' : r.stars <= 2 ? 'bad' : 'mid'}`}>
               <div className="review-card-top">
-                <span className="review-stars">{'★'.repeat(r.stars)}{'☆'.repeat(5 - r.stars)}</span>
+                <span className="review-stars">{Array.from({length: 5}, (_, i) => <IconStar key={i} size={14} style={{color: i < r.stars ? '#f0b840' : '#d0dce8', display: 'inline-block'}} />)}</span>
                 <span className="review-critic">{r.critic}</span>
               </div>
               <div className="review-headline">{r.headline}</div>

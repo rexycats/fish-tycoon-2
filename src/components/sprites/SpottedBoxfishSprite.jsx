@@ -1,0 +1,28 @@
+import React from 'react';
+import { RARITY_AURA } from '../FishSprite.jsx';
+export default function SpottedBoxfishSprite({ size = 64, selected = false, rarity = 'common', flip = false }) {
+  const w = size, h = size * 0.55;
+  const aura = RARITY_AURA[rarity] || '';
+  return (
+    <svg width={w} height={h} viewBox="0 0 120 66" style={flip ? { transform: 'scaleX(-1)' } : undefined}>
+      {aura && <ellipse cx="60" cy="35" rx="48" ry="22" fill="none" stroke={aura} strokeWidth="2" opacity="0.5" />}
+      {selected && <ellipse cx="60" cy="35" rx="50" ry="24" fill="none" stroke="#fff" strokeWidth="1.5" opacity="0.6" />}
+      <ellipse cx="60" cy="58" rx="32" ry="3" fill="rgba(0,0,0,0.1)" />
+      <rect x="32" y="22" width="56" height="32" rx="12" fill="url(#sb_g)"/>
+      {[{x:42,y:30},{x:55,y:28},{x:68,y:32},{x:78,y:28},{x:45,y:42},{x:58,y:44},{x:70,y:40}].map((s,i)=>
+        <circle key={i} cx={s.x} cy={s.y} r="3" fill="rgba(255,255,255,0.5)"/>
+      )}
+      <path d="M86,32 L100,24 L100,48 L86,42Z" fill="rgba(240,200,80,0.6)"/>
+      <path d="M50,22 Q58,14 66,22" fill="rgba(240,200,80,0.4)"/>
+      <circle cx="38" cy="32" r="4.5" fill="#fff"/>
+      <circle cx="38" cy="32" r="2.5" fill="#1a1a1a"/>
+      <circle cx="39" cy="31" r="1" fill="rgba(255,255,255,0.8)"/>
+      <defs>
+        <radialGradient id="sb_g" cx="0.4" cy="0.4">
+          <stop offset="0%" stopColor="#f0d060"/>
+          <stop offset="100%" stopColor="#d0a830"/>
+        </radialGradient>
+      </defs>
+    </svg>
+  );
+}

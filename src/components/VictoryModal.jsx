@@ -1,6 +1,7 @@
 // ============================================================
 // VICTORY MODAL — Campaign level complete overlay
 // ============================================================
+import { IconStar } from './icons/index.js';
 import React, { useEffect } from 'react';
 import { useGameStore } from '../store/gameStore.js';
 import { getLevelById, getStarRating, CAMPAIGN_LEVELS } from '../data/campaign.js';
@@ -29,7 +30,7 @@ export default function VictoryModal({ levelId, onContinue }) {
         <div className="victory-level-name">{level.name}</div>
         <div className="victory-stars">
           {[1, 2, 3].map(s => (
-            <span key={s} className={`victory-star ${s <= stars ? 'victory-star--earned' : ''}`}>★</span>
+            <span key={s} className={`victory-star ${s <= stars ? 'victory-star--earned' : ''}`}><IconStar size={24} /></span>
           ))}
         </div>
         <div className="victory-actions">

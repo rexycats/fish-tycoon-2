@@ -53,6 +53,22 @@ const DwarfGouramiSprite     = lazy(() => import('./sprites/DwarfGouramiSprite.j
 const FlameAngelSprite       = lazy(() => import('./sprites/FlameAngelSprite.jsx'));
 const BanggaiCardinalSprite  = lazy(() => import('./sprites/BanggaiCardinalSprite.jsx'));
 const HarlequinRasboraSprite = lazy(() => import('./sprites/HarlequinRasboraSprite.jsx'));
+const BlueChromisSprite      = lazy(() => import('./sprites/BlueChromisSprite.jsx'));
+const CardinalTetraSprite    = lazy(() => import('./sprites/CardinalTetraSprite.jsx'));
+const DragonGobySprite       = lazy(() => import('./sprites/DragonGobySprite.jsx'));
+const EmeraldCrabSprite      = lazy(() => import('./sprites/EmeraldCrabSprite.jsx'));
+const FiremouthCichlidSprite = lazy(() => import('./sprites/FiremouthCichlidSprite.jsx'));
+const FlameTetraSprite       = lazy(() => import('./sprites/FlameTetraSprite.jsx'));
+const FrogfishSprite         = lazy(() => import('./sprites/FrogfishSprite.jsx'));
+const GardenEelSprite        = lazy(() => import('./sprites/GardenEelSprite.jsx'));
+const LeopardWrasseSprite    = lazy(() => import('./sprites/LeopardWrasseSprite.jsx'));
+const PeacockMantisSprite    = lazy(() => import('./sprites/PeacockMantisSprite.jsx'));
+const PowderBlueTangSprite   = lazy(() => import('./sprites/PowderBlueTangSprite.jsx'));
+const RegalTangSprite        = lazy(() => import('./sprites/RegalTangSprite.jsx'));
+const SeaAppleSprite         = lazy(() => import('./sprites/SeaAppleSprite.jsx'));
+const SpottedBoxfishSprite   = lazy(() => import('./sprites/SpottedBoxfishSprite.jsx'));
+const SunburstAnthiasSprite  = lazy(() => import('./sprites/SunburstAnthiasSprite.jsx'));
+const WolfEelSprite          = lazy(() => import('./sprites/WolfEelSprite.jsx'));
 
 // ── Species sprite routing (Phase 12) ───────────────────────
 // Add new real-species entries here as they're built.
@@ -91,6 +107,22 @@ const SPECIES_SPRITE_MAP = {
   flame_angel:       FlameAngelSprite,
   banggai_cardinal:  BanggaiCardinalSprite,
   harlequin_rasbora: HarlequinRasboraSprite,
+  blue_chromis:      BlueChromisSprite,
+  cardinal_tetra:    CardinalTetraSprite,
+  dragon_goby:       DragonGobySprite,
+  emerald_crab:      EmeraldCrabSprite,
+  firemouth_cichlid: FiremouthCichlidSprite,
+  flame_tetra:       FlameTetraSprite,
+  frogfish:          FrogfishSprite,
+  garden_eel:        GardenEelSprite,
+  leopard_wrasse:    LeopardWrasseSprite,
+  peacock_mantis:    PeacockMantisSprite,
+  powder_blue_tang:  PowderBlueTangSprite,
+  regal_tang:        RegalTangSprite,
+  sea_apple:         SeaAppleSprite,
+  spotted_boxfish:   SpottedBoxfishSprite,
+  sunburst_anthias:  SunburstAnthiasSprite,
+  wolf_eel:          WolfEelSprite,
 };
 
 // ─── COLOR PALETTES ─────────────────────────────────────────────────────────

@@ -2,6 +2,7 @@
 // FISH TYCOON 2 — GOALS PANEL
 // Special Orders, Research, Loans, Daily Rewards, Weather
 // ============================================================
+import { IconStar, IconCheck, IconClock, IconWarning } from './icons/index.js';
 import React, { useState, useMemo } from 'react';
 import { useGameStore } from '../store/gameStore.js';
 import { checkOrderFulfillment } from '../data/specialOrders.js';
@@ -258,7 +259,7 @@ export default function GoalsPanel() {
               <div className="goals-section-title" style={{marginTop:'1rem'}}>Latest Reviews</div>
               {reviews.slice(0, 5).map((r, i) => (
                 <div key={i} className="goals-review">
-                  <span className="goals-review-stars">{'★'.repeat(r.stars)}</span>
+                  <span className="goals-review-stars">{Array.from({length: r.stars}, (_, i) => <IconStar key={i} size={12} style={{color: '#f0b840', display: 'inline-block'}} />)}</span>
                   <span className="goals-review-headline">"{r.headline}"</span>
                   <span className="goals-review-critic">{r.critic}</span>
                 </div>

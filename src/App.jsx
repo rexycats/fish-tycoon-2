@@ -32,6 +32,7 @@ import EquipmentPanel from './components/EquipmentPanel.jsx';
 import Mentor from './components/Mentor.jsx';
 import { useGamepad } from './hooks/useGamepad.js';
 import NavRail from './components/NavRail.jsx';
+import { IconTankPlus } from './components/icons/index.js';
 import { NAV_TO_TABS } from './data/navigation.js';
 const RecordsSection = lazy(() => import('./components/RecordsSection.jsx'));
 const OfficeSection = lazy(() => import('./components/OfficeSection.jsx'));

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Tip from './GameTooltip.jsx';
 import { IconWater, IconTemp, IconFish, IconFood, IconLoan } from './GameIcons.jsx';
 import { useGameStore } from '../store/gameStore.js';
+import { IconVolume, IconMute, IconGear, IconClock, IconAutoFeeder } from './icons/index.js';
 import { getLevelFromXp, getLevelTitle } from '../data/levels.js';
 import { getTankCompatSummary } from '../data/compatibility.js';
 function _getTankCompatIssues(fish) {
@@ -339,7 +340,7 @@ export default function HUD({
               onClick={onToggleSound}
               title={soundOn ? 'Mute' : 'Unmute'}
             >
-              {soundOn ? 'Sound' : 'Muted'}
+              {soundOn ? <><IconVolume size={13}/> Sound</> : <><IconMute size={13}/> Muted</>}
             </button>
           </>
         )}

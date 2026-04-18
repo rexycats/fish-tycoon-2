@@ -2,6 +2,7 @@
 // FISH TYCOON 2 — BREEDING LAB (Phase 7: Drag-and-Drop)
 // ============================================================
 
+import { IconClock, IconAlertEgg } from './icons/index.js';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import BreedingForecast from './BreedingForecast.jsx';
 import { predictOffspringPhenotypes, RARITY, GENES, expressGene } from '../data/genetics.js';

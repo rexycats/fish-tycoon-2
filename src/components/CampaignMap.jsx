@@ -1,6 +1,7 @@
 // ============================================================
 // CAMPAIGN MAP — Cute cozy level selection
 // ============================================================
+import { IconStar } from './icons/index.js';
 import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore.js';
 import { CAMPAIGN_LEVELS, getLevelById } from '../data/campaign.js';

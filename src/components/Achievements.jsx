@@ -2,6 +2,7 @@
 // FISH TYCOON 2 — ACHIEVEMENTS PANEL
 // ============================================================
 
+import { IconLock, IconCheck, IconStar } from './icons/index.js';
 import React, { useMemo } from 'react';
 import { ACHIEVEMENT_DEFS } from '../data/gameState.js';
 import { DECOR_CATALOG } from '../data/decorations.js';

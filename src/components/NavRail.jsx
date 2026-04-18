@@ -2,6 +2,7 @@
 // NAV RAIL — Left-side navigation for sim-game layout
 // ============================================================
 import React from 'react';
+import { IconGear } from './icons/index.js';
 
 // Minimal inline SVG icons (18x18 viewBox, stroke-based)
 const Icons = {

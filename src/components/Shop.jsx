@@ -1,6 +1,7 @@
 import { upgradeCost } from '../data/constants.js';
 import { SUPPLIERS, getUnlockedSuppliers, getActiveSupplier } from '../data/suppliers.js';
 import { useGameStore } from '../store/gameStore.js';
+import { IconFishBag, IconAlertFood, IconAlertWater, IconShield, IconSparkle } from './icons/index.js';
 // ============================================================
 // FISH TYCOON 2 — SHOP (Phase 7: Customer Walking Animation)
 // ============================================================
@@ -224,14 +225,24 @@ function SaleEvent({ event }) {
 
 function SupplyCard({ name, emoji, stock, cost, amount, coins, desc, onBuy }) {
   const canAfford = coins >= cost;
+  // Pick icon based on item name when emoji is empty
+  const icon = emoji || null;
+  const svgIcon = !icon && (
+    /fish/i.test(name) ? <IconFishBag size={24} /> :
+    /food/i.test(name) ? <IconAlertFood size={24} /> :
+    /water|treatment/i.test(name) ? <IconAlertWater size={24} /> :
+    /heater/i.test(name) ? <IconShield size={24} /> :
+    /medicine|remedy|anti/i.test(name) ? <IconSparkle size={24} /> :
+    <IconFishBag size={24} />
+  );
   return (
     <div className="supply-card">
-      <div className="supply-emoji">{emoji}</div>
+      <div className="supply-emoji">{icon || svgIcon}</div>
       <div className="supply-name">{name}</div>
       <div className="supply-desc">{desc}</div>
       <div className="supply-stock">In stock: {stock}</div>
       <button className="btn btn-sm" disabled={!canAfford} onClick={onBuy}>
-        Buy {amount} — {cost}
+        Buy {amount} — <span className="coin-icon"/>{cost}
       </button>
     </div>
   );

@@ -1,15 +1,16 @@
 // ============================================================
 // DISCOVERY CEREMONY — Theatrical reveal for new species
 // ============================================================
+import { IconStar } from './icons/index.js';
 import React, { useState, useEffect, useRef } from 'react';
 import FishSprite from './FishSprite.jsx';
 
 const RARITY_CONFIG = {
-  common:    { bg: 'discovery-bg--common',    stars: '★',       color: '#6a7a88' },
-  uncommon:  { bg: 'discovery-bg--uncommon',  stars: '★★',      color: '#5aaa70' },
-  rare:      { bg: 'discovery-bg--rare',      stars: '★★★',     color: '#5a8aaa' },
-  epic:      { bg: 'discovery-bg--epic',      stars: '★★★★',    color: '#8a70a8' },
-  legendary: { bg: 'discovery-bg--legendary', stars: '★★★★★',   color: '#d4a843' },
+  common:    { bg: 'discovery-bg--common',    stars: 1,       color: '#6a7a88' },
+  uncommon:  { bg: 'discovery-bg--uncommon',  stars: 2,      color: '#5aaa70' },
+  rare:      { bg: 'discovery-bg--rare',      stars: 3,     color: '#5a8aaa' },
+  epic:      { bg: 'discovery-bg--epic',      stars: 4,    color: '#8a70a8' },
+  legendary: { bg: 'discovery-bg--legendary', stars: 5,   color: '#d4a843' },
 };
 
 export default function DiscoveryCeremony({ species, onDismiss }) {

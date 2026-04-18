@@ -3,6 +3,7 @@
 // ============================================================
 import React, { useState, useEffect } from 'react';
 import Tip from './GameTooltip.jsx';
+import { IconPause, IconPlay } from './icons/index.js';
 import { useGameStore } from '../store/gameStore.js';
 
 export default function GameStatusBar({ paused, onTogglePause, showLog, onToggleLog }) {
@@ -92,7 +93,7 @@ export default function GameStatusBar({ paused, onTogglePause, showLog, onToggle
       <button
         className={`speed-btn ${paused ? 'speed-btn--active' : ''}`}
         onClick={onTogglePause}
-      ><Tip text="Pause [Space]"><span>{paused ? 'II' : '\u25B8'}</span></Tip></button>
+      ><Tip text="Pause [Space]"><span>{paused ? <IconPause size={14} /> : <IconPlay size={14} />}</span></Tip></button>
 
       <span className="status-separator" />
       <span className="status-item status-item--coins">{coins.toLocaleString()}</span>

@@ -2,6 +2,7 @@
 // CATCH OF THE DAY — Wild pond mini-game
 // Click swimming shadows within 30 seconds
 // ============================================================
+import { IconStar, IconSparkle } from './icons/index.js';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore.js';
 import { pickShadow, createCaughtFish, canPlayCatch } from '../data/catchOfDay.js';
@@ -194,7 +195,7 @@ export default function CatchOfDayPanel() {
                 </svg>
                 {s.rarity !== 'common' && (
                   <span className="catch-shadow-rarity" style={{ color: RARITY_COLORS[s.rarity] }}>
-                    {s.rarity === 'legendary' ? '★' : s.rarity === 'epic' ? '◆' : s.rarity === 'rare' ? '●' : '○'}
+                    {s.rarity === 'legendary' ? <IconStar size={12} style={{color:'#f0b840'}}/> : s.rarity === 'epic' ? <IconSparkle size={12} style={{color:'#c0a0e8'}}/> : s.rarity === 'rare' ? <IconStar size={10} style={{color:'#5cbfcf'}}/> : '·'}
                   </span>
                 )}
               </div>

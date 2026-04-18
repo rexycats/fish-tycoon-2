@@ -1,6 +1,7 @@
 import { PERSONALITY_EMOJI, SPRITE_SIZE, EGG_HATCH_ANIM_MS } from '../data/constants.js';
 import { rollMicroEvent } from '../systems/microEvents.js';
 import { useGameStore } from '../store/gameStore.js';
+import { IconAlertFood, IconAlertWater, IconAlertDisease, IllustEmptyTank } from './icons/index.js';
 // ============================================================
 // FISH TYCOON 2 — TANK VIEW (Phase 11: Pseudo-3D Visual Overhaul)
 // ============================================================
@@ -525,10 +526,10 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
         const hungryFish = fish.filter(f => f.hunger > 80);
         const foodLow    = (tank?.supplies?.food ?? 10) < 3;
         const wqLow      = (waterQuality ?? 100) < 40;
-        if (sickFish.length > 0)   alerts.push({ key: 'sick',   icon: '', label: `${sickFish.length} sick`, cls: 'alert-pulse--red'   });
-        if (hungryFish.length > 0) alerts.push({ key: 'hungry', icon: '', label: `${hungryFish.length} hungry`, cls: 'alert-pulse--orange' });
-        if (foodLow)               alerts.push({ key: 'food',   icon: '', label: 'Low food',  cls: 'alert-pulse--orange' });
-        if (wqLow)                 alerts.push({ key: 'wq',     icon: '', label: 'Bad water', cls: 'alert-pulse--red'   });
+        if (sickFish.length > 0)   alerts.push({ key: 'sick',   icon: <IconAlertDisease size={16} />, label: `${sickFish.length} sick`, cls: 'alert-pulse--red'   });
+        if (hungryFish.length > 0) alerts.push({ key: 'hungry', icon: <IconAlertFood size={16} />, label: `${hungryFish.length} hungry`, cls: 'alert-pulse--orange' });
+        if (foodLow)               alerts.push({ key: 'food',   icon: <IconAlertFood size={16} />, label: 'Low food',  cls: 'alert-pulse--orange' });
+        if (wqLow)                 alerts.push({ key: 'wq',     icon: <IconAlertWater size={16} />, label: 'Bad water', cls: 'alert-pulse--red'   });
         if (alerts.length === 0) return null;
         return (
           <div className="tank-alert-strip">
@@ -1099,17 +1100,9 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
 
         {fish.length === 0 && (
           <div className="empty-tank">
-            <svg width="80" height="60" viewBox="0 0 80 60" fill="none" style={{margin: '0 auto 8px', display: 'block', opacity: 0.5}}>
-              <rect x="10" y="10" width="60" height="40" rx="6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 3" />
-              <circle cx="40" cy="30" r="3" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.4">
-                <animate attributeName="cy" values="32;24;32" dur="3s" repeatCount="indefinite" />
-              </circle>
-              <circle cx="32" cy="35" r="2" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3">
-                <animate attributeName="cy" values="36;28;36" dur="4s" repeatCount="indefinite" />
-              </circle>
-            </svg>
-            <p style={{fontWeight: 600, fontSize: '1rem', marginBottom: 4}}>No fish here yet</p>
-            <p style={{opacity: 0.6, fontSize: '0.85rem'}}>Visit the Shop to buy your first fish!</p>
+            <IllustEmptyTank size={120} style={{ margin: '0 auto 12px', display: 'block' }} />
+            <p style={{fontWeight: 700, fontSize: '1.1rem', marginBottom: 4, color: '#2c4a62'}}>No fish here yet</p>
+            <p style={{opacity: 0.6, fontSize: '0.9rem', color: '#5a7a98'}}>Visit the Shop to buy your first fish!</p>
           </div>
         )}
 

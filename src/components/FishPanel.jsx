@@ -5,6 +5,7 @@ import { RARITY, GENES, getCarrierTraits, checkLegendaryCombo } from '../data/ge
 import { purityTier, getHiddenAllele, GENE_ORDER } from '../data/geneAnalysis.js';
 import { DISEASES, getMarketMultiplier, getDiseaseStage, CURE_SUCCESS_RATE, LIFESPAN_BY_RARITY } from '../systems/gameTick.js';
 import { IconFeed, IconMedicine, IconDiagnose, IconVitamins, IconSell, IconListed, IconHeart, IconDNA } from './GameIcons.jsx';
+import { IllustNoFish } from './icons/index.js';
 import { useGameStore } from '../store/gameStore.js';
 import { getCompat } from '../data/compatibility.js';
 
@@ -34,7 +35,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
     return (
       <div className="fish-panel fish-panel--empty">
         <div className="fish-panel-empty-inner">
-          <div className="fish-panel-empty-icon">No fish selected</div>
+          <IllustNoFish size={80} style={{ margin: '0 auto 8px', display: 'block' }} />
           <p className="fish-panel-empty-text">Select a fish</p>
           <p className="fish-panel-empty-sub">Click any fish in the tank</p>
           {isFirstRun && (
