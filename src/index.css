@@ -2362,6 +2362,11 @@ button:active, .btn:active, .action-btn:active { transform: translateY(2px); box
   margin-bottom: 0;
   transition: background 0.15s;
   border-radius: 0;
+  overflow-x: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='3' fill='none' stroke='%2378c8c0' stroke-width='1.5' opacity='0.8'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%2378c8c0' opacity='0.9'/%3E%3C/svg%3E") 12 12, default;
 }
 
 .fp-section-header--toggle:hover { background: rgba(255,255,255,0.04); }
@@ -8060,9 +8065,7 @@ select { border-radius: var(--radius-sm); }
 }
 
 /* ── 4. CUSTOM CURSORS ───────────────────────────────── */
-.app {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='3' fill='none' stroke='%2378c8c0' stroke-width='1.5' opacity='0.8'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%2378c8c0' opacity='0.9'/%3E%3C/svg%3E") 12 12, default;
-}
+/* .app cursor consolidated into main rule */
 .btn, .fp-action-btn, .tab-btn, .hud2-btn, .shop-tab-btn,
 .goals-tab, .upgrade-card .btn, .supply-card .btn,
 .listing-card, .fdex-card, .ach-card, .breed-slot,
@@ -10438,9 +10441,7 @@ select { border-radius: var(--radius-sm); }
 }
 
 /* ── Prevent horizontal overflow on main layout ──────── */
-.app {
-  overflow-x: hidden;
-}
+/* .app overflow consolidated into main rule */
 .tab-content-scroll > * {
   min-width: 0;
 }
@@ -12018,9 +12019,7 @@ input, textarea, .fp-rename-btn, .fdex-search {
 }
 
 /* 4. Suppress browser context menu styling */
-.app {
-  -webkit-touch-callout: none;
-}
+/* .app touch-callout consolidated into main rule */
 
 /* ── Keyboard shortcut hints on nav rail ────────────────── */
 .nav-rail-key {
@@ -12253,9 +12252,10 @@ input, textarea, .fp-rename-btn, .fdex-search {
 }
 
 /* ── Right-click suppressed (game behavior) ────────────── */
-.app {
-  user-select: none;
-  -webkit-user-select: none;
+/* .app user-select consolidated into main rule */
+.app input, .app textarea, .app [contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
 }
 .app input, .app textarea, .app [contenteditable] {
   user-select: text;
@@ -17032,3 +17032,173 @@ hr {
   color: var(--foam) !important;
 }
 .room-unlock-btn:disabled { opacity: 0.3; }
+
+/* ── Missing CSS fixes (auto-detected) ──────────────────── */
+
+/* Daily challenges panel */
+.daily-challenges-panel {
+  padding: 12px;
+}
+.challenge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.challenge-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+.challenge-streak {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+.challenge-count {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+/* Settings toggle */
+.settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.15s;
+}
+.settings-toggle.on {
+  background: rgba(64, 200, 240, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Tutorial dot */
+.tutorial-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.5s infinite;
+}
+
+/* Notification item types */
+.notif-item--critical { border-left: 3px solid #e05050; }
+.notif-item--warning  { border-left: 3px solid #d0a040; }
+.notif-item--success  { border-left: 3px solid #50b060; }
+.notif-item--info     { border-left: 3px solid #5090d0; }
+
+/* Toast variants */
+.toast--success { border-left: 3px solid #50b060; }
+.toast--error   { border-left: 3px solid #e05050; }
+.toast--info    { border-left: 3px solid #5090d0; }
+
+/* Fish panel compatibility indicators */
+.fp-compat--good    { color: #50b060; }
+.fp-compat--warning { color: #d0a040; }
+.fp-compat--danger  { color: #e05050; }
+
+/* Fish panel disease severity */
+.fp-disease--mild     { color: #d0a040; }
+.fp-disease--severe   { color: #e07030; }
+.fp-disease--critical { color: #e05050; }
+
+/* Review card ratings */
+.review-card--5 { border-left: 3px solid #ffd700; }
+.review-card--4 { border-left: 3px solid #80cc80; }
+.review-card--3 { border-left: 3px solid #888; }
+.review-card--2 { border-left: 3px solid #d0a040; }
+.review-card--1 { border-left: 3px solid #e05050; }
+
+/* Log entry severity */
+.log-entry--critical { color: #e05050; }
+.log-entry--warn     { color: #d0a040; }
+.log-entry--notable  { color: #5aaa70; }
+.log-filter-btn--critical { border-color: #e05050; color: #e05050; }
+.log-filter-btn--warn     { border-color: #d0a040; color: #d0a040; }
+
+/* Nav rail settings button */
+.nav-rail-btn--settings {
+  margin-top: auto;
+  opacity: 0.7;
+}
+.nav-rail-btn--settings:hover {
+  opacity: 1;
+}
+
+/* Goals loan overdue */
+.goals-loan-overdue {
+  color: #e05050;
+  font-weight: 600;
+  animation: pulse 2s infinite;
+}
+
+/* Loading section */
+.loading-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+/* Coin delta animation variant */
+.coin-delta--mega { font-size: 1.4rem; font-weight: 700; }
+.coin-delta--big  { font-size: 1.1rem; }
+
+/* Fish show placement */
+.fish-show-placement--1 { color: #ffd700; }
+.fish-show-placement--2 { color: #c0c0c0; }
+.fish-show-placement--3 { color: #cd7f32; }
+
+/* Fishdex rarity filter */
+.fdex-rarity-btn {
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+.fdex-rarity-btn:hover,
+.fdex-rarity-btn.active {
+  background: rgba(64, 200, 240, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Inspector close */
+.inspector-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+/* Fish species sub info */
+.fp-species-sub {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* Game tip arrow */
+.game-tip--top    { bottom: 100%; margin-bottom: 8px; }
+.game-tip--bottom { top: 100%; margin-top: 8px; }
