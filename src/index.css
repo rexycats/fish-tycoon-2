@@ -17546,3 +17546,286 @@ hr {
   
   .app::before { display: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   TITLE SCREEN V2 — Cute cozy aquarium
+   ═══════════════════════════════════════════════════════════ */
+
+.title-screen-v2 {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Quicksand', 'Nunito', sans-serif;
+}
+
+/* ── SVG background layer ────────────────────────────────── */
+.title-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* ── Bubbles layer ───────────────────────────────────────── */
+.title-bubbles-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.title-float-bubble {
+  position: absolute;
+  bottom: -40px;
+  animation: titleBubbleFloat var(--duration, 10s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes titleBubbleFloat {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.4);
+    opacity: 0;
+  }
+  8% { opacity: var(--opacity, 0.3); }
+  50% {
+    transform: translateY(-45vh) translateX(var(--wobble, 10px)) scale(0.85);
+  }
+  85% { opacity: calc(var(--opacity, 0.3) * 0.5); }
+  100% {
+    transform: translateY(-100vh) translateX(calc(var(--wobble, 10px) * -0.5)) scale(1);
+    opacity: 0;
+  }
+}
+
+/* ── Content layer ───────────────────────────────────────── */
+.ts-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding: 40px;
+  width: 100%;
+  max-width: 600px;
+}
+
+/* ── Logo ────────────────────────────────────────────────── */
+.ts-logo-area {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.ts-ready .ts-logo-area {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.title-logo-container {
+  position: relative;
+  text-align: center;
+  padding: 10px 40px;
+}
+
+.title-text {
+  margin: 0;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.title-fish {
+  font-size: 72px;
+  font-weight: 700;
+  color: #4a8ab8;
+  text-shadow:
+    0 2px 0 #fff,
+    0 4px 8px rgba(87,163,191,0.25),
+    2px 2px 0 rgba(255,255,255,0.8),
+    -2px -2px 0 rgba(255,255,255,0.8),
+    2px -2px 0 rgba(255,255,255,0.8),
+    -2px 2px 0 rgba(255,255,255,0.8);
+}
+
+.title-tycoon {
+  font-size: 72px;
+  font-weight: 700;
+  color: #4a8ab8;
+  text-shadow:
+    0 2px 0 #fff,
+    0 4px 8px rgba(87,163,191,0.25),
+    2px 2px 0 rgba(255,255,255,0.8),
+    -2px -2px 0 rgba(255,255,255,0.8),
+    2px -2px 0 rgba(255,255,255,0.8),
+    -2px 2px 0 rgba(255,255,255,0.8);
+}
+
+.title-two {
+  font-size: 88px;
+  font-weight: 800;
+  color: #f0b840;
+  margin-left: 8px;
+  text-shadow:
+    0 2px 0 #fff,
+    0 4px 12px rgba(240,184,64,0.3),
+    2px 2px 0 rgba(255,255,255,0.7),
+    -2px -2px 0 rgba(255,255,255,0.7),
+    2px -2px 0 rgba(255,255,255,0.7),
+    -2px 2px 0 rgba(255,255,255,0.7);
+}
+
+.title-subtitle {
+  margin: 12px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  color: #6a9ab8;
+  text-shadow: 0 1px 4px rgba(255,255,255,0.6);
+  text-transform: uppercase;
+}
+
+/* Decorative stars */
+.title-deco-star {
+  pointer-events: none;
+  animation: titleStarTwinkle 2.5s ease-in-out infinite;
+}
+.title-deco-star:nth-child(2n) { animation-delay: -0.8s; }
+.title-deco-star:nth-child(3n) { animation-delay: -1.6s; }
+
+@keyframes titleStarTwinkle {
+  0%, 100% { opacity: 0.7; transform: scale(1) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.15) rotate(8deg); }
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.ts-buttons-area {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s;
+}
+.ts-ready .ts-buttons-area {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.title-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+}
+
+.title-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 320px;
+  padding: 16px 28px;
+  border: 2px solid rgba(255,255,255,0.6);
+  border-radius: 999px;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #2c5a78;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.title-menu-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  opacity: 0.5;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+}
+
+.title-menu-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  border-color: rgba(255,255,255,0.85);
+}
+.title-menu-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* Continue — aqua/cyan */
+.title-menu-btn--continue {
+  background: linear-gradient(180deg, #a8ecf8 0%, #78d8ec 50%, #60c8e0 100%);
+  box-shadow:
+    0 4px 16px rgba(96,200,224,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.title-menu-btn--continue:hover {
+  box-shadow:
+    0 8px 24px rgba(96,200,224,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+}
+
+/* Campaign — peach/pink */
+.title-menu-btn--campaign {
+  background: linear-gradient(180deg, #ffd0c0 0%, #f8a8a0 50%, #f09898 100%);
+  box-shadow:
+    0 4px 16px rgba(240,152,152,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.title-menu-btn--campaign:hover {
+  box-shadow:
+    0 8px 24px rgba(240,152,152,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+}
+
+/* Sandbox — lavender */
+.title-menu-btn--sandbox {
+  background: linear-gradient(180deg, #d8c8f0 0%, #c0b0e0 50%, #b0a0d4 100%);
+  box-shadow:
+    0 4px 16px rgba(176,160,212,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.title-menu-btn--sandbox:hover {
+  box-shadow:
+    0 8px 24px rgba(176,160,212,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+}
+
+.title-btn-icon {
+  flex-shrink: 0;
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.ts-footer {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(80,130,160,0.4);
+  font-weight: 500;
+}
+
+/* ── Fade out ────────────────────────────────────────────── */
+.ts-fade-out {
+  animation: tsFadeOut 0.8s ease forwards;
+}
+@keyframes tsFadeOut {
+  to { opacity: 0; transform: scale(1.05); }
+}
+
+/* ── Mobile ──────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .title-fish, .title-tycoon { font-size: 48px; }
+  .title-two { font-size: 60px; }
+  .title-menu-btn { width: 260px; font-size: 18px; padding: 14px 22px; }
+  .title-subtitle { font-size: 12px; }
+}
+

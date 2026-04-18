@@ -1,28 +1,26 @@
 // ============================================================
-// FISH TYCOON 2 — TITLE SCREEN
+// FISH TYCOON 2 — TITLE SCREEN (Cute Cozy Redesign)
 // ============================================================
 import React, { useState, useEffect } from 'react';
 import { loadGame } from '../data/gameState.js';
 import { startMusic } from '../services/soundService.js';
+import TitleBackground from './title/TitleBackground.jsx';
+import TitleBubbles from './title/TitleBubbles.jsx';
+import TitleLogo from './title/TitleLogo.jsx';
+import TitleButtons from './title/TitleButtons.jsx';
 
 export default function TitleScreen({ onStart }) {
   const [hasSave, setHasSave] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
-  const [bubbles] = useState(() =>
-    Array.from({ length: 18 }, (_, i) => ({
-      left: Math.random() * 100,
-      size: 3 + Math.random() * 8,
-      delay: Math.random() * 6,
-      duration: 6 + Math.random() * 8,
-      opacity: 0.15 + Math.random() * 0.2,
-    }))
-  );
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     try {
       const save = loadGame();
       setHasSave(!!save);
     } catch {}
+    const t = setTimeout(() => setReady(true), 100);
+    return () => clearTimeout(t);
   }, []);
 
   const handleStart = (mode) => {
@@ -32,52 +30,20 @@ export default function TitleScreen({ onStart }) {
   };
 
   return (
-    <div className={`title-screen ${fadeOut ? 'title-fade-out' : ''}`}>
-      <div className="title-bg">
-        <div className="title-rays">
-          {[0,1,2,3,4].map(i => <div key={i} className={`title-ray title-ray-${i}`}/>)}
+    <div className={`title-screen-v2 ${fadeOut ? 'ts-fade-out' : ''} ${ready ? 'ts-ready' : ''}`}>
+      <TitleBackground />
+      <TitleBubbles />
+
+      <div className="ts-content">
+        <div className="ts-logo-area">
+          <TitleLogo />
         </div>
-        <div className="title-bubbles">
-          {bubbles.map((b, i) => (
-            <div key={i} className="title-bubble" style={{
-              left: `${b.left}%`, width: b.size, height: b.size,
-              animationDelay: `${b.delay}s`, animationDuration: `${b.duration}s`,
-              opacity: b.opacity,
-            }}/>
-          ))}
+        <div className="ts-buttons-area">
+          <TitleButtons hasSave={hasSave} onStart={handleStart} />
         </div>
-        <div className="title-caustics"/>
-      </div>
-
-      <div className="title-logo-wrap">
-        <div className="title-logo-glow"/>
-        <h1 className="title-logo">
-          <span className="title-logo-text">
-            <span className="title-word-fish">Fish</span>
-            <span className="title-word-tycoon">Tycoon</span>
-            <span className="title-word-2">2</span>
-          </span>
-        </h1>
-        <p className="title-tagline">Breed. Trade. Manage.</p>
-      </div>
-
-      <div className="title-menu">
-        {hasSave && (
-          <button className="title-btn title-btn-primary" onClick={() => handleStart('continue')}>
-            Continue
-          </button>
-        )}
-        <button className="title-btn title-btn-primary" onClick={() => handleStart('campaign')}>
-          Campaign
-        </button>
-        <button className="title-btn" onClick={() => handleStart('sandbox')}>
-          Sandbox
-        </button>
-      </div>
-
-      <div className="title-footer">
-        <span className="title-version">v0.10.0</span>
-        <span className="title-credit">Made with love</span>
+        <div className="ts-footer">
+          <span className="ts-version">v0.12</span>
+        </div>
       </div>
     </div>
   );
