@@ -345,6 +345,12 @@ export default function HUD({
         )}
       </div>
 
+      {/* ── Tank label ───────────────────────────────── */}
+      <div className="hud2-tank-label">
+        <span className="hud2-tank-name">{tank.name || 'Tank'}</span>
+        <span className="hud2-tank-cap">{fishCnt} / {tank.capacity ?? 12} fish</span>
+      </div>
+
       {/* ── Row 2: tank stats · weather · quick actions ─────── */}
       <div className="hud2-row hud2-row--bottom">
         <div className="hud2-pills">

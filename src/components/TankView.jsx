@@ -73,8 +73,9 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
   // Keep a ref so the animation loop (which has no deps) can read behavior profiles
   const fishMapRef = useRef({});
 
-  // Memoize fishMap — only rebuild when fish ids change, not every render
+  // Memoize fishMap and fishIdSet — only rebuild when fish ids change
   const fishIds = fish.map(f => f.id).join(',');
+  const fishIdSet = useMemo(() => new Set(fish.map(f => f.id)), [fishIds]); // eslint-disable-line react-hooks/exhaustive-deps
   fishMapRef.current = useMemo(
     () => Object.fromEntries(fish.map(f => [f.id, f])),
     [fishIds] // eslint-disable-line react-hooks/exhaustive-deps
@@ -117,7 +118,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
       if (!pos[f.id]) pos[f.id] = initPos(f);
     }
     // Remove gone fish
-    const ids = new Set(fish.map(f => f.id));
+    const ids = fishIdSet;
     for (const id of Object.keys(pos)) {
       if (!ids.has(id)) delete pos[id];
     }
@@ -257,9 +258,9 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
 
   // ── Sale sparkle trigger (listen for fish removal) ──────
   const SALE_PHRASES = ['Thanks!', 'Perfect!', 'Love it!', 'Beautiful!', 'Amazing!', 'So pretty!'];
-  const prevFishIdsRef = useRef(new Set(fish.map(f => f.id)));
+  const prevFishIdsRef = useRef(new Set(fishIdSet));
   useEffect(() => {
-    const currentIds = new Set(fish.map(f => f.id));
+    const currentIds = fishIdSet;
     for (const id of prevFishIdsRef.current) {
       if (!currentIds.has(id) && positions[id]) {
         const pos = positions[id];
@@ -1098,8 +1099,17 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
 
         {fish.length === 0 && (
           <div className="empty-tank">
-            <p>Your tank is empty.</p>
-            <p>Breed some fish to get started!</p>
+            <svg width="80" height="60" viewBox="0 0 80 60" fill="none" style={{margin: '0 auto 8px', display: 'block', opacity: 0.5}}>
+              <rect x="10" y="10" width="60" height="40" rx="6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 3" />
+              <circle cx="40" cy="30" r="3" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.4">
+                <animate attributeName="cy" values="32;24;32" dur="3s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="32" cy="35" r="2" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3">
+                <animate attributeName="cy" values="36;28;36" dur="4s" repeatCount="indefinite" />
+              </circle>
+            </svg>
+            <p style={{fontWeight: 600, fontSize: '1rem', marginBottom: 4}}>No fish here yet</p>
+            <p style={{opacity: 0.6, fontSize: '0.85rem'}}>Visit the Shop to buy your first fish!</p>
           </div>
         )}
 

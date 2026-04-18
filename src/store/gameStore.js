@@ -297,6 +297,7 @@ export const useGameStore = create(
             Object.assign(state, updated);
           } else {
             playWarning();
+            fireToast('Treatment failed...', 'alert', '');
             addLogDraft(state, `Treatment failed on ${fish.nickname || fish.species?.name || 'fish'}! (${stage} stage, ${Math.round(successRate * 100)}% chance — try again)`);
           }
         }),
@@ -401,6 +402,7 @@ export const useGameStore = create(
           if (state.player.coins < unlock.cost) {
             playWarning();
             addLogDraft(state, 'Not enough coins!');
+            fireToast('Not enough coins!', 'alert', '');
             return;
           }
           // Prestige gate for tanks 4+
@@ -490,6 +492,7 @@ export const useGameStore = create(
           if (!tank) {
             playWarning();
             addLogDraft(state, 'All tanks are full!');
+            fireToast('All tanks are full!', 'alert', '');
             return;
           }
           state.player.coins -= cost;
@@ -517,7 +520,8 @@ export const useGameStore = create(
           state.fish.push(newFish);
           state.player.stats.fishBought = (state.player.stats.fishBought || 0) + 1;
           playCoin();
-          addLogDraft(state, `Bought a ${newFish.species?.name || 'fish'}!`);
+          addLogDraft(state, `Bought a ${newFish.species?.name || 'fish'} → ${tank.name || 'Tank'}!`);
+          fireToast(`${newFish.species?.name || 'Fish'} added to ${tank.name}`, 'success', '');
           // Compatibility warning
           const tankmates = state.fish.filter(f => f.tankId === tank.id && f.id !== newFish.id);
           const issues = checkTankCompat(newFish, tankmates);
