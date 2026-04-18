@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 
 // Version marker
-console.log('%c[Fish Tycoon 2] Build v0.11.1 (2026-04-17)', 'color: #4a8f8f; font-weight: bold; font-size: 14px');
+console.log('%c[Fish Tycoon 2] Build v0.12.0-final (2026-04-18-0023)', 'color: #4a8f8f; font-weight: bold; font-size: 14px');
 
 // Show loading state immediately so there's never a black screen
 const root = document.getElementById('root');

@@ -274,9 +274,10 @@ export const useGameStore = create(
           // Stage-based cure success rate
           const stage = getDiseaseStage(fish.diseaseSince, state.gameClock);
           const successRate = CURE_SUCCESS_RATE[stage] || 0.5;
-          // Hardy personality bonus
+          // Hardy personality bonus + research cure bonus
           const hardyBonus = fish.personality === 'hardy' ? 0.15 : 0;
-          const success = Math.random() < (successRate + hardyBonus);
+          const researchCureBonus = getResearchEffects(state).cureBonus || 0;
+          const success = Math.random() < Math.min(0.99, successRate + hardyBonus + researchCureBonus);
 
           if (!fish.treatmentLog) fish.treatmentLog = [];
           fish.treatmentLog.push({ med: medKey, at: state.gameClock || Date.now(), result: success ? 'cured' : 'failed', stage });
@@ -802,7 +803,8 @@ export const useGameStore = create(
 
           const mutagenLevel = state.shop?.upgrades?.mutagen?.level || 0;
           const mutationBoostActive = (state.player?.boosts?.mutationBoost || 0) > (state.gameClock || Date.now());
-          const mutationRate = (0.02 + mutagenLevel * 0.03) * (mutationBoostActive ? 3 : 1);
+          const rFx = getResearchEffects(state);
+          const mutationRate = (0.02 + mutagenLevel * 0.03) * (mutationBoostActive ? 3 : 1) * (rFx.mutationRate || 1);
 
           // Create 1-3 eggs, each with unique genome
           const eggsToCreate = Math.min(clutchSize, roomAvailable);
@@ -815,7 +817,7 @@ export const useGameStore = create(
           const newEggs = [];
           for (let i = 0; i < eggsToCreate; i++) {
             const childGenome = breedGenomes(bt.storedGenomeA, bt.storedGenomeB, null, mutationRate);
-            const egg = createFish({ stage: 'egg', tankId, genome: childGenome, parentIds, generation: childGen, now: state.gameClock });
+            const egg = createFish({ stage: 'egg', tankId, genome: childGenome, parentIds, generation: childGen, now: state.gameClock, targetRarity: rFx.rarityBoost > 1 ? 'uncommon' : null });
             newEggs.push(egg);
             state.fish.push(egg);
           }
@@ -1010,6 +1012,12 @@ export const useGameStore = create(
           const bestStars = Math.max(stars, prev?.stars || 0);
           state.campaign.completedLevels[levelId] = { stars: bestStars, completedAt: Date.now() };
           playVictory();
+          // Grant bonus coins (only first time)
+          if (!prev?.stars && level.rewards?.bonusCoins) {
+            state.player.coins += level.rewards.bonusCoins;
+            state.player.totalCoinsEarned = (state.player.totalCoinsEarned || 0) + level.rewards.bonusCoins;
+            addLogDraft(state, `Campaign reward: +${level.rewards.bonusCoins} coins!`);
+          }
           // Unlock next levels
           if (level.rewards?.unlocks) {
             for (const uid of level.rewards.unlocks) {

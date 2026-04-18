@@ -17,7 +17,7 @@ import { STAFF_ROLES, getStaffWage } from '../data/staff.js';
 import { getResearchEffects } from '../data/research.js';
 import { getActiveEvent as getSeasonalEvent } from '../data/seasonal.js';
 import { getEquipmentEffects, EQUIPMENT_TYPES } from '../data/equipment.js';
-import { computeVisitorFlow, computeVisitorSatisfaction } from './visitors.js';
+import { computeVisitorFlow, computeVisitorSatisfaction, getVisitorQuote } from './visitors.js';
 import { getRoomBonus } from '../data/rooms.js';
 const _getCampaignLevel = (id) => CAMPAIGN_LEVELS.find(l => l.id === id) || null;
 
@@ -922,7 +922,7 @@ export function processTick(state) {
       messages.push('Breeding cancelled — a parent was lost.');
       return { ...updated, breedingStartedAt: null, slots: [null, null], storedGenomeA: null, storedGenomeB: null };
     }
-    if (now - updated.breedingStartedAt >= (updated.breedingDurationMs || 300000) * (seasonalBonuses.breedingSpeed || 1)) {
+    if (now - updated.breedingStartedAt >= (updated.breedingDurationMs || 300000) * (seasonalBonuses.breedingSpeed || 1) * ((next.unlockedRooms || []).includes('breeding_lab') ? 0.85 : 1)) {
       messages.push('A breeding egg is ready to collect!');
       return { ...updated, eggReady: true };
     }
@@ -1098,6 +1098,11 @@ export function processTick(state) {
       satisfaction: visitorSatisfaction,
       totalToday: (next.visitors?.totalToday || 0) + visitorFlow.currentVisitors,
     }};
+    // Occasional visitor quote in log (~20% chance per minute tick)
+    if (visitorFlow.currentVisitors > 0 && Math.random() < 0.2) {
+      const quote = getVisitorQuote(visitorSatisfaction);
+      messages.push(`Visitor: "${quote}"`);
+    }
 
     // Auto-Medic: per-minute chance to cure sick fish
     const autoMedicLevel = upgradeLevels.autoMedic || 0;
@@ -1203,11 +1208,15 @@ export function processTick(state) {
       { test: /died|has died/, type: 'critical' },
       { test: /old age|reaching old age/, type: 'warning' },
       { test: /contracted|looks unwell/, type: 'critical' },
+      { test: /broke down|breakdown/, type: 'warning' },
       { test: /inspection|fine|fined/, type: 'warning' },
       { test: /review.*5\/5|World-Class/, type: 'success' },
       { test: /newspaper|TV station|Magazine|National|World-renowned/, type: 'success' },
+      { test: /Campaign reward/, type: 'success' },
       { test: /cured.*of/, type: 'success' },
-      { test: /Tourist bus|Celebrity/, type: 'info' },
+      { test: /Algae bloom/, type: 'warning' },
+      { test: /Tourist bus|Celebrity|Collector rush/, type: 'info' },
+      { test: /breeding egg is ready/, type: 'info' },
     ];
     for (const entry of newEntries) {
       const msg = entry.message || '';
@@ -1241,8 +1250,9 @@ export function processTick(state) {
     next = { ...next, reviews, lastReviewAt: now };
     if (review.stars >= 4) messages.push(`New review: "${review.headline}" — ${review.stars}/5 stars!`);
     if (review.stars <= 2) messages.push(`Bad review: "${review.headline}" — only ${review.stars}/5 stars.`);
-    // Reputation bonus from good reviews
-    const repGain = review.stars >= 4 ? 3 : review.stars >= 3 ? 1 : 0;
+    // Reputation bonus from good reviews (scaled by research)
+    const repGainBase = review.stars >= 4 ? 3 : review.stars >= 3 ? 1 : 0;
+    const repGain = Math.round(repGainBase * (researchFx.repGain || 1));
     if (repGain > 0) {
       next = { ...next, shop: { ...next.shop, reputation: Math.min(999, (next.shop.reputation || 0) + repGain) } };
     }
@@ -1613,7 +1623,7 @@ function processCustomerVisit(state, messages) {
   const earnedCoins = Math.max(1, Math.round(finalPrice * salePriceBoost * researchSaleBonus * roomSaleBonus * streakMult * urgentMult * jackpotMult));
   if (jackpot) messages.push(`${jackpot.label} ${jackpotMult}× payout on this sale! ${earnedCoins}`);
   if (urgentMult > 1) messages.push(`Urgent buyer paid ${urgentMult}× premium!`);
-  const repGain     = Math.ceil((fish.species?.rarityScore ?? 5) / 10) + (askPrice > autoPrice ? 1 : 0);
+  const repGain     = Math.ceil(((fish.species?.rarityScore ?? 5) / 10) + (askPrice > autoPrice ? 1 : 0)) * Math.round(getResearchEffects(state).repGain || 1);
 
   messages.push(`${customer.emoji} ${customer.name}: "${greeting}" — bought your ${fish.species?.name || 'fish'} for ${earnedCoins}${priceNote}!`);
 
@@ -1636,7 +1646,7 @@ function processCustomerVisit(state, messages) {
       listedFish: state.shop.listedFish.filter(id => id !== fish.id),
       fishPrices,
       lastCustomerAt: now,
-      reputation: Math.min(999, (state.shop.reputation || 0) + repGain),
+      reputation: Math.min(999, (state.shop.reputation || 0) + Math.round(repGain * (getRoomBonus(state, fish.tankId).repMult || 1))),
       salesHistory: [
         {
           time: Date.now(), type: 'sale',
