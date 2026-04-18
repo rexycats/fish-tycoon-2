@@ -115,10 +115,10 @@ export default function GoalsPanel() {
                         <span className="campaign-milestone-claimed">Claimed</span>
                       ) : m.isReady ? (
                         <button className="btn btn-sm btn-primary campaign-claim" onClick={() => claimMilestone(m.id)}>
-                          Claim 🪙{m.reward?.coins || 0}
+                          Claim <span className="coin-icon"/>{m.reward?.coins || 0}
                         </button>
                       ) : (
-                        <span className="campaign-milestone-reward">🪙{m.reward?.coins || 0}</span>
+                        <span className="campaign-milestone-reward"><span className="coin-icon"/>{m.reward?.coins || 0}</span>
                       )}
                     </div>
                   ))}
@@ -144,7 +144,7 @@ export default function GoalsPanel() {
                     <div className="goals-order-desc">{order.desc}</div>
                     <div className="goals-order-customer">— {order.customer}</div>
                   </div>
-                  <div className="goals-order-reward">🪙{order.reward}</div>
+                  <div className="goals-order-reward"><span className="coin-icon"/>{order.reward}</div>
                 </div>
                 {order.fulfilled ? (
                   <div className="goals-order-done">Fulfilled</div>
@@ -191,7 +191,7 @@ export default function GoalsPanel() {
                 {next && (
                   <button className="btn btn-sm" disabled={player.coins < next.cost}
                     onClick={() => buyResearch(branchId)}>
-                    Research: 🪙{next.cost}
+                    Research: <span className="coin-icon"/>{next.cost}
                   </button>
                 )}
                 {!next && <div className="goals-research-maxed">Fully researched</div>}
@@ -208,8 +208,8 @@ export default function GoalsPanel() {
           {loanStatus ? (
             <div className="goals-loan-active">
               <div className="goals-loan-header">Active Loan</div>
-              <div>Borrowed: 🪙{loanStatus.amount}</div>
-              <div>Total owed: 🪙{loanStatus.totalOwed}</div>
+              <div>Borrowed: <span className="coin-icon"/>{loanStatus.amount}</div>
+              <div>Total owed: <span className="coin-icon"/>{loanStatus.totalOwed}</div>
               <div className={loanStatus.overdue ? 'goals-loan-overdue' : ''}>
                 {loanStatus.overdue
                   ? 'OVERDUE — Bank will seize a fish!'
@@ -218,7 +218,7 @@ export default function GoalsPanel() {
               </div>
               <button className="btn btn-sm btn-primary" disabled={player.coins < loanStatus.totalOwed}
                 onClick={repayLoan}>
-                Repay 🪙{loanStatus.totalOwed}
+                Repay <span className="coin-icon"/>{loanStatus.totalOwed}
               </button>
             </div>
           ) : (
@@ -233,7 +233,7 @@ export default function GoalsPanel() {
                     <div className="goals-loan-desc">{tier.desc}</div>
                   </div>
                   <button className="btn btn-sm" onClick={() => takeLoan(tier.id)}>
-                    Borrow 🪙{tier.amount}
+                    Borrow <span className="coin-icon"/>{tier.amount}
                   </button>
                 </div>
               ))}
@@ -293,7 +293,7 @@ export default function GoalsPanel() {
                   ) : (
                     <button className="btn btn-sm" disabled={player.coins < bg.cost}
                       onClick={() => buyBackground(bg.id)}>
-                      🪙{bg.cost}
+                      <span className="coin-icon"/>{bg.cost}
                     </button>
                   )}
                 </div>

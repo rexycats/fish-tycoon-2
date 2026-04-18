@@ -217,7 +217,7 @@ export default function CatchOfDayPanel() {
           </div>
           <div className="catch-results-rewards">
             <div>Keep up to 3 best fish</div>
-            <div>🪙 +{Math.round(score * 0.1)} bonus coins</div>
+            <div><span className="coin-icon"/> +{Math.round(score * 0.1)} bonus coins</div>
             <div>+{Math.min(50, Math.round(score * 0.2))} XP</div>
           </div>
           <button className="btn btn-primary" onClick={handleClaimCatch}>

@@ -179,10 +179,10 @@ function UpgradeCard({ id, upgrade, coins, onBuy }) {
         <>
           <button className="btn btn-sm" disabled={!canAfford} onClick={() => onBuy(id)}
                   title={canAfford ? '' : `Need ${actualCost - coins} more coins`}>
-            🪙 {actualCost}
+            <span className="coin-icon"/> {actualCost}
           </button>
           {nextCost && (
-            <div className="upgrade-next-cost">Next: 🪙{nextCost}</div>
+            <div className="upgrade-next-cost">Next: <span className="coin-icon"/>{nextCost}</div>
           )}
         </>
       )}
@@ -215,7 +215,7 @@ function SaleEvent({ event }) {
       {isRejected ? (
         <span className="sale-rejected-label">Walked away (asked {event.askPrice})</span>
       ) : (
-        <span className="sale-coins">+🪙{event.coins}</span>
+        <span className="sale-coins">+<span className="coin-icon"/>{event.coins}</span>
       )}
       <span className="sale-ago">{agoLabel}</span>
     </div>
@@ -438,7 +438,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                           onClick={() => debouncedSetPrice(f.id, Math.max(1, Math.round(askPrice - Math.max(1, Math.round(askPrice * 0.05)))))}
                           aria-label="Lower price">−</button>
                         <div className="listing-price-input-wrap">
-                          <span className="price-coin">🪙</span>
+                          <span className="price-coin"><span className="coin-icon"/></span>
                           {/* Bug 10: was a fully controlled input — parseInt('') = NaN caused
                               the guard to skip the update, snapping the field back to the old
                               value and making it impossible to clear and retype from scratch.
@@ -456,7 +456,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                           aria-label="Raise price">+</button>
                       </div>
                       <div className="listing-price-meta">
-                        <span className="listing-auto-price">Market: 🪙{autoPrice}</span>
+                        <span className="listing-auto-price">Market: <span className="coin-icon"/>{autoPrice}</span>
                         <span className={`price-tag ${priceTag.cls}`}>{priceTag.label}</span>
                       </div>
                       <button
@@ -543,7 +543,7 @@ function Shop({ game, activeTank, onToggleSell, onSetPrice, onBuyUpgrade, onBuyS
                     {f.phenotype?.glow && f.phenotype.glow !== 'Normal' ? ` · ${f.phenotype.glow}` : ''}
                     {f.phenotype?.mutation && f.phenotype.mutation !== 'None' ? ` · ${f.phenotype.mutation}` : ''}
                   </span>
-                  <span className="fli-price">🪙{autoPrice}</span>
+                  <span className="fli-price"><span className="coin-icon"/>{autoPrice}</span>
                   <button className="btn btn-sm" onClick={e => {
                     e.stopPropagation();
                     onToggleSell(f.id);

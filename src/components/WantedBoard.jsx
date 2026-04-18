@@ -45,14 +45,14 @@ export default function WantedBoard() {
                 ))}
               </div>
               <div className="wanted-poster-reward">
-                Reward: <span className="wanted-reward-amount">🪙 {poster.reward}</span>
+                Reward: <span className="wanted-reward-amount"><span className="coin-icon"/> {poster.reward}</span>
               </div>
               {matchingFish.length > 0 ? (
                 <div className="wanted-poster-matches">
                   <span className="wanted-match-label">{matchingFish.length} match{matchingFish.length > 1 ? 'es' : ''}!</span>
                   <button className="btn btn-primary btn-sm"
                     onClick={() => fulfillWanted(poster.id, matchingFish[0].id)}>
-                    Deliver {matchingFish[0].species?.name || 'Fish'} → 🪙{poster.reward}
+                    Deliver {matchingFish[0].species?.name || 'Fish'} → <span className="coin-icon"/>{poster.reward}
                   </button>
                 </div>
               ) : (

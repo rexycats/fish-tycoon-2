@@ -175,7 +175,7 @@ function CoinDisplay({ value }) {
 
   return (
     <div className={`hud2-coin ${flash ? `hud2-coin--${flash}` : ''}`}>
-      <span className="hud2-coin-icon">🪙</span>
+      <span className="hud2-coin-icon"><span className="coin-icon"/></span>
       <span className={`hud2-coin-val${bumpClass}`}>{displayed.toLocaleString()}</span>
     </div>
   );

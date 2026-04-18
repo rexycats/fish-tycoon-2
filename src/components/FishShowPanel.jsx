@@ -156,7 +156,7 @@ export default function FishShowPanel() {
             ))}
           </div>
           <div className="fish-show-reward">
-            Reward: 🪙{results.reward.coins} + {results.reward.xp} XP
+            Reward: <span className="coin-icon"/>{results.reward.coins} + {results.reward.xp} XP
           </div>
           <button className="btn btn-primary" onClick={handleClaimReward}>
             Claim Reward!

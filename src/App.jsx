@@ -417,7 +417,7 @@ export default function App() {
             className={`coin-delta coin-delta--${diff > 0 ? 'up' : 'down'} coin-delta--arc coin-delta--${tier || 'small'}`}
             style={{ '--arc-dir': diff > 0 ? '1' : '-1' }}
           >
-            {diff > 0 ? '🪙 +' : ''}{diff.toLocaleString()}
+            {diff > 0 ? '<span className="coin-icon"/> +' : ''}{diff.toLocaleString()}
           </span>
         ))}
       </div>
@@ -547,7 +547,7 @@ export default function App() {
               onSetPrice={setFishPrice}
               onBuyUpgrade={buyUpgrade}
               onBuySupply={(k, c, a) => buySupply(k, c, a, activeTank?.id)}
-              onBuyFish={buyFish}
+              onBuyFish={(cost, rarity, speciesKey) => buyFish(cost, rarity, speciesKey, activeTank?.id)}
               onBuyRareItem={buyRareMarketItem}
               onNavigate={handleTabChange}
             />
@@ -821,7 +821,7 @@ function TankTabs({ tanks, activeTankId, onSelectTank, onUnlockTank, canUnlock, 
               <select className="tank-type-select" value={unlockType} onChange={e => setUnlockType(e.target.value)}>
                 {Object.entries(TANK_TYPES).map(([k, v]) => <option key={k} value={k}>{v.emoji} {v.label} — {v.desc}</option>)}
               </select>
-              <button className="btn btn-sm btn-primary" disabled={playerCoins < canUnlock.cost} onClick={() => { onUnlockTank(unlockType); setUnlocking(false); }}>Unlock for 🪙{canUnlock.cost}</button>
+              <button className="btn btn-sm btn-primary" disabled={playerCoins < canUnlock.cost} onClick={() => { onUnlockTank(unlockType); setUnlocking(false); }}>Unlock for <span className="coin-icon"/>{canUnlock.cost}</button>
               <button className="btn btn-sm" onClick={() => setUnlocking(false)}>Cancel</button>
             </div>
           )}
@@ -868,7 +868,7 @@ function MagicWinModal({ totalReward, onDismiss, onNavigate }) {
           Scholars have written papers about what you have accomplished.
           The seven wonders of the deep — all in one place. All yours.
         </p>
-        <div className="win-modal-reward">Total reward collected: <strong>🪙 {totalReward.toLocaleString()}</strong></div>
+        <div className="win-modal-reward">Total reward collected: <strong><span className="coin-icon"/> {totalReward.toLocaleString()}</strong></div>
         <div className="win-modal-unlocks">
           <div className="win-unlock-item">
             <strong>Legend Throne</strong> decoration unlocked —{' '}
@@ -877,7 +877,7 @@ function MagicWinModal({ totalReward, onDismiss, onNavigate }) {
             </button>
           </div>
           <div className="win-unlock-item"><strong>Legend Fish</strong> species unlocked in the Fishdex!</div>
-          <div className="win-unlock-item">🏆 <strong>+🪙500</strong> achievement bonus awarded!</div>
+          <div className="win-unlock-item">🏆 <strong>+<span className="coin-icon"/>500</strong> achievement bonus awarded!</div>
         </div>
         <div className="win-modal-actions">
           <button className="btn btn-sm" onClick={() => { onDismiss(); onNavigate('magic'); }}>View Magic Fish</button>

@@ -127,7 +127,7 @@ export default function AscensionTree() {
             </div>
             <div className="asc-record">
               <span className="asc-record-label">Best Sale</span>
-              <span className="asc-record-val">🪙{(records.mostValuableSale || 0).toLocaleString()}</span>
+              <span className="asc-record-val"><span className="coin-icon"/>{(records.mostValuableSale || 0).toLocaleString()}</span>
             </div>
             <div className="asc-record">
               <span className="asc-record-label">Total Ascensions</span>

@@ -36,7 +36,7 @@ function AchievementCard({ def, unlock, onNavigate }) {
         {!isSecret && (
           <div className="ach-rewards-row">
             <span className={`ach-coin-badge ach-coin-badge--${def.tier}`}>
-              +🪙{def.tier === 'common' ? 25 : def.tier === 'rare' ? 100 : 500}
+              +<span className="coin-icon"/>{def.tier === 'common' ? 25 : def.tier === 'rare' ? 100 : 500}
             </span>
             {decor && (
               earned && onNavigate ? (
@@ -64,7 +64,7 @@ function AchievementCard({ def, unlock, onNavigate }) {
         {earned && (
           <div className="ach-date">
             Unlocked {new Date(unlock.unlockedAt).toLocaleDateString()}
-            {unlock.reward > 0 && <span className="ach-earned-coins"> · Earned 🪙{unlock.reward.toLocaleString()}</span>}
+            {unlock.reward > 0 && <span className="ach-earned-coins"> · Earned <span className="coin-icon"/>{unlock.reward.toLocaleString()}</span>}
           </div>
         )}
       </div>
@@ -88,7 +88,7 @@ function Achievements({ achievements, player, onNavigate }) {
   const unlockedDecorCount = (player.unlockedDecorations || []).length;
 
   const stats = [
-    { label: 'Total Coins Earned',      value: `🪙 ${(player.totalCoinsEarned || 0).toLocaleString()}` },
+    { label: 'Total Coins Earned',      value: `$ ${(player.totalCoinsEarned || 0).toLocaleString()}` },
     { label: 'Achievement Bonuses',     value: `${achievementCoins.toLocaleString()}` },
     { label: 'Species Discovered',      value: `${(player.fishdex || []).length}` },
     { label: 'Eggs Collected',          value: `${player.stats?.eggsCollected || 0}` },

@@ -142,7 +142,7 @@ function PredictionBar({ outcome }) {
         <div className="predict-bar" style={{ width: `${outcome.chance}%`, background: rarityColor }} />
       </div>
       <div className="predict-chance" style={{ color: rarityColor, fontWeight: 600 }}>{outcome.chance}%</div>
-      <div className="predict-price">🪙{outcome.species?.basePrice ?? '?'}</div>
+      <div className="predict-price"><span className="coin-icon"/>{outcome.species?.basePrice ?? '?'}</div>
     </div>
   );
 }

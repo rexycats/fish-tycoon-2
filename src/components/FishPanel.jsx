@@ -150,7 +150,7 @@ function FishPanel({ fish, onFeed, onSell, onMedicine, isListed, medicineStock, 
 
       {/* ── Step 6: Prominent value display ── */}
       <div className="fp-value-banner" style={{ '--rarity-color': rarity.color }}>
-        <span className="fp-value-coin">🪙</span>
+        <span className="fp-value-coin"><span className="coin-icon"/></span>
         <span className="fp-value-number">{salePrice}</span>
         <span className="fp-value-label">sale value</span>
         {marketDelta !== 0 && (

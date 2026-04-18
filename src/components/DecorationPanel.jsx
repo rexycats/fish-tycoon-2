@@ -157,9 +157,9 @@ function DecorShopCard({ decor, owned, coins, onBuy, onSelectPlace, isSelected }
               className="btn btn-sm"
               disabled={!canAfford}
               onClick={e => { e.stopPropagation(); onBuy(decor.id); }}
-              title={canAfford ? `Buy 1 for 🪙${decor.cost}` : `Need ${decor.cost - coins} more coins`}
+              title={canAfford ? `Buy 1 for $${decor.cost}` : `Need ${decor.cost - coins} more coins`}
             >
-              🪙{decor.cost}
+              <span className="coin-icon"/>{decor.cost}
             </button>
           )}
           {inStock && (
@@ -311,10 +311,10 @@ function DecorationPanel({ game, activeTank, onBuyDecor, onPlaceDecor, onRemoveD
                       <button
                         className="btn btn-sm"
                         disabled={!canAfford}
-                        title={canAfford ? `Buy for 🪙${theme.cost}` : `Need ${theme.cost - player.coins} more coins`}
+                        title={canAfford ? `Buy for $${theme.cost}` : `Need ${theme.cost - player.coins} more coins`}
                         onClick={() => activeTank && onBuyTheme && onBuyTheme(activeTank.id, theme.id)}
                       >
-                        🪙{theme.cost}
+                        <span className="coin-icon"/>{theme.cost}
                       </button>
                     )}
                   </div>

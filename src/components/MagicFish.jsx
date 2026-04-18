@@ -87,7 +87,7 @@ function MagicFishCard({ mf, found }) {
             {found ? mf.rarity : '???'}
           </div>
           {found && (
-            <div className="magic-card-reward">Rewarded 🪙{mf.reward.toLocaleString()}</div>
+            <div className="magic-card-reward">Rewarded <span className="coin-icon"/>{mf.reward.toLocaleString()}</div>
           )}
         </div>
         <div className="magic-card-chevron">{expanded ? '▲' : '▼'}</div>
@@ -109,7 +109,7 @@ function MagicFishCard({ mf, found }) {
           ) : (
             <>
               <div className="magic-card-hint">{mf.hint}</div>
-              <div className="magic-card-reward-preview">Discovery reward: 🪙{mf.reward.toLocaleString()}</div>
+              <div className="magic-card-reward-preview">Discovery reward: <span className="coin-icon"/>{mf.reward.toLocaleString()}</div>
               <div className="magic-partial-traits">
                 {Object.entries(mf.phenotype).slice(0, 2).map(([k, v]) => (
                   <span key={k} className="magic-ptag magic-ptag-hint">

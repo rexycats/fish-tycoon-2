@@ -919,7 +919,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
             <div className="micro-event-bubble">
               <span className="micro-event-emoji">{evt.emoji}</span>
               <span>{evt.label}</span>
-              {evt.coins > 0 && <span className="micro-event-coins">+{evt.coins}🪙</span>}
+              {evt.coins > 0 && <span className="micro-event-coins">+{evt.coins}<span className="coin-icon"/></span>}
             </div>
           </div>
         ))}
@@ -1168,7 +1168,7 @@ export default function TankView({ fish, selectedFishId, onSelectFish, waterQual
                 '--spin': `${Math.random() * 360}deg`,
                 '--fall-dur': `${0.6 + Math.random() * 0.6}s`,
                 animationDelay: `${i * 0.04}s`,
-              }}>🪙</span>
+              }}><span className="coin-icon"/></span>
             ))}
           </div>
         ))}

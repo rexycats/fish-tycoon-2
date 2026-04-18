@@ -125,7 +125,7 @@ export default function HatchReveal({ fish, onComplete }) {
                   </div>
                 )}
                 <div className="hatch-final-value">
-                  Est. Value: 🪙 {seq.legendaryCombo ? seq.estimatedValue * seq.legendaryCombo.priceBonus : seq.estimatedValue}
+                  Est. Value: <span className="coin-icon"/> {seq.legendaryCombo ? seq.estimatedValue * seq.legendaryCombo.priceBonus : seq.estimatedValue}
                 </div>
                 {seq.generation > 1 && (
                   <div className="hatch-final-gen">

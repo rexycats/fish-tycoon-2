@@ -465,16 +465,28 @@ export const useGameStore = create(
           playCoin();
         }),
 
-        buyFish: (cost, targetRarity, speciesKey) => set(state => {
+        buyFish: (cost, targetRarity, speciesKey, tankId) => set(state => {
           if (state.player.coins < cost) {
             playWarning();
             addLogDraft(state, 'Not enough coins!');
             return;
           }
-          // Find a tank with room
+          // Find a tank with room — prefer the requested tank (active tank)
           const fishCountByTank = new Map();
           for (const f of state.fish) fishCountByTank.set(f.tankId, (fishCountByTank.get(f.tankId) || 0) + 1);
-          const tank = state.tanks.find(t => (fishCountByTank.get(t.id) || 0) < (t.capacity || 12));
+
+          let tank = null;
+          // Try the requested tank first
+          if (tankId) {
+            const requested = state.tanks.find(t => t.id === tankId);
+            if (requested && (fishCountByTank.get(tankId) || 0) < (requested.capacity || 12)) {
+              tank = requested;
+            }
+          }
+          // Fallback: first tank with room
+          if (!tank) {
+            tank = state.tanks.find(t => (fishCountByTank.get(t.id) || 0) < (t.capacity || 12));
+          }
           if (!tank) {
             playWarning();
             addLogDraft(state, 'All tanks are full!');

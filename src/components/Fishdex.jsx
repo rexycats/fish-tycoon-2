@@ -98,7 +98,7 @@ function FishdexCard({ entry, onClick, isSelected }) {
       <div className="fdex-card-info">
         <div className="fdex-card-name">{displayName}</div>
         <div className="fdex-card-rarity" style={{ color: rarityColor }}>{entry.rarity}</div>
-        <div className="fdex-card-price">🪙 {entry.basePrice}</div>
+        <div className="fdex-card-price"><span className="coin-icon"/> {entry.basePrice}</div>
         {entry.firstDiscoveredAt && (
           <div className="fdex-card-date">
             {new Date(entry.firstDiscoveredAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: '2-digit' })}
@@ -180,7 +180,7 @@ function FishdexDetail({ entry, onGenerateLore, isGenerating, aiError }) {
           <div className="fdex-detail-rarity" style={{ color: rarityColor }}>
             {entry.rarity.toUpperCase()}
           </div>
-          <div className="fdex-detail-price">Base value: 🪙{entry.basePrice}</div>
+          <div className="fdex-detail-price">Base value: <span className="coin-icon"/>{entry.basePrice}</div>
           <div className="fdex-detail-date">First caught: {discoveredAt}</div>
           {entry.colorVariant && entry.colorVariant !== 'default' && entry.colorVariant !== 'psychedelic' && (
             <div className="fdex-detail-variant">✦ {entry.colorVariant.charAt(0).toUpperCase() + entry.colorVariant.slice(1)} variant</div>
