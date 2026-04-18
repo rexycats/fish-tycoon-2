@@ -45,6 +45,14 @@ const CuttlefishSprite       = lazy(() => import('./sprites/CuttlefishSprite.jsx
 const CorydorasSprite        = lazy(() => import('./sprites/CorydorasSprite.jsx'));
 const HammerheadSprite       = lazy(() => import('./sprites/HammerheadSprite.jsx'));
 const NautilusSprite         = lazy(() => import('./sprites/NautilusSprite.jsx'));
+const PlecoSprite            = lazy(() => import('./sprites/PlecoSprite.jsx'));
+const ClownLoachSprite       = lazy(() => import('./sprites/ClownLoachSprite.jsx'));
+const RoyalGrammaSprite      = lazy(() => import('./sprites/RoyalGrammaSprite.jsx'));
+const RainbowFishSprite      = lazy(() => import('./sprites/RainbowFishSprite.jsx'));
+const DwarfGouramiSprite     = lazy(() => import('./sprites/DwarfGouramiSprite.jsx'));
+const FlameAngelSprite       = lazy(() => import('./sprites/FlameAngelSprite.jsx'));
+const BanggaiCardinalSprite  = lazy(() => import('./sprites/BanggaiCardinalSprite.jsx'));
+const HarlequinRasboraSprite = lazy(() => import('./sprites/HarlequinRasboraSprite.jsx'));
 
 // ── Species sprite routing (Phase 12) ───────────────────────
 // Add new real-species entries here as they're built.
@@ -75,6 +83,14 @@ const SPECIES_SPRITE_MAP = {
   corydoras:         CorydorasSprite,
   hammerhead:        HammerheadSprite,
   nautilus:          NautilusSprite,
+  pleco:             PlecoSprite,
+  clown_loach:       ClownLoachSprite,
+  royal_gramma:      RoyalGrammaSprite,
+  rainbow_fish:      RainbowFishSprite,
+  dwarf_gourami:     DwarfGouramiSprite,
+  flame_angel:       FlameAngelSprite,
+  banggai_cardinal:  BanggaiCardinalSprite,
+  harlequin_rasbora: HarlequinRasboraSprite,
 };
 
 // ─── COLOR PALETTES ─────────────────────────────────────────────────────────
@@ -126,7 +142,7 @@ const BODY_COLORS = {
 };
 
 // ─── RARITY AURA ────────────────────────────────────────────────────────────
-const RARITY_AURA = {
+export const RARITY_AURA = {
   common:    null,
   uncommon:  { color:'#78c8ff', opacity:0.18, blur:5  },
   rare:      { color:'#c878ff', opacity:0.30, blur:8  },

@@ -23,11 +23,11 @@ export default class ErrorBoundary extends React.Component {
       return (
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          minHeight: '100vh', background: '#0a1828', color: '#d8e0f0', fontFamily: 'Nunito, sans-serif',
+          minHeight: '100vh', background: 'linear-gradient(180deg, #c8f3ff, #eefcff)', color: '#35506b', fontFamily: 'Nunito, sans-serif',
           textAlign: 'center', padding: '2rem',
         }}>
           <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>Error</div>
-          <h1 style={{ fontFamily: 'Fredoka, sans-serif', fontSize: '1.5rem', marginBottom: '0.5rem' }}>
+          <h1 style={{ fontFamily: 'Quicksand, sans-serif', fontSize: '1.5rem', marginBottom: '0.5rem' }}>
             Something went wrong!
           </h1>
           <p style={{ opacity: 0.6, maxWidth: 400, marginBottom: '1.5rem' }}>
@@ -36,16 +36,16 @@ export default class ErrorBoundary extends React.Component {
           <button
             onClick={() => window.location.reload()}
             style={{
-              padding: '10px 24px', borderRadius: '8px', border: '1px solid rgba(64,200,240,0.4)',
-              background: 'rgba(64,200,240,0.15)', color: '#40c8f0', fontSize: '1rem',
-              cursor: 'pointer', fontFamily: 'Fredoka, sans-serif', fontWeight: 600,
+              padding: '10px 24px', borderRadius: '999px', border: '2px solid rgba(143,231,255,0.6)',
+              background: 'linear-gradient(180deg, #8fe7ff, #5cbfcf)', color: '#1a4050', fontSize: '1rem',
+              cursor: 'pointer', fontFamily: 'Quicksand, sans-serif', fontWeight: 700,
             }}
           >
             Refresh
           </button>
           <details style={{ marginTop: '2rem', opacity: 0.5, fontSize: '0.75rem', maxWidth: 600 }}>
             <summary>Technical details</summary>
-            <pre style={{ textAlign: 'left', whiteSpace: 'pre-wrap', color: '#ff8888', background: '#111', padding: '12px', borderRadius: '4px', maxHeight: '300px', overflow: 'auto' }}>
+            <pre style={{ textAlign: 'left', whiteSpace: 'pre-wrap', color: '#c04040', background: 'rgba(255,255,255,0.8)', padding: '12px', borderRadius: '12px', maxHeight: '300px', overflow: 'auto', border: '1px solid rgba(200,100,100,0.2)' }}>
               {this.state.error?.stack || this.state.error?.toString()}
             </pre>
           </details>
